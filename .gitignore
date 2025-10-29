@@ -1,0 +1,48 @@
+# Entorno virtual
+venv/
+env/
+ENV/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Base de datos
+*.db
+*.sqlite
+*.sqlite3
+
+# Reportes
+reports/
+allure-results/
+allure-report/
+
+# Videos
+videos/
+*.mp4
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Archivos temporales
+*.tmp
+temp/

@@ -1,0 +1,59 @@
+# ==================== AUTOMATIZACIÓN WEB ====================
+
+# Selenium WebDriver - Librería principal para controlar navegadores
+# Versión 4.15.2 (Nov 2023): Estable, soporta Chrome/Firefox/Edge modernos
+# Por qué esta versión: Balance entre estabilidad y features recientes
+selenium==4.15.2
+
+# WebDriver Manager - Descarga automática de drivers (ChromeDriver, GeckoDriver, etc.)
+# Versión 4.0.1: Compatible con Selenium 4.x, gestiona versiones de drivers automáticamente
+# Por qué: Evita descargar manualmente drivers y problemas de compatibilidad
+webdriver-manager==4.0.1
+
+
+# ==================== FRAMEWORK DE TESTING ====================
+
+# Pytest - Framework principal para escribir y ejecutar tests
+# Versión 7.4.3 (Sep 2023): Última versión estable de la rama 7.x
+# Por qué esta versión: Estable, ampliamente adoptada, compatible con plugins
+pytest==7.4.3
+
+# Pytest-xdist - Plugin para ejecución paralela de tests
+# Versión 3.5.0: Compatible con pytest 7.x
+# Por qué: Reduce tiempo de ejecución al correr tests en paralelo (requisito técnico: 5 pts)
+pytest-xdist==3.5.0
+
+
+# ==================== REPORTES ====================
+
+# Allure-pytest - Plugin para generar reportes visuales con Allure
+# Versión 2.13.2: Última versión compatible con pytest 7.x
+# Por qué: Genera reportes HTML profesionales con gráficos (requisito técnico: 10 pts)
+allure-pytest==2.13.2
+
+
+# ==================== UTILIDADES ====================
+
+# Python-dotenv - Carga variables de entorno desde archivo .env
+# Versión 1.0.0: Versión estable y ligera
+# Por qué: Permite configurar URLs, credenciales sin hardcodearlas en el código
+# Uso: Opcional, para manejar diferentes ambientes (QA4, QA5)
+python-dotenv==1.0.0
+
+
+# ==================== NOTAS ====================
+#
+# Instalación:
+#   pip install -r requirements.txt
+#
+# Actualizar versiones (con precaución):
+#   pip install --upgrade selenium pytest allure-pytest
+#
+# Por qué versiones específicas (==) y no rangos (>=):
+#   - Garantiza reproducibilidad: todos usan las mismas versiones
+#   - Evita breaking changes: actualizaciones no rompen el código
+#   - Requisito de prueba técnica: código debe ejecutarse sin errores
+#
+# Compatibilidad:
+#   - Python 3.8+ requerido
+#   - Probado con Python 3.9.13
