@@ -90,36 +90,28 @@ def test_language_change(driver, base_url, db, language, browser, screenshots_mo
         if screenshots_mode == "all":
             allure.attach(driver.get_screenshot_as_png(), name="01_Page_Loaded", attachment_type=allure.attachment_type.PNG)
 
-    # PASO 4: Click en botón de idioma
-    with allure.step("Open language dropdown"):
-        home.click_language_button()
-        logger.info("Language dropdown opened")
-        # Capturar screenshot solo si modo es "all"
-        if screenshots_mode == "all":
-            allure.attach(driver.get_screenshot_as_png(), name="02_Language_Dropdown_Opened", attachment_type=allure.attachment_type.PNG)
-
-    # PASO 5: Seleccionar idioma
+    # PASO 4: Seleccionar idioma (select_language abre el dropdown automáticamente)
     with allure.step(f"Select language: {language}"):
         home.select_language(language)
         logger.info(f"Language '{language}' selected")
         # Capturar screenshot solo si modo es "all"
         if screenshots_mode == "all":
-            allure.attach(driver.get_screenshot_as_png(), name=f"03_Language_{language}_Selected", attachment_type=allure.attachment_type.PNG)
+            allure.attach(driver.get_screenshot_as_png(), name=f"02_Language_{language}_Selected", attachment_type=allure.attachment_type.PNG)
 
-    # PASO 6: Obtener texto de validación
+    # PASO 5: Obtener texto de validación
     with allure.step(f"Verify language change to {language}"):
         actual_text = home.get_offers_text()
         expected_text = EXPECTED_TEXTS[language]
         logger.info(f"Expected text: '{expected_text}' | Actual text: '{actual_text}'")
 
-        # PASO 7: Validación con assert (requisito del PDF)
+        # PASO 6: Validación con assert (requisito del PDF)
         assert expected_text in actual_text, f"Expected '{expected_text}' but got '{actual_text}'"
         logger.info("✓ Assertion passed: Language changed successfully")
         # Capturar screenshot solo si modo es "all"
         if screenshots_mode == "all":
-            allure.attach(driver.get_screenshot_as_png(), name="04_Validation_Success", attachment_type=allure.attachment_type.PNG)
+            allure.attach(driver.get_screenshot_as_png(), name="03_Validation_Success", attachment_type=allure.attachment_type.PNG)
 
-    # PASO 8: Guardar resultado en base de datos (requisito del PDF)
+    # PASO 7: Guardar resultado en base de datos (requisito del PDF)
     test_name = f"Case4_{language}_{env}_{browser}"
     db.save_test_result(
         test_name=test_name,
