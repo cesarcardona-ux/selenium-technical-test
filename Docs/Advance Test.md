@@ -78,9 +78,57 @@ pytest tests/nuxqa/test_language_change_Case4.py --browser=all --language=all --
 -------------------------------
 
 ### Caso 5: Verificar Cambio de POS
-**Estado:** ⏳ Pendiente
+**Estado:** ✅ Completado
 **Objetivo:** Seleccionar 3 POS y verificar que el cambio se hace correctamente
-**POS:** Otros países, España, Chile
+**POS:** Chile, España, Otros países
+**Navegadores:** Chrome, Edge, Firefox
+**Ambientes:** QA4, QA5
+**Total tests:** 18 (3 POS × 2 ambientes × 3 navegadores)
+
+**Archivos implementados:**
+- `pages/nuxqa/home_page.py` - Page Object con locators de POS (actualizado)
+- `tests/nuxqa/test_pos_change_Case5.py` - Test parametrizado dinámicamente
+
+**CLI Options utilizadas:**
+- `--browser` (chrome | edge | firefox | all)
+- `--pos` (Chile | España | Otros países | all)
+- `--env` (qa4 | qa5 | all)
+- `--screenshots` (none | on-failure | all) - Captura de screenshots condicional
+- `--video` (none | enabled) - Grabación de video en formato MP4
+
+**Selectores utilizados:**
+- `//button[@id='pointOfSaleSelectorId']` - Botón de POS (usando ID único)
+- `//span[@class='points-of-sale_list_item_label' and contains(text(), '{pos}')]` - Opción de POS por texto
+- `//button[@id='pointOfSaleSelectorId']//span[@class='button_label ng-star-inserted']` - Texto del POS seleccionado
+
+**Validaciones implementadas:**
+- Verificación de POS seleccionado en el botón
+- Resultados guardados en SQLite database con campo `case_number`
+- Logs detallados de cada paso
+- Screenshots automáticos en fallos y opcionales en todos los pasos
+- Video recording completo de ejecución (MP4 con OpenCV)
+
+**Características técnicas:**
+- Reutiliza infraestructura del Caso 4 (POM, fixtures, CLI options)
+- Parametrización dinámica vía pytest_generate_tests
+- Soporte multi-browser heredado de conftest.py
+- Allure decorators avanzados (tags, labels, dynamic titles)
+- Database SQLite con tracking por caso
+
+**Comandos de ejecución:**
+```bash
+# Ejecución básica (todos los browsers, POS y ambientes)
+pytest tests/nuxqa/test_pos_change_Case5.py --browser=all --pos=all --env=all -v
+
+# Con video y screenshots completos para Allure
+pytest tests/nuxqa/test_pos_change_Case5.py --browser=all --pos=all --env=all --video=enabled --screenshots=all --alluredir=reports/allure
+
+# Solo un POS específico
+pytest tests/nuxqa/test_pos_change_Case5.py --browser=chrome --pos=Chile --env=qa5 --video=enabled --screenshots=all
+
+# Ejecución paralela
+pytest tests/nuxqa/test_pos_change_Case5.py --browser=all --pos=all --env=all -n auto
+```
 
 -------------------------------
 
@@ -156,12 +204,12 @@ pytest tests/nuxqa/test_language_change_Case4.py --browser=all --language=all --
 - **Fase conceptual:** ✅ Completada (85% comprensión alcanzado)
 - **Repositorio GitHub:** ✅ Configurado (https://github.com/cesarcardona-ux/selenium-technical-test)
 - **Fase de implementación:** ✅ En progreso
-- **Casos completados:** 1/7 (Case 4 con video evidence)
+- **Casos completados:** 2/7 (Cases 4 y 5 con video evidence)
 - **Video Evidence:** ✅ Implementado
   - Grabación MP4 con OpenCV
   - Screenshots condicionales
   - Integración completa con Allure
-- **Próximo paso:** Implementar Caso 5 (Verificar Cambio de POS)
+- **Próximo paso:** Implementar Caso 6 (Redirecciones Header)
 
 -------------------------------
 

@@ -188,6 +188,12 @@ def pytest_addoption(parser):
         help="Language to test: Español, English, Français, Português, or all (default: all)"
     )
     parser.addoption(
+        "--pos",
+        action="store",
+        default="all",
+        help="POS to test: Chile, España, Otros países, or all (default: all)"
+    )
+    parser.addoption(
         "--env",
         action="store",
         default="all",
@@ -220,6 +226,7 @@ def pytest_generate_tests(metafunc):
     # Obtener valores de las opciones CLI
     browser_option = metafunc.config.getoption("browser")
     language_option = metafunc.config.getoption("language")
+    pos_option = metafunc.config.getoption("pos")
     env_option = metafunc.config.getoption("env")
 
     # Definir todos los navegadores disponibles
@@ -227,6 +234,9 @@ def pytest_generate_tests(metafunc):
 
     # Definir todos los idiomas disponibles
     all_languages = ["Español", "English", "Français", "Português"]
+
+    # Definir todos los POS disponibles
+    all_pos = ["Chile", "España", "Otros países"]
 
     # Definir todos los ambientes disponibles
     all_envs = {
@@ -249,6 +259,14 @@ def pytest_generate_tests(metafunc):
         else:
             languages = [language_option] if language_option in all_languages else all_languages
         metafunc.parametrize("language", languages, scope="function")
+
+    # Filtrar POS según opción
+    if "pos" in metafunc.fixturenames:
+        if pos_option == "all":
+            pos_list = all_pos
+        else:
+            pos_list = [pos_option] if pos_option in all_pos else all_pos
+        metafunc.parametrize("pos", pos_list, scope="function")
 
     # Filtrar ambientes según opción
     if "base_url" in metafunc.fixturenames:
