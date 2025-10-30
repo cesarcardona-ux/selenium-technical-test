@@ -25,6 +25,8 @@
 - `--browser` (chrome | edge | firefox | all)
 - `--language` (Español | English | Français | Português | all)
 - `--env` (qa4 | qa5 | all)
+- `--screenshots` (none | on-failure | all) - Captura de screenshots condicional
+- `--video` (none | enabled) - Grabación de video en formato MP4
 
 **Selectores utilizados:**
 - `//button[contains(@class, 'dropdown_trigger')]` - Botón de idioma
@@ -33,8 +35,10 @@
 
 **Validaciones implementadas:**
 - Verificación de texto esperado según idioma seleccionado
-- Resultados guardados en SQLite database
+- Resultados guardados en SQLite database con campo `case_number`
 - Logs detallados de cada paso
+- Screenshots automáticos en fallos y opcionales en todos los pasos
+- Video recording completo de ejecución (MP4 con OpenCV)
 
 **Características técnicas:**
 - Page Object Model (POM)
@@ -42,10 +46,33 @@
 - Soporte multi-browser con CLI options
 - Selenium Manager para Edge (sin webdriver-manager)
 - webdriver-manager para Chrome y Firefox
+- Video recording con threading (VideoRecorder class)
+  - OpenCV (cv2) para creación de MP4
+  - 2 FPS para evitar saturación del connection pool
+  - Sanitización de nombres de archivo (Windows-compatible)
+- Screenshots condicionales con Allure integration
+  - Captura automática en fallos
+  - Captura manual en cada paso del test
+- Allure decorators avanzados
+  - Tags dinámicos (browser, language, environment)
+  - Labels personalizados (case_number)
+  - Titles dinámicos
+  - Features y Stories
+- Database SQLite con campo `case_number` para tracking de casos
 
-**Comando de ejecución:**
+**Comandos de ejecución:**
 ```bash
+# Ejecución básica (todos los browsers, idiomas y ambientes)
 pytest tests/nuxqa/test_language_change_Case4.py --browser=all --language=all --env=all -v
+
+# Con video y screenshots completos para Allure
+pytest tests/nuxqa/test_language_change_Case4.py --browser=all --language=all --env=all --video=enabled --screenshots=all --alluredir=reports/allure
+
+# Solo video, sin screenshots
+pytest tests/nuxqa/test_language_change_Case4.py --browser=chrome --language=English --env=qa5 --video=enabled --screenshots=none
+
+# Solo screenshots en fallos (default)
+pytest tests/nuxqa/test_language_change_Case4.py --browser=all --language=all --env=all --screenshots=on-failure
 ```
 
 -------------------------------
@@ -129,7 +156,11 @@ pytest tests/nuxqa/test_language_change_Case4.py --browser=all --language=all --
 - **Fase conceptual:** ✅ Completada (85% comprensión alcanzado)
 - **Repositorio GitHub:** ✅ Configurado (https://github.com/cesarcardona-ux/selenium-technical-test)
 - **Fase de implementación:** ✅ En progreso
-- **Casos completados:** 1/7 (Case 4)
+- **Casos completados:** 1/7 (Case 4 con video evidence)
+- **Video Evidence:** ✅ Implementado (15 pts opcionales)
+  - Grabación MP4 con OpenCV
+  - Screenshots condicionales
+  - Integración completa con Allure
 - **Próximo paso:** Implementar Caso 5 (Verificar Cambio de POS)
 
 -------------------------------

@@ -77,6 +77,15 @@ This test suite supports flexible execution with custom CLI options:
 - `qa5` - Run tests only on QA5 environment
 - `all` - Run tests on both environments
 
+**--screenshots**: Screenshot capture mode (default: on-failure)
+- `none` - No screenshots
+- `on-failure` - Capture screenshots only when tests fail
+- `all` - Capture screenshots at every test step
+
+**--video**: Video recording mode (default: none)
+- `none` - No video recording
+- `enabled` - Record full test execution video (MP4 format)
+
 ### Examples
 
 **Run all tests (all browsers, all languages, all environments)**
@@ -102,6 +111,16 @@ pytest tests/nuxqa/test_language_change_Case4.py --browser=firefox --language=al
 **Run tests in parallel (all browsers)**
 ```bash
 pytest tests/ -n auto
+```
+
+**Run tests with video recording and full screenshots**
+```bash
+pytest tests/nuxqa/test_language_change_Case4.py --video=enabled --screenshots=all --alluredir=reports/allure
+```
+
+**Run tests with video but no screenshots**
+```bash
+pytest tests/nuxqa/test_language_change_Case4.py --video=enabled --screenshots=none
 ```
 
 **Generate and view Allure report**
@@ -150,7 +169,7 @@ pytest tests/nuxqa/test_language_change_Case4.py --browser=all --language=all --
 - ✅ Clear Assertions (5 pts)
 - ✅ Page Object Model (POM)
 - ✅ Multiple Browsers (Chrome, Edge, Firefox)
-- ⏳ Video Evidence (15 pts - Optional)
+- ✅ Video Evidence (15 pts - Optional) - MP4 recording with OpenCV
 
 ---------------------------------------
 
