@@ -104,6 +104,23 @@ def test_language_change(driver, base_url, db, language, browser, screenshots_mo
         expected_text = EXPECTED_TEXTS[language]
         logger.info(f"Expected text: '{expected_text}' | Actual text: '{actual_text}'")
 
+        # Adjuntar información detallada al reporte de Allure
+        allure.attach(
+            expected_text,
+            name="Expected Text",
+            attachment_type=allure.attachment_type.TEXT
+        )
+        allure.attach(
+            actual_text,
+            name="Actual Text (Retrieved from Page)",
+            attachment_type=allure.attachment_type.TEXT
+        )
+        allure.attach(
+            f"Language: {language}\nExpected: '{expected_text}'\nActual: '{actual_text}'\nValidation: {'PASSED' if expected_text in actual_text else 'FAILED'}",
+            name="Validation Details",
+            attachment_type=allure.attachment_type.TEXT
+        )
+
         # PASO 6: Validación con assert (requisito del PDF)
         assert expected_text in actual_text, f"Expected '{expected_text}' but got '{actual_text}'"
         logger.info("✓ Assertion passed: Language changed successfully")

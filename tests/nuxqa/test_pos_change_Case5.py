@@ -112,6 +112,23 @@ def test_pos_change(driver, base_url, db, pos, browser, screenshots_mode):
         expected_text = EXPECTED_POS_TEXTS[pos]
         logger.info(f"Expected text: '{expected_text}' | Actual text: '{actual_text}'")
 
+        # Adjuntar información detallada al reporte de Allure
+        allure.attach(
+            expected_text,
+            name="Expected POS Text",
+            attachment_type=allure.attachment_type.TEXT
+        )
+        allure.attach(
+            actual_text,
+            name="Actual POS Text (Retrieved from Page)",
+            attachment_type=allure.attachment_type.TEXT
+        )
+        allure.attach(
+            f"POS: {pos}\nExpected: '{expected_text}'\nActual: '{actual_text}'\nValidation: {'PASSED' if expected_text in actual_text else 'FAILED'}",
+            name="Validation Details",
+            attachment_type=allure.attachment_type.TEXT
+        )
+
         # PASO 7: Validación con assert (requisito del PDF)
         assert expected_text in actual_text, f"Expected '{expected_text}' but got '{actual_text}'"
         logger.info("✓ Assertion passed: POS changed successfully")
