@@ -76,7 +76,9 @@ class TestDatabase:
                 error_message TEXT,
                 timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
                 browser TEXT,
-                url TEXT
+                url TEXT,
+                language TEXT,
+                case_number TEXT
             )
         """)
 
@@ -85,7 +87,7 @@ class TestDatabase:
         self.connection.commit()
 
     def save_test_result(self, test_name, status, execution_time=None,
-                        error_message=None, browser="chrome", url=None):
+                        error_message=None, browser="chrome", url=None, language=None, case_number=None):
         """
         Inserta un nuevo registro con el resultado de un test ejecutado.
 
@@ -96,6 +98,8 @@ class TestDatabase:
         - error_message (str): Mensaje de error si falló (opcional)
         - browser (str): Navegador usado (por defecto: "chrome")
         - url (str): URL probada (opcional)
+        - language (str): Idioma del test (opcional)
+        - case_number (str): Número del caso de prueba (opcional, ej: "4", "5")
 
         Uso de ? en SQL:
         - Los ? son placeholders (marcadores de posición)
@@ -108,9 +112,9 @@ class TestDatabase:
         # Los ? se reemplazan con los valores de la tupla en el segundo argumento
         cursor.execute("""
             INSERT INTO test_executions
-            (test_name, status, execution_time, error_message, browser, url)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """, (test_name, status, execution_time, error_message, browser, url))
+            (test_name, status, execution_time, error_message, browser, url, language, case_number)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """, (test_name, status, execution_time, error_message, browser, url, language, case_number))
 
         self.connection.commit()  # Guarda cambios en disco
 
