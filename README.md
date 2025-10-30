@@ -2,229 +2,121 @@
 
 Automated testing suite for nuxqa web application using Selenium WebDriver, Python, and pytest.
 
----------------------------------------
+## Quick Start
 
-## Requirements
-
+### Prerequisites
 - Python 3.9+
-- Google Chrome browser
-- Microsoft Edge browser
-- Mozilla Firefox browser
+- Chrome, Edge, and Firefox browsers
 - Git
 
----------------------------------------
+### Setup
 
-## Setup Instructions
+```bash
+# Clone repository
+git clone https://github.com/cesarcardona-ux/selenium-technical-test.git
+cd selenium-technical-test
 
-### Windows
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # MacOS/Linux
+venv\Scripts\activate     # Windows
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/cesarcardona-ux/selenium-technical-test.git
-   cd selenium-technical-test
-   ```
-
-2. **Create virtual environment**
-   ```bash
-   python -m venv venv
-   venv\Scripts\activate
-   ```
-
-3. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-### MacOS / Linux
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/cesarcardona-ux/selenium-technical-test.git
-   cd selenium-technical-test
-   ```
-
-2. **Create virtual environment**
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate
-   ```
-
-3. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
----------------------------------------
+# Install dependencies
+pip install -r requirements.txt
+```
 
 ## Running Tests
 
+### Basic Execution
+
+```bash
+# Run all implemented tests
+pytest tests/
+
+# Run specific case with all combinations
+pytest tests/nuxqa/test_language_change_Case4.py
+
+# Generate Allure report
+pytest tests/
+allure serve reports/allure
+```
+
 ### CLI Options
 
-This test suite supports flexible execution with custom CLI options:
+| Option          | Values                                     | Description                                   |
+|-----------------|--------------------------------------------|-----------------------------------------------|
+| `--browser`     | chrome, edge, firefox, all                 | Browser selection (default: all)              |
+| `--language`    | Español, English, Français, Português, all | Language selection (default: all)             |
+| `--env`         | qa4, qa5, all                              | Environment selection (default: all)          |
+| `--screenshots` | none, on-failure, all                      | Screenshot capture mode (default: on-failure) |
+| `--video`       | none, enabled                              | Video recording (default: none)               |
 
-**--browser**: Choose browser (default: all)
-- `chrome` - Run tests only in Chrome
-- `edge` - Run tests only in Edge
-- `firefox` - Run tests only in Firefox
-- `all` - Run tests in all browsers
-
-**--language**: Choose language (default: all)
-- `Español`, `English`, `Français`, `Português` - Specific language
-- `all` - Test all languages
-
-**--env**: Choose environment (default: all)
-- `qa4` - Run tests only on QA4 environment
-- `qa5` - Run tests only on QA5 environment
-- `all` - Run tests on both environments
-
-**--screenshots**: Screenshot capture mode (default: on-failure)
-- `none` - No screenshots
-- `on-failure` - Capture screenshots only when tests fail
-- `all` - Capture screenshots at every test step
-
-**--video**: Video recording mode (default: none)
-- `none` - No video recording
-- `enabled` - Record full test execution video (MP4 format)
-
-### Examples
-
-**Run all tests (all browsers, all languages, all environments)**
+**Example with options:**
 ```bash
-pytest tests/
+pytest tests/nuxqa/test_language_change_Case4.py --browser=chrome --language=English --env=qa5 --video=enabled --screenshots=all
 ```
 
-**Run specific test case with all combinations**
-```bash
-pytest tests/nuxqa/test_language_change_Case4.py --browser=all --language=all --env=all -v
-```
-
-**Run tests in Chrome only with English on QA4**
-```bash
-pytest tests/nuxqa/test_language_change_Case4.py --browser=chrome --language=English --env=qa4 -v
-```
-
-**Run tests in Firefox with all languages on QA5**
-```bash
-pytest tests/nuxqa/test_language_change_Case4.py --browser=firefox --language=all --env=qa5 -v
-```
-
-**Run tests in parallel (all browsers)**
+**Parallel execution:**
 ```bash
 pytest tests/ -n auto
 ```
 
-**Run tests with video recording and full screenshots**
-```bash
-pytest tests/nuxqa/test_language_change_Case4.py --video=enabled --screenshots=all --alluredir=reports/allure
-```
+## Test Cases Status
 
-**Run tests with video but no screenshots**
-```bash
-pytest tests/nuxqa/test_language_change_Case4.py --video=enabled --screenshots=none
-```
+| Case   | Status       | Description               | Tests |
+|--------|--------------|---------------------------|-----|
+| Case 4 | ✅ Complete | Language Change Validation | 24 |
+| Case 5 | ⏳ Pending  | POS Change Validation      | -  |
+| Case 6 | ⏳ Pending  | Header Redirections        | -  |
+| Case 7 | ⏳ Pending  | Footer Redirections        | -  |
+| Case 3 | ⏳ Pending  | Login and Network Capture  | -  |
+| Case 1 | ⏳ Pending  | One-way Booking            | -  |
+| Case 2 | ⏳ Pending  | Round-trip Booking         | -  |
 
-**Generate and view Allure report**
-```bash
-pytest tests/
-allure serve reports/allure
-```
-
----------------------------------------
-
-## Implemented Test Cases
-
-### ✅ Case 4: Language Change Validation
-- **Description:** Validates language switching functionality
-- **Languages tested:** Spanish, English, French, Portuguese
+### Case 4: Language Change Validation ✅
+- **Languages:** Spanish, English, French, Portuguese
 - **Browsers:** Chrome, Edge, Firefox
-- **Environments:** QA4 and QA5
-- **Total tests:** 24 (4 languages × 2 environments × 3 browsers)
+- **Environments:** QA4, QA5
+- **Total combinations:** 24 tests
 - **File:** `tests/nuxqa/test_language_change_Case4.py`
 
-**Run this case:**
-```bash
-pytest tests/nuxqa/test_language_change_Case4.py --browser=all --language=all --env=all -v
-```
+## Technical Implementation
 
----------------------------------------
-
-## Pending Test Cases
-
-- ⏳ Case 5: POS Change Validation
-- ⏳ Case 6: Header Redirections
-- ⏳ Case 7: Footer Redirections
-- ⏳ Case 3: Login and Network Capture
-- ⏳ Case 1: One-way Booking
-- ⏳ Case 2: Round-trip Booking
-
----------------------------------------
-
-## Technical Requirements Compliance
-
-- ✅ Allure Reports
-- ✅ Detailed Logging
-- ✅ SQLite Database
-- ✅ QA4 and QA5 Environments
-- ✅ Parallel Execution with xdist
-- ✅ Clear Assertions
+### Features
 - ✅ Page Object Model (POM)
-- ✅ Multiple Browsers (Chrome, Edge, Firefox)
-- ✅ Video Evidence - MP4 recording with OpenCV
+- ✅ Multi-browser support (Chrome, Edge, Firefox)
+- ✅ Parametrized tests with pytest
+- ✅ Allure reporting with screenshots and video
+- ✅ SQLite database for results tracking
+- ✅ Detailed logging
+- ✅ Parallel execution (pytest-xdist)
+- ✅ Video evidence (MP4 with OpenCV)
 
----------------------------------------
-
-## Project Structure
-
+### Project Structure
 ```
-├── pages/              # Page Objects (POM)
-│   └── nuxqa/
-│       └── home_page.py
-├── tests/              # Test cases
-│   └── nuxqa/
-│       └── test_language_change_Case4.py
-├── utils/              # Utilities
-│   └── database.py     # SQLite integration
-├── Docs/               # Documentation
-├── reports/            # Test reports (not in repo)
-├── conftest.py         # Pytest configuration
-├── pytest.ini          # Pytest settings
-└── requirements.txt    # Dependencies
+├── pages/                  # Page Objects
+├── tests/                  # Test cases
+├── utils/                  # Database and utilities
+├── Docs/                   # Additional documentation
+├── conftest.py             # Pytest configuration
+└── requirements.txt        # Dependencies
 ```
 
----------------------------------------
+### Test Results
 
-## View Test Results
-
-### Allure Report
-After running tests, view the interactive HTML report:
+**Allure Report:**
 ```bash
 allure serve reports/allure
 ```
 
-### SQLite Database
-Test results are saved to `test_results.db` (not in repo).
+**Database:** Test results are saved to `test_results.db`
 
-### Logs
-Detailed execution logs are saved to `reports/test_execution.log`.
-
----------------------------------------
-
-## Notes
-
-- Virtual environment (`venv/`) is excluded from repository
-- Test reports (`reports/`) are excluded from repository
-- Database files (`*.db`) are excluded from repository
-- Browser drivers are automatically managed:
-  - ChromeDriver via webdriver-manager
-  - EdgeDriver via Selenium Manager (built-in)
-  - GeckoDriver via webdriver-manager
-
----------------------------------------
+**Logs:** Detailed execution logs in `reports/test_execution.log`
 
 ## Repository
 
 https://github.com/cesarcardona-ux/selenium-technical-test
 
----------------------------------------
+---
 
 🤖 *Generated with Claude Code*
