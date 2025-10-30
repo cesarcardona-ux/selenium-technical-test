@@ -535,29 +535,292 @@ pip install webdriver-manager  # Soporta todos los navegadores
 
 ## PAGE OBJECT MODEL (POM)
 
-**Qué es:** Patrón de diseño que separa lógica de prueba de elementos de página
+**Qué es:** Patrón de diseño para organizar código de automatización. Separa la lógica de prueba de la interacción con elementos de página.
+
+**Problema que resuelve:**
+- Sin POM: Código repetitivo, difícil de mantener, selectores duplicados en múltiples tests
+- Con POM: Código reutilizable, fácil mantenimiento, cambios en un solo lugar
 
 **Estructura:**
-- `pages/` → Clases que representan cada página web
-- `tests/` → Casos de prueba que usan las páginas
+```
+proyecto/
+├── pages/              ← Clases (una por página web)
+│   ├── home_page.py
+│   ├── login_page.py
+│   └── flights_page.py
+├── tests/              ← Tests (usan las páginas)
+│   ├── test_language.py
+│   └── test_booking.py
+```
 
-**Beneficio:** Código más limpio, reutilizable y mantenible
+**Componentes de un Page Object:**
+1. **Locators (selectores):** Constantes con ubicación de elementos
+2. **Constructor:** Recibe el driver
+3. **Métodos:** Acciones que se pueden hacer en la página
 
-**Ejemplo:**
+**Ejemplo completo:**
 ```python
-# pages/login_page.py
-class LoginPage:
+# pages/home_page.py
+from selenium.webdriver.common.by import By
+
+class HomePage:
+    # 1. LOCATORS (selectores)
+    SEARCH_BUTTON = (By.ID, "btn-search")
+    ORIGIN_INPUT = (By.CSS_SELECTOR, "input[name='origin']")
+
+    # 2. CONSTRUCTOR
     def __init__(self, driver):
         self.driver = driver
 
-    def login(self, user, password):
-        # Lógica de login aquí
-        pass
+    # 3. MÉTODOS (acciones)
+    def search_flight(self, origin, destination):
+        self.driver.find_element(*self.ORIGIN_INPUT).send_keys(origin)
+        self.driver.find_element(*self.SEARCH_BUTTON).click()
 
-# tests/test_login.py
-def test_login(driver):
-    page = LoginPage(driver)
-    page.login("user", "pass")
+    def get_title(self):
+        return self.driver.title
+
+# tests/test_search.py
+def test_buscar_vuelo(driver):
+    home = HomePage(driver)           # ← Crear Page Object
+    home.search_flight("BOG", "MDE")  # ← Usar método
+    assert "Flights" in home.get_title()
+```
+
+**Ventajas:**
+- ✅ **Reutilizable:** Mismo método usado por múltiples tests
+- ✅ **Mantenible:** Cambio de selector en un solo lugar
+- ✅ **Legible:** Tests se leen como historias de usuario
+- ✅ **Profesional:** Estándar de la industria
+
+**Sin POM vs Con POM:**
+```python
+# ❌ SIN POM (repetitivo, difícil de mantener)
+def test_login_correcto(driver):
+    driver.find_element(By.ID, "username").send_keys("user")
+    driver.find_element(By.ID, "password").send_keys("pass")
+    driver.find_element(By.ID, "btn-login").click()
+
+def test_login_incorrecto(driver):
+    driver.find_element(By.ID, "username").send_keys("wrong")
+    driver.find_element(By.ID, "password").send_keys("wrong")
+    driver.find_element(By.ID, "btn-login").click()
+    # Si cambia el selector, hay que editar TODOS los tests
+
+# ✅ CON POM (limpio, fácil de mantener)
+def test_login_correcto(driver):
+    login = LoginPage(driver)
+    login.do_login("user", "pass")
+
+def test_login_incorrecto(driver):
+    login = LoginPage(driver)
+    login.do_login("wrong", "wrong")
+    # Si cambia selector, solo se edita LoginPage
+```
+
+**Cuándo usar:**
+- Proyectos con más de 3-5 tests
+- Páginas con elementos reutilizados
+- Tests que requieren mantenimiento a largo plazo
+
+------------------------------------------
+
+## LOCATORS (SELECTORES)
+
+**Qué son:** Estrategias para encontrar elementos en una página web
+
+**Tipos principales en Selenium:**
+
+| Tipo             | Sintaxis               | Ejemplo                              | Cuándo usar                        |
+|------------------|------------------------|--------------------------------------|------------------------------------|
+| **ID**           | `By.ID`                | `By.ID, "username"`                  | Cuando elemento tiene id único     |
+| **NAME**         | `By.NAME`              | `By.NAME, "email"`                   | Formularios con atributo name      |
+| **CLASS**        | `By.CLASS_NAME`        | `By.CLASS_NAME, "btn"`               | Una sola clase CSS                 |
+| **CSS SELECTOR** | `By.CSS_SELECTOR`      | `By.CSS_SELECTOR, ".btn.primary"`    | Selectores complejos, rápido       |
+| **XPATH**        | `By.XPATH`             | `By.XPATH, "//button[@id='submit']"` | Navegación compleja, texto visible |
+| **LINK TEXT**    | `By.LINK_TEXT`         | `By.LINK_TEXT, "Click here"`         | Enlaces con texto exacto           |
+| **PARTIAL LINK** | `By.PARTIAL_LINK_TEXT` | `By.PARTIAL_LINK_TEXT, "Click"`      | Enlaces con texto parcial          |
+| **TAG NAME**     | `By.TAG_NAME`          | `By.TAG_NAME, "button"`              | Buscar por etiqueta HTML           |
+
+**Uso en código:**
+```python
+from selenium.webdriver.common.by import By
+
+# Encontrar elemento
+element = driver.find_element(By.CSS_SELECTOR, "button.submit")
+
+# En Page Object (con tupla)
+SUBMIT_BUTTON = (By.CSS_SELECTOR, "button.submit")
+driver.find_element(*SUBMIT_BUTTON)  # El * desempaca la tupla
+```
+
+**Recomendación de prioridad:**
+1. `ID` - Más rápido y único
+2. `CSS_SELECTOR` - Rápido y flexible
+3. `XPATH` - Potente pero más lento
+4. Otros - Casos específicos
+
+------------------------------------------
+
+## CSS SELECTOR
+
+**Qué es:** Lenguaje para seleccionar elementos HTML usando sintaxis CSS
+
+**Ventajas:**
+- ✅ Sintaxis simple e intuitiva
+- ✅ Más rápido que XPath
+- ✅ Soportado por todos los navegadores
+- ✅ Mismo lenguaje que CSS
+
+**Sintaxis básica:**
+
+| Patrón                  | Significado           | Ejemplo                           |
+|-------------------------|-----------------------|-----------------------------------|
+| `tag`                   | Etiqueta HTML         | `button`, `div`, `input`          |
+| `.class`                | Clase CSS             | `.btn`, `.dropdown`               |
+| `#id`                   | ID del elemento       | `#username`, `#submit`            |
+| `[attribute]`           | Atributo              | `[type='text']`, `[name='email']` |
+| `parent > child`        | Hijo directo          | `div > button`                    |
+| `ancestor descendant`   | Descendiente          | `form input`                      |
+| `element.class`         | Elemento con clase    | `button.primary`                  |
+| `element[attr='value']` | Elemento con atributo | `input[type='email']`             |
+
+**Ejemplos prácticos:**
+```python
+# Por clase
+"button.dropdown_trigger"
+
+# Por múltiples clases
+"button.btn.btn-primary"
+
+# Por ID
+"#languageSelector"
+
+# Por atributo
+"input[name='origin']"
+
+# Combinaciones
+"div.header button.language"  # Botón con clase "language" dentro de div con clase "header"
+
+# Atributo que contiene valor
+"button[class*='dropdown']"  # Clase que contiene "dropdown"
+
+# Hijo directo
+".language-selector > button"  # Button hijo directo de language-selector
+```
+
+**En Selenium:**
+```python
+from selenium.webdriver.common.by import By
+
+driver.find_element(By.CSS_SELECTOR, "button.dropdown_trigger")
+driver.find_element(By.CSS_SELECTOR, "#username")
+driver.find_element(By.CSS_SELECTOR, "input[type='email']")
+```
+
+------------------------------------------
+
+## XPATH
+
+**Qué es:** Lenguaje de consulta para navegar y seleccionar elementos en documentos XML/HTML
+
+**Ventajas:**
+- ✅ Muy potente y flexible
+- ✅ Puede navegar en cualquier dirección (arriba, abajo, hermanos)
+- ✅ Puede buscar por texto visible
+- ✅ Soporta lógica compleja (and, or, contains)
+
+**Desventajas:**
+- ❌ Sintaxis más compleja
+- ❌ Más lento que CSS Selector
+- ❌ Más propenso a errores
+
+**Sintaxis básica:**
+
+| Patrón                  | Significado               | Ejemplo                                 |
+|-------------------------|---------------------------|-----------------------------------------|
+| `//`                    | Buscar en cualquier nivel | `//button`                              |
+| `/`                     | Hijo directo              | `/html/body/div`                        |
+| `[@attribute='value']`  | Atributo específico       | `//button[@id='submit']`                |
+| `[text()='texto']`      | Texto exacto              | `//a[text()='Login']`                   |
+| `[contains()]`          | Contiene valor            | `//div[contains(@class, 'header')]`     |
+| `..`                    | Elemento padre            | `//button[@id='x']/..`                  |
+| `following-sibling::`   | Hermano siguiente         | `//div[@id='x']/following-sibling::div` |
+| `preceding-sibling::`   | Hermano anterior          | `//div[@id='x']/preceding-sibling::div` |
+| `ancestor::`            | Ancestro                  | `//button/ancestor::div`                |
+| `descendant::`          | Descendiente              | `//div/descendant::button`              |
+
+**Ejemplos prácticos:**
+```python
+# Por atributo
+"//button[@id='submit']"
+"//input[@name='username']"
+
+# Por clase
+"//div[@class='header']"
+
+# Por texto visible (SOLO con XPath)
+"//a[text()='Ofertas y destinos']"
+"//button[contains(text(), 'Buscar')]"
+
+# Contiene (útil para clases múltiples)
+"//button[contains(@class, 'dropdown_trigger')]"
+
+# Navegar hacia arriba (padre)
+"//input[@id='origin']/.."  # Padre del input
+
+# Hermanos
+"//div[@id='header']/following-sibling::div"  # Div siguiente
+
+# Combinaciones con AND
+"//button[@id='submit' and @class='btn']"
+
+# Por posición
+"(//button[@class='btn'])[1]"  # Primer botón con esa clase
+```
+
+**CSS vs XPath - Comparación:**
+```python
+# Encontrar botón con clase "dropdown_trigger"
+CSS:   "button.dropdown_trigger"
+XPATH: "//button[@class='dropdown_trigger']"
+
+# Encontrar elemento con id
+CSS:   "#languageButton"
+XPATH: "//*[@id='languageButton']"
+
+# Elemento que contiene clase
+CSS:   "button[class*='dropdown']"
+XPATH: "//button[contains(@class, 'dropdown')]"
+
+# ⭐ SOLO XPath puede buscar por texto visible
+XPATH: "//a[text()='Ofertas y destinos']"
+CSS:   ❌ No puede hacer esto
+```
+
+**Cuándo usar XPath:**
+1. Necesitas buscar por **texto visible**
+2. Necesitas navegar hacia **arriba** (parent/ancestor)
+3. Necesitas acceder a **hermanos** (siblings)
+4. Lógica compleja con **and/or**
+
+**Cuándo usar CSS Selector:**
+1. Selector simple y directo
+2. Performance es importante
+3. No necesitas funcionalidades especiales de XPath
+
+**En Selenium:**
+```python
+from selenium.webdriver.common.by import By
+
+# CSS Selector (más simple, más rápido)
+driver.find_element(By.CSS_SELECTOR, "button.dropdown_trigger")
+
+# XPath (más potente, más lento)
+driver.find_element(By.XPATH, "//button[@class='dropdown_trigger']")
+
+# XPath para buscar por texto (solo XPath puede hacer esto)
+driver.find_element(By.XPATH, "//a[text()='Ofertas y destinos']")
 ```
 
 ------------------------------------------
@@ -808,4 +1071,4 @@ pip install -r requirements.txt
 
 ------------------------------------------
 
-*Última actualización: Agregados conceptos de TEARDOWN, STATE CONTAMINATION y explicaciones detalladas de yield vs return*
+*Última actualización: Agregados conceptos detallados de POM (Page Object Model), LOCATORS, CSS SELECTOR y XPATH con comparaciones y ejemplos prácticos*
