@@ -50,6 +50,13 @@ class HomePage:
     SUBMENU_AVIANCA_CREDITS = (By.XPATH, "//span[@class='link_label' and contains(text(), 'avianca credits')]")
     SUBMENU_LUGGAGE = (By.XPATH, "//span[@class='link_label' and contains(text(), 'Equipaje')]")
 
+    # Footer Navigation selectors (Case 7)
+    # Links del footer con clase link-label (basado en inspección del sitio)
+    FOOTER_VUELOS_BARATOS = (By.XPATH, "//span[@class='link-label' and contains(text(), 'Vuelos baratos')]")
+    FOOTER_TRABAJA_CON_NOSOTROS = (By.XPATH, "//span[@class='link-label' and contains(text(), 'Trabaja con nosotros')]")
+    FOOTER_AVIANCADIRECT = (By.XPATH, "//span[@class='link-label' and contains(text(), 'aviancadirect')]")
+    FOOTER_ARTICULOS_RESTRINGIDOS = (By.XPATH, "//span[@class='link-label' and contains(text(), 'Artículos restringidos')]")
+
     # ==================== CONSTRUCTOR ====================
     def __init__(self, driver):
         """
@@ -287,3 +294,106 @@ class HomePage:
             logger.info("Returned to main tab")
         except Exception as e:
             logger.warning(f"Error closing extra tabs: {str(e)}")
+
+    # ==================== MÉTODOS FOOTER NAVIGATION (Case 7) ====================
+
+    def click_footer_link_and_validate(self, footer_link_name):
+        """
+        Hace click en un link del footer y valida la URL de destino.
+        Maneja la apertura de nueva pestaña si es necesario.
+
+        Args:
+            footer_link_name: Nombre del link a probar ("vuelos", "trabajos", "aviancadirect", "articulos")
+
+        Returns:
+            tuple: (success: bool, new_url: str, message: str)
+        """
+        from selenium.webdriver.support.ui import WebDriverWait
+        from selenium.webdriver.support import expected_conditions as EC
+
+        # Mapear nombre corto a selectores y URLs esperadas
+        # expected_url_parts: Lista de strings que DEBEN estar en la URL final (validación multi-parte)
+        navigation_map = {
+            "vuelos": {
+                "selector": self.FOOTER_VUELOS_BARATOS,
+                "expected_url_parts": ["ofertas-destinos", "ofertas-de-vuelos"]
+            },
+            "trabajos": {
+                "selector": self.FOOTER_TRABAJA_CON_NOSOTROS,
+                "expected_url_parts": ["jobs.avianca.com"]
+            },
+            "aviancadirect": {
+                "selector": self.FOOTER_AVIANCADIRECT,
+                "expected_url_parts": ["portales-aliados", "aviancadirect-ndc"]
+            },
+            "articulos": {
+                "selector": self.FOOTER_ARTICULOS_RESTRINGIDOS,
+                "expected_url_parts": ["ayuda.avianca.com", "/hc/"]
+            }
+        }
+
+        if footer_link_name not in navigation_map:
+            logger.error(f"Invalid footer link name: {footer_link_name}")
+            return False, None, f"Invalid footer link: {footer_link_name}"
+
+        nav_data = navigation_map[footer_link_name]
+
+        try:
+            # Guardar URL inicial
+            initial_url = self.driver.current_url
+            initial_window = self.driver.current_window_handle
+            logger.info(f"Initial URL: {initial_url}")
+
+            # Paso 1: Scroll hacia el footer para que sea visible
+            logger.info(f"Scrolling to footer to make link visible")
+            self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            time.sleep(2)  # Espera para que el scroll complete
+
+            # Paso 2: Esperar explícitamente a que el elemento del footer sea visible
+            logger.info(f"Waiting for footer link '{footer_link_name}' to be visible")
+            wait = WebDriverWait(self.driver, 10)
+            footer_element = wait.until(
+                EC.visibility_of_element_located(nav_data["selector"])
+            )
+            logger.info(f"Footer link is now visible")
+
+            # Paso 3: Click en el link del footer usando JavaScript (más confiable)
+            logger.info(f"Clicking footer link '{footer_link_name}'")
+            self.driver.execute_script("arguments[0].click();", footer_element)
+            logger.info(f"Footer link clicked via JavaScript")
+            time.sleep(3)  # Espera a que cargue la página/nueva pestaña
+
+            # Paso 4: Verificar si se abrió en nueva pestaña
+            all_windows = self.driver.window_handles
+            if len(all_windows) > 1:
+                # Se abrió nueva pestaña - cambiar a ella
+                logger.info("New tab detected, switching to new tab")
+                new_window = [w for w in all_windows if w != initial_window][0]
+                self.driver.switch_to.window(new_window)
+                time.sleep(2)
+
+            # Paso 5: Obtener URL final
+            final_url = self.driver.current_url
+            logger.info(f"Final URL: {final_url}")
+
+            # Paso 6: Validar que la URL cambió
+            if final_url == initial_url:
+                logger.warning(f"URL did not change after clicking '{footer_link_name}'")
+                return False, final_url, "URL did not change"
+
+            # Paso 7: Validar que la URL contiene TODAS las partes esperadas (validación multi-parte)
+            expected_parts = nav_data["expected_url_parts"]
+            for expected_part in expected_parts:
+                if expected_part not in final_url:
+                    logger.error(f"URL validation failed: expected '{expected_part}' in URL but got '{final_url}'")
+                    return False, final_url, f"URL doesn't contain expected part: '{expected_part}'"
+                else:
+                    logger.info(f"✓ URL validation passed: contains '{expected_part}'")
+
+            logger.info(f"✓ Redirection successful to: {final_url}")
+            logger.info(f"✓ All URL validations passed: {expected_parts}")
+            return True, final_url, "Redirection successful"
+
+        except Exception as e:
+            logger.error(f"Error during footer navigation for '{footer_link_name}': {str(e)}")
+            return False, None, f"Error: {str(e)}"

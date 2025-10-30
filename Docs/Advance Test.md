@@ -205,9 +205,72 @@ pytest tests/nuxqa/test_header_redirections_Case6.py --browser=all --header-link
 -------------------------------
 
 ### Caso 7: Redirecciones Footer
-**Estado:** ⏳ Pendiente
+**Estado:** ✅ Completado
 **Objetivo:** Usar links del footer para acceder a 4 sitios diferentes
-**Validación:** URLs cargan correctamente según idioma y sitio seleccionado
+**Footer Links:** Vuelos baratos, Trabaja con nosotros, aviancadirect, Artículos restringidos
+**Navegadores:** Chrome, Edge, Firefox
+**Ambientes:** QA4, QA5
+**Total tests:** 24 (4 links × 2 ambientes × 3 navegadores)
+
+**Archivos implementados:**
+- `pages/nuxqa/home_page.py` - Page Object con locators de footer (actualizado)
+- `tests/nuxqa/test_footer_redirections_Case7.py` - Test parametrizado dinámicamente
+
+**CLI Options utilizadas:**
+- `--browser` (chrome | edge | firefox | all)
+- `--footer-link` (vuelos | trabajos | aviancadirect | articulos | all)
+- `--env` (qa4 | qa5 | all)
+- `--screenshots` (none | on-failure | all) - Captura de screenshots condicional
+- `--video` (none | enabled) - Grabación de video en formato MP4
+
+**Selectores utilizados:**
+- `//span[@class='link-label' and contains(text(), 'Vuelos baratos')]` - Link del footer
+- `//span[@class='link-label' and contains(text(), 'Trabaja con nosotros')]` - Link del footer
+- `//span[@class='link-label' and contains(text(), 'aviancadirect')]` - Link del footer
+- `//span[@class='link-label' and contains(text(), 'Artículos restringidos')]` - Link del footer
+
+**Validaciones implementadas:**
+- Verificación de que la URL cambió después del click
+- Validación multi-parte de URL final (similar a Case 6):
+  - vuelos → debe contener "ofertas-destinos" y "ofertas-de-vuelos"
+  - trabajos → debe contener "jobs.avianca.com"
+  - aviancadirect → debe contener "portales-aliados" y "aviancadirect-ndc"
+  - articulos → debe contener "ayuda.avianca.com" y "/hc/"
+- Manejo automático de pestañas nuevas (target="_blank")
+- Cierre de pestañas extras y regreso a pestaña principal
+- Resultados guardados en SQLite database con campo `case_number`
+- Logs detallados de cada paso con validación de URL
+
+**Características técnicas:**
+- Reutiliza infraestructura de Casos 4, 5 y 6 (POM, fixtures, CLI options)
+- Scroll automático hacia el footer para visibilidad del elemento
+- Explicit waits (WebDriverWait) para elementos del footer
+- JavaScript click para mayor confiabilidad con links externos
+- Manejo de múltiples pestañas con switch_to.window()
+- Validación robusta multi-parte de URLs de destino
+- Parametrización dinámica vía pytest_generate_tests
+- Allure decorators avanzados (tags, labels, dynamic titles)
+
+**Comandos de ejecución:**
+```bash
+# Ejecución básica (todos los browsers, footer links y ambientes)
+pytest tests/nuxqa/test_footer_redirections_Case7.py --browser=all --footer-link=all --env=all -v
+
+# Con video y screenshots completos para Allure
+pytest tests/nuxqa/test_footer_redirections_Case7.py --browser=all --footer-link=all --env=all --video=enabled --screenshots=all --alluredir=reports/allure
+
+# Solo un footer link específico
+pytest tests/nuxqa/test_footer_redirections_Case7.py --browser=chrome --footer-link=vuelos --env=qa5 -v
+
+# Ejecución paralela
+pytest tests/nuxqa/test_footer_redirections_Case7.py --browser=all --footer-link=all --env=all -n auto
+```
+
+**Desafíos técnicos resueltos:**
+1. **Footer no visible inicialmente** - Solución: Scroll automático hacia el footer con JavaScript
+2. **Elementos del footer tardan en cargar** - Solución: Explicit waits con EC.visibility_of_element_located
+3. **Links externos abren en nueva pestaña** - Solución: Detección automática y switch a nueva pestaña
+4. **Diferentes dominios de destino** - Solución: Validación multi-parte adaptada a cada link (internos y externos)
 
 -------------------------------
 
@@ -287,12 +350,12 @@ Durante el desarrollo, Chrome se actualizó a la versión 141. Las herramientas 
 - **Fase conceptual:** ✅ Completada (85% comprensión alcanzado)
 - **Repositorio GitHub:** ✅ Configurado (https://github.com/cesarcardona-ux/selenium-technical-test)
 - **Fase de implementación:** ✅ En progreso
-- **Casos completados:** 3/7 (Cases 4, 5 y 6 con video evidence)
+- **Casos completados:** 4/7 (Cases 4, 5, 6 y 7 con video evidence)
 - **Video Evidence:** ✅ Implementado
   - Grabación MP4 con OpenCV
   - Screenshots condicionales
   - Integración completa con Allure
-- **Próximo paso:** Implementar Caso 7 (Redirecciones Footer)
+- **Próximo paso:** Implementar Caso 3 (Login y Network Capture)
 
 -------------------------------
 

@@ -194,6 +194,12 @@ def pytest_addoption(parser):
         help="Header link to test: hoteles, credits, equipaje, or all (default: all)"
     )
     parser.addoption(
+        "--footer-link",
+        action="store",
+        default="all",
+        help="Footer link to test: vuelos, trabajos, aviancadirect, articulos, or all (default: all)"
+    )
+    parser.addoption(
         "--env",
         action="store",
         default="all",
@@ -228,6 +234,7 @@ def pytest_generate_tests(metafunc):
     language_option = metafunc.config.getoption("language")
     pos_option = metafunc.config.getoption("pos")
     header_link_option = metafunc.config.getoption("header_link")  # pytest convierte guiones a guiones bajos
+    footer_link_option = metafunc.config.getoption("footer_link")  # pytest convierte guiones a guiones bajos
     env_option = metafunc.config.getoption("env")
 
     # Definir todos los navegadores disponibles
@@ -241,6 +248,9 @@ def pytest_generate_tests(metafunc):
 
     # Definir todos los header links disponibles
     all_header_links = ["hoteles", "credits", "equipaje"]
+
+    # Definir todos los footer links disponibles
+    all_footer_links = ["vuelos", "trabajos", "aviancadirect", "articulos"]
 
     # Definir todos los ambientes disponibles
     all_envs = {
@@ -279,6 +289,14 @@ def pytest_generate_tests(metafunc):
         else:
             header_links = [header_link_option] if header_link_option in all_header_links else all_header_links
         metafunc.parametrize("header_link", header_links, scope="function")
+
+    # Filtrar footer links según opción
+    if "footer_link" in metafunc.fixturenames:
+        if footer_link_option == "all":
+            footer_links = all_footer_links
+        else:
+            footer_links = [footer_link_option] if footer_link_option in all_footer_links else all_footer_links
+        metafunc.parametrize("footer_link", footer_links, scope="function")
 
     # Filtrar ambientes según opción
     if "base_url" in metafunc.fixturenames:

@@ -57,15 +57,16 @@ allure serve reports/allure
 
 ### CLI Options
 
-| Option          | Values                                     | Description                                   |
-|-----------------|--------------------------------------------|-----------------------------------------------|
-| `--browser`     | chrome, edge, firefox, all                 | Browser selection (default: all)              |
-| `--language`    | Español, English, Français, Português, all | Language selection (default: all)             |
-| `--pos`         | Chile, España, Otros países, all           | POS selection (default: all)                  |
-| `--header-link` | hoteles, credits, equipaje, all            | Header link selection (default: all)          |
-| `--env`         | qa4, qa5, all                              | Environment selection (default: all)          |
-| `--screenshots` | none, on-failure, all                      | Screenshot capture mode (default: on-failure) |
-| `--video`       | none, enabled                              | Video recording (default: none)               |
+| Option          | Values                                                  | Description                                   |
+|-----------------|--------------------------------------------------------|-----------------------------------------------|
+| `--browser`     | chrome, edge, firefox, all                              | Browser selection (default: all)              |
+| `--language`    | Español, English, Français, Português, all              | Language selection (default: all)             |
+| `--pos`         | Chile, España, Otros países, all                        | POS selection (default: all)                  |
+| `--header-link` | hoteles, credits, equipaje, all                         | Header link selection (default: all)          |
+| `--footer-link` | vuelos, trabajos, aviancadirect, articulos, all         | Footer link selection (default: all)          |
+| `--env`         | qa4, qa5, all                                           | Environment selection (default: all)          |
+| `--screenshots` | none, on-failure, all                                   | Screenshot capture mode (default: on-failure) |
+| `--video`       | none, enabled                                           | Video recording (default: none)               |
 
 **Examples with options:**
 ```bash
@@ -77,6 +78,9 @@ pytest tests/nuxqa/test_pos_change_Case5.py --browser=chrome --pos=Chile --env=q
 
 # Case 6: Header redirections
 pytest tests/nuxqa/test_header_redirections_Case6.py --browser=chrome --header-link=hoteles --env=qa5 -v
+
+# Case 7: Footer redirections
+pytest tests/nuxqa/test_footer_redirections_Case7.py --browser=chrome --footer-link=vuelos --env=qa5 -v
 ```
 
 **Parallel execution:**
@@ -91,7 +95,7 @@ pytest tests/ -n auto
 | Case 4 | ✅ Complete | Language Change Validation  |  24  |
 | Case 5 | ✅ Complete | POS Change Validation       |  18  |
 | Case 6 | ✅ Complete | Header Redirections         |  18  |
-| Case 7 | ⏳ Pending  | Footer Redirections         |  -   |
+| Case 7 | ✅ Complete | Footer Redirections         |  24  |
 | Case 3 | ⏳ Pending  | Login and Network Capture   |  -   |
 | Case 1 | ⏳ Pending  | One-way Booking             |  -   |
 | Case 2 | ⏳ Pending  | Round-trip Booking          |  -   |
@@ -117,17 +121,25 @@ pytest tests/ -n auto
 - **Total combinations:** 18 tests
 - **File:** `tests/nuxqa/test_header_redirections_Case6.py`
 
+### Case 7: Footer Redirections ✅
+- **Footer Links:** Vuelos baratos, Trabaja con nosotros, aviancadirect, Artículos restringidos
+- **Browsers:** Chrome, Edge, Firefox
+- **Environments:** QA4, QA5
+- **Total combinations:** 24 tests
+- **File:** `tests/nuxqa/test_footer_redirections_Case7.py`
+
 ## Technical Implementation
 
 ### Features
 - ✅ Page Object Model (POM)
 - ✅ Multi-browser support (Chrome, Edge, Firefox)
 - ✅ Parametrized tests with pytest
-- ✅ Allure reporting with screenshots and video
+- ✅ Allure reporting with rich visualizations
+- ✅ Video recording (MP4 with OpenCV)
+- ✅ Screenshot capture (configurable modes)
 - ✅ SQLite database for results tracking
 - ✅ Detailed logging
 - ✅ Parallel execution (pytest-xdist)
-- ✅ Video evidence (MP4 with OpenCV)
 
 ### Project Structure
 ```
