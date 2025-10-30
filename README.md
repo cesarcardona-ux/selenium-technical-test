@@ -60,13 +60,20 @@ allure serve reports/allure
 | Option          | Values                                                  | Description                                   |
 |-----------------|--------------------------------------------------------|-----------------------------------------------|
 | `--browser`     | chrome, edge, firefox, all                              | Browser selection (default: all)              |
-| `--language`    | Español, English, Français, Português, all              | Language selection (default: all)             |
+| `--language`    | Español, English, Français, Português, all              | Language selection (default varies by case)   |
 | `--pos`         | Chile, España, Otros países, all                        | POS selection (default: all)                  |
 | `--header-link` | ofertas-vuelos, credits, equipaje, all                  | Header link selection (default: all)          |
 | `--footer-link` | vuelos, noticias, aviancadirect, contactanos, all       | Footer link selection (default: all)          |
 | `--env`         | qa4, qa5, all                                           | Environment selection (default: all)          |
 | `--screenshots` | none, on-failure, all                                   | Screenshot capture mode (default: on-failure) |
 | `--video`       | none, enabled                                           | Video recording (default: none)               |
+
+**Note on `--language` parameter:**
+- **Case 4**: Default is `all` (tests all 4 languages)
+- **Cases 6 & 7**: Default is random language selection per test
+  - Omit `--language` for random selection
+  - Use `--language=English` (or other language) for specific language
+  - Use `--language=all` to test all 4 languages
 
 **Examples with options:**
 ```bash
@@ -76,11 +83,20 @@ pytest tests/nuxqa/test_language_change_Case4.py --browser=chrome --language=Eng
 # Case 5: POS change
 pytest tests/nuxqa/test_pos_change_Case5.py --browser=chrome --pos=Chile --env=qa5 --video=enabled --screenshots=all
 
-# Case 6: Header redirections
+# Case 6: Header redirections (random language)
 pytest tests/nuxqa/test_header_redirections_Case6.py --browser=chrome --header-link=ofertas-vuelos --env=qa5 -v
 
-# Case 7: Footer redirections
+# Case 6: Header redirections (specific language)
+pytest tests/nuxqa/test_header_redirections_Case6.py --browser=chrome --header-link=ofertas-vuelos --env=qa5 --language=Français -v
+
+# Case 6: Header redirections (all languages - generates 4 tests)
+pytest tests/nuxqa/test_header_redirections_Case6.py --browser=chrome --header-link=ofertas-vuelos --env=qa5 --language=all -v
+
+# Case 7: Footer redirections (random language)
 pytest tests/nuxqa/test_footer_redirections_Case7.py --browser=chrome --footer-link=noticias --env=qa5 -v
+
+# Case 7: Footer redirections (specific language)
+pytest tests/nuxqa/test_footer_redirections_Case7.py --browser=chrome --footer-link=noticias --env=qa5 --language=English -v
 ```
 
 **Parallel execution:**

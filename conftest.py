@@ -178,8 +178,8 @@ def pytest_addoption(parser):
     parser.addoption(
         "--language",
         action="store",
-        default="all",
-        help="Language to test: Español, English, Français, Português, or all (default: all)"
+        default=None,
+        help="Language to test: Español, English, Français, Português, all, or none for random (default: depends on test case)"
     )
     parser.addoption(
         "--pos",
@@ -268,10 +268,35 @@ def pytest_generate_tests(metafunc):
 
     # Filtrar idiomas según opción
     if "language" in metafunc.fixturenames:
-        if language_option == "all":
-            languages = all_languages
+        # Determinar si es Case 4, Case 6 o Case 7 basado en el módulo del test
+        test_module = metafunc.module.__name__
+        is_case4 = "test_language_change" in test_module
+        is_case6_or_7 = "test_header_redirections" in test_module or "test_footer_redirections" in test_module
+
+        if is_case4:
+            # Case 4: Comportamiento original (default=all si no se especifica)
+            if language_option is None or language_option == "all":
+                languages = all_languages
+            else:
+                languages = [language_option] if language_option in all_languages else all_languages
+        elif is_case6_or_7:
+            # Cases 6 y 7: None = idioma aleatorio, all = todos los idiomas
+            if language_option is None:
+                # Sin --language: parametrizar con [None] para idioma aleatorio
+                languages = [None]
+            elif language_option == "all":
+                # Con --language=all: parametrizar con todos los idiomas
+                languages = all_languages
+            else:
+                # Con --language=English: parametrizar con ese idioma específico
+                languages = [language_option] if language_option in all_languages else [None]
         else:
-            languages = [language_option] if language_option in all_languages else all_languages
+            # Otros tests: comportamiento por defecto (similar a Case 4)
+            if language_option == "all" or language_option is None:
+                languages = all_languages
+            else:
+                languages = [language_option] if language_option in all_languages else all_languages
+
         metafunc.parametrize("language", languages, scope="function")
 
     # Filtrar POS según opción

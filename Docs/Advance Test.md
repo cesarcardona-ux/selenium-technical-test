@@ -136,10 +136,12 @@ pytest tests/nuxqa/test_pos_change_Case5.py --browser=all --pos=all --env=all -n
 **Estado:** ✅ Completado
 **Objetivo:** Usar opciones del Navbar para acceder a 3 sitios diferentes con validación de idioma
 **Header Links:** Ofertas de vuelos, Avianca Credits, Equipaje
-**Language Validation:** Selección aleatoria de idioma (Español, English, Français, Português) con verificación del código en URL
+**Language Validation:** Selección de idioma (random por defecto, configurable con --language) con verificación del código en URL
 **Navegadores:** Chrome, Edge, Firefox
 **Ambientes:** QA4, QA5
-**Total tests:** 18 (3 links × 2 ambientes × 3 navegadores)
+**Total tests:**
+- Por defecto: 18 (3 links × 2 ambientes × 3 navegadores × random language)
+- Con --language=all: 72 (3 links × 2 ambientes × 3 navegadores × 4 idiomas)
 
 **Archivos implementados:**
 - `pages/nuxqa/home_page.py` - Page Object con locators de navbar y submenús (actualizado)
@@ -147,8 +149,9 @@ pytest tests/nuxqa/test_pos_change_Case5.py --browser=all --pos=all --env=all -n
 
 **CLI Options utilizadas:**
 - `--browser` (chrome | edge | firefox | all)
-- `--header-link` (hoteles | credits | equipaje | all)
+- `--header-link` (ofertas-vuelos | credits | equipaje | all)
 - `--env` (qa4 | qa5 | all)
+- `--language` (Español | English | Français | Português | all) - **Default: random per test**
 - `--screenshots` (none | on-failure | all) - Captura de screenshots condicional
 - `--video` (none | enabled) - Grabación de video en formato MP4
 
@@ -205,13 +208,16 @@ pytest tests/nuxqa/test_header_redirections_Case6.py --browser=all --header-link
 
 -------------------------------
 
-### Caso 7: Redirecciones Footer
+### Caso 7: Redirecciones Footer con Validación de Idioma
 **Estado:** ✅ Completado
-**Objetivo:** Usar links del footer para acceder a 4 sitios diferentes
-**Footer Links:** Vuelos baratos, Trabaja con nosotros, aviancadirect, Artículos restringidos
+**Objetivo:** Usar links del footer para acceder a 4 sitios diferentes con validación de idioma
+**Footer Links:** Vuelos baratos, Noticias corporativas, aviancadirect, Contáctanos
+**Language Validation:** Selección de idioma (random por defecto, configurable con --language) con verificación del código en URL
 **Navegadores:** Chrome, Edge, Firefox
 **Ambientes:** QA4, QA5
-**Total tests:** 24 (4 links × 2 ambientes × 3 navegadores)
+**Total tests:**
+- Por defecto: 24 (4 links × 2 ambientes × 3 navegadores × random language)
+- Con --language=all: 96 (4 links × 2 ambientes × 3 navegadores × 4 idiomas)
 
 **Archivos implementados:**
 - `pages/nuxqa/home_page.py` - Page Object con locators de footer (actualizado)
@@ -219,8 +225,9 @@ pytest tests/nuxqa/test_header_redirections_Case6.py --browser=all --header-link
 
 **CLI Options utilizadas:**
 - `--browser` (chrome | edge | firefox | all)
-- `--footer-link` (vuelos | trabajos | aviancadirect | articulos | all)
+- `--footer-link` (vuelos | noticias | aviancadirect | contactanos | all)
 - `--env` (qa4 | qa5 | all)
+- `--language` (Español | English | Français | Português | all) - **Default: random per test**
 - `--screenshots` (none | on-failure | all) - Captura de screenshots condicional
 - `--video` (none | enabled) - Grabación de video en formato MP4
 

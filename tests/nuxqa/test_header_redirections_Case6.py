@@ -26,7 +26,7 @@ HEADER_LINK_NAMES = {
 # ==================== TESTS ====================
 @allure.feature("Header Redirections")
 @allure.severity(allure.severity_level.NORMAL)
-def test_header_redirections(driver, base_url, db, header_link, browser, screenshots_mode):
+def test_header_redirections(driver, base_url, db, header_link, browser, screenshots_mode, language):
     """
     Test Case 6: Verificar redirecciones del header (navbar).
 
@@ -35,10 +35,13 @@ def test_header_redirections(driver, base_url, db, header_link, browser, screens
     - browser: Controlado por --browser (default: all)
     - base_url: Controlado por --env (default: all)
     - screenshots_mode: Controlado por --screenshots (default: on-failure)
+    - language: Controlado por --language (default: None para aleatorio)
 
     Total de ejecuciones:
-    - Por defecto: 3 header links × 2 envs × 3 navegadores = 18 tests
-    - Ejemplo: --browser=chrome --header-link=hoteles --env=qa4 → 1 test
+    - Por defecto: 3 header links × 2 envs × 3 navegadores × 1 (random) = 18 tests
+    - Con --language=all: 3 header links × 2 envs × 3 navegadores × 4 idiomas = 72 tests
+    - Ejemplo: --browser=chrome --header-link=hoteles --env=qa4 → 1 test (random language)
+    - Ejemplo: --browser=chrome --header-link=hoteles --env=qa4 --language=English → 1 test (English)
 
     Args:
         driver: Fixture del navegador (Chrome, Edge o Firefox según parámetro)
@@ -47,6 +50,7 @@ def test_header_redirections(driver, base_url, db, header_link, browser, screens
         header_link: Link del header a probar (viene de pytest_generate_tests)
         browser: Navegador (viene de pytest_generate_tests)
         screenshots_mode: Modo de captura de screenshots (none, on-failure, all)
+        language: Idioma a usar (None para aleatorio, o idioma específico)
     """
     # PASO 0: Configurar metadata de Allure para organización visual
     env = base_url.split('//')[1].split('.')[0].upper()  # Extrae "NUXQA4" o "NUXQA5"
@@ -91,9 +95,9 @@ def test_header_redirections(driver, base_url, db, header_link, browser, screens
         if screenshots_mode == "all":
             allure.attach(driver.get_screenshot_as_png(), name="01_Page_Loaded", attachment_type=allure.attachment_type.PNG)
 
-    # PASO 4: Click en header link y submenu option (incluye cambio de idioma aleatorio)
+    # PASO 4: Click en header link y submenu option (incluye cambio de idioma)
     with allure.step(f"Click on header link: {link_name}"):
-        success, final_url, message, selected_language = home.click_header_link_and_submenu(header_link)
+        success, final_url, message, selected_language = home.click_header_link_and_submenu(header_link, language)
         logger.info(f"Redirection result: success={success}, url={final_url}, message={message}, language={selected_language}")
 
         # Capturar screenshot solo si modo es "all"

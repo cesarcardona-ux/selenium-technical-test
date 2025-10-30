@@ -176,14 +176,15 @@ class HomePage:
 
     # ==================== MÉTODOS HEADER NAVIGATION (Case 6) ====================
 
-    def click_header_link_and_submenu(self, header_link_name):
+    def click_header_link_and_submenu(self, header_link_name, language=None):
         """
         Hace click en un link del navbar y luego en la opción del submenú.
         Maneja la apertura de nueva pestaña si es necesario.
-        Incluye selección aleatoria de idioma y validación del idioma en la URL.
+        Incluye selección de idioma y validación del idioma en la URL.
 
         Args:
             header_link_name: Nombre del link a probar ("ofertas-vuelos", "credits", "equipaje")
+            language: Idioma a seleccionar (Español, English, Français, Português) o None para aleatorio
 
         Returns:
             tuple: (success: bool, new_url: str, message: str, selected_language: str)
@@ -227,11 +228,19 @@ class HomePage:
         nav_data = navigation_map[header_link_name]
 
         try:
-            # PASO NUEVO: Seleccionar idioma aleatorio
-            available_languages = list(language_codes.keys())
-            selected_language = random.choice(available_languages)
+            # PASO NUEVO: Seleccionar idioma (aleatorio o específico)
+            if language is None:
+                # Sin idioma especificado: selección aleatoria
+                available_languages = list(language_codes.keys())
+                selected_language = random.choice(available_languages)
+                logger.info(f"Randomly selected language: {selected_language}")
+            else:
+                # Idioma específico proporcionado
+                selected_language = language
+                logger.info(f"Using specified language: {selected_language}")
+
             expected_lang_code = language_codes[selected_language]
-            logger.info(f"Randomly selected language: {selected_language} (code: {expected_lang_code})")
+            logger.info(f"Language code: {expected_lang_code}")
 
             # PASO NUEVO: Cambiar idioma antes de navegar
             logger.info(f"Changing language to: {selected_language}")
@@ -330,14 +339,15 @@ class HomePage:
 
     # ==================== MÉTODOS FOOTER NAVIGATION (Case 7) ====================
 
-    def click_footer_link_and_validate(self, footer_link_name):
+    def click_footer_link_and_validate(self, footer_link_name, language=None):
         """
         Hace click en un link del footer y valida la URL de destino.
         Maneja la apertura de nueva pestaña si es necesario.
-        Incluye selección aleatoria de idioma y validación del idioma en la URL.
+        Incluye selección de idioma y validación del idioma en la URL.
 
         Args:
             footer_link_name: Nombre del link a probar ("vuelos", "noticias", "aviancadirect", "contactanos")
+            language: Idioma a seleccionar (Español, English, Français, Português) o None para aleatorio
 
         Returns:
             tuple: (success: bool, new_url: str, message: str, selected_language: str)
@@ -381,11 +391,19 @@ class HomePage:
         nav_data = navigation_map[footer_link_name]
 
         try:
-            # PASO NUEVO: Seleccionar idioma aleatorio
-            available_languages = list(language_codes.keys())
-            selected_language = random.choice(available_languages)
+            # PASO NUEVO: Seleccionar idioma (aleatorio o específico)
+            if language is None:
+                # Sin idioma especificado: selección aleatoria
+                available_languages = list(language_codes.keys())
+                selected_language = random.choice(available_languages)
+                logger.info(f"Randomly selected language: {selected_language}")
+            else:
+                # Idioma específico proporcionado
+                selected_language = language
+                logger.info(f"Using specified language: {selected_language}")
+
             expected_lang_code = language_codes[selected_language]
-            logger.info(f"Randomly selected language: {selected_language} (code: {expected_lang_code})")
+            logger.info(f"Language code: {expected_lang_code}")
 
             # PASO NUEVO: Cambiar idioma antes de navegar
             logger.info(f"Changing language to: {selected_language}")
