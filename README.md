@@ -25,6 +25,20 @@ venv\Scripts\activate     # Windows
 pip install -r requirements.txt
 ```
 
+### Driver Management
+
+This project uses **Selenium Manager** (included in Selenium 4.6+) to automatically download and manage browser drivers.
+
+**What does this mean?**
+- No manual driver installation needed
+- Works with any Chrome/Edge/Firefox version
+- Automatically downloads the correct driver when you run tests
+
+**Why Selenium Manager?**
+During development, we found that Chrome updated to version 141, but external tools could only download drivers up to version 114. Selenium Manager solves this by always getting the correct driver version directly from the browser vendors.
+
+**For evaluators:** You don't need to download or configure drivers manually. Just install the requirements and run the tests.
+
 ## Running Tests
 
 ### Basic Execution

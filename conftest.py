@@ -11,15 +11,9 @@ IMPORTANTE: Este archivo es especial en pytest
 # ==================== IMPORTS ====================
 import pytest  # Framework de testing
 from selenium import webdriver  # Librería principal para controlar el navegador
-from selenium.webdriver.chrome.service import Service as ChromeService  # Gestiona el driver de Chrome
 from selenium.webdriver.chrome.options import Options as ChromeOptions  # Para configurar opciones de Chrome
-from selenium.webdriver.edge.service import Service as EdgeService  # Gestiona el driver de Edge
 from selenium.webdriver.edge.options import Options as EdgeOptions  # Para configurar opciones de Edge
-from selenium.webdriver.firefox.service import Service as FirefoxService  # Gestiona el driver de Firefox
 from selenium.webdriver.firefox.options import Options as FirefoxOptions  # Para configurar opciones de Firefox
-from webdriver_manager.chrome import ChromeDriverManager  # Descarga automática del driver Chrome
-from webdriver_manager.microsoft import EdgeChromiumDriverManager  # Descarga automática del driver Edge
-from webdriver_manager.firefox import GeckoDriverManager  # Descarga automática del driver Firefox
 from datetime import datetime  # Para trabajar con fechas y horas
 from utils.database import TestDatabase  # Clase personalizada de base de datos
 import allure  # Para adjuntar evidencias a los reportes
@@ -311,8 +305,9 @@ def driver(request, browser):
             chrome_options.add_argument(arg)
         # chrome_options.add_argument("--headless")  # Descomentar para modo invisible
 
-        service = ChromeService(ChromeDriverManager().install())
-        driver = webdriver.Chrome(service=service, options=chrome_options)
+        # Usar Selenium Manager (integrado en Selenium 4.x)
+        # No requiere webdriver-manager, descarga el driver automáticamente
+        driver = webdriver.Chrome(options=chrome_options)
 
     elif browser == "edge":
         # Configurar Edge
@@ -330,8 +325,9 @@ def driver(request, browser):
         # Firefox usa diferentes nombres para algunas opciones
         # firefox_options.add_argument("--headless")  # Descomentar para modo invisible
 
-        service = FirefoxService(GeckoDriverManager().install())
-        driver = webdriver.Firefox(service=service, options=firefox_options)
+        # Usar Selenium Manager (integrado en Selenium 4.x)
+        # No requiere webdriver-manager, descarga el driver automáticamente
+        driver = webdriver.Firefox(options=firefox_options)
 
     else:
         raise ValueError(f"Browser '{browser}' not supported. Use 'chrome', 'edge', or 'firefox'.")

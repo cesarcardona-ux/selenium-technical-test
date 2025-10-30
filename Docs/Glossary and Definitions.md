@@ -909,13 +909,54 @@ pytest -n 4     # Usa 4 workers
 
 ------------------------------------------
 
-## WEBDRIVER-MANAGER
+## SELENIUM MANAGER
 
-**Qué es:** Librería que descarga automáticamente drivers de navegadores
+**Qué es:** Gestor de drivers integrado en Selenium 4.6+ que descarga automáticamente el driver correcto
 
-**Ventaja:** No necesitas descargar manualmente ChromeDriver, GeckoDriver, etc.
+**Ventajas sobre webdriver-manager:**
+- ✅ **Incluido en Selenium:** No requiere instalar librerías externas
+- ✅ **Siempre actualizado:** Se actualiza con cada versión de Selenium
+- ✅ **Más confiable:** Usa la API oficial de Chrome for Testing (no la antigua de Google)
+- ✅ **Automático:** No requiere configuración adicional
+- ✅ **Multi-plataforma:** Funciona en Windows, Linux, macOS
 
-**Uso:**
+**Uso (Recomendado):**
+```python
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+
+# Solo configurar opciones y crear el driver
+chrome_options = Options()
+chrome_options.add_argument("--start-maximized")
+driver = webdriver.Chrome(options=chrome_options)  # ← Selenium Manager maneja el driver automáticamente
+```
+
+**Funcionamiento:**
+1. Detecta qué navegador tienes instalado
+2. Verifica la versión del navegador
+3. Descarga el driver compatible automáticamente
+4. Guarda el driver en caché para futuras ejecuciones
+
+**Soporta:** Chrome, Firefox, Edge
+
+**Disponible desde:** Selenium 4.6.0+
+
+**Cuándo usar:**
+- Proyectos nuevos: Siempre usar Selenium Manager
+- Proyectos existentes: Migrar de webdriver-manager a Selenium Manager
+
+------------------------------------------
+
+## WEBDRIVER-MANAGER (Obsoleto)
+
+**Qué es:** Librería externa que descarga automáticamente drivers de navegadores
+
+**⚠️ Problema conocido:**
+- Usa la URL antigua de Google (`chromedriver.storage.googleapis.com`)
+- Solo tiene drivers hasta Chrome 114
+- No soporta Chrome 115+ (que usa la nueva API "Chrome for Testing")
+
+**Uso (Antiguo - No recomendado):**
 ```python
 from webdriver_manager.chrome import ChromeDriverManager
 
@@ -924,6 +965,8 @@ driver = webdriver.Chrome(service=service)
 ```
 
 **Soporta:** Chrome, Firefox, Edge, Opera, IE
+
+**Recomendación:** Migrar a **Selenium Manager** (integrado en Selenium 4.6+)
 
 ------------------------------------------
 

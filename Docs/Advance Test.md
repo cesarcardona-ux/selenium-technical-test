@@ -184,6 +184,24 @@ pytest tests/nuxqa/test_pos_change_Case5.py --browser=all --pos=all --env=all -n
 
 ## NOTAS TÉCNICAS
 
+### Gestión de Drivers: Selenium Manager
+
+**¿Qué se usa?**
+- Selenium Manager (incluido en Selenium 4.6+)
+- No requiere instalación de librerías adicionales
+
+**¿Por qué este cambio?**
+Durante el desarrollo, Chrome se actualizó a la versión 141. Las herramientas externas solo podían descargar drivers hasta la versión 114, causando errores de compatibilidad. Selenium Manager resuelve esto descargando automáticamente el driver correcto de cualquier versión.
+
+**Ventajas:**
+- Funciona con cualquier versión de navegador
+- No requiere configuración manual
+- Solución oficial de Selenium
+
+**Para más detalles técnicos:** Ver [Glossary and Definitions.md](Glossary and Definitions.md) - Sección "SELENIUM MANAGER"
+
+-------------------------------
+
 ### Orden de Implementación Recomendado
 1. Caso 4 (simple - cambio idioma)
 2. Caso 5 (simple - cambio POS)
