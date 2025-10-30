@@ -106,10 +106,20 @@ def test_header_redirections(driver, base_url, db, header_link, browser, screens
 
     # PASO 5: Validar redirección
     with allure.step(f"Verify redirection to {link_name}"):
-        # Actualizar título con el idioma usado
-        allure.dynamic.title(f"Header Link: {link_name} | Browser: {browser.capitalize()} | Env: {env} | Lang: {selected_language}")
+        # Determinar modo de idioma para el reporte
+        language_mode = "Random" if language is None else ("All Languages" if language == "all" else "Specific")
 
-        # Adjuntar URL final e idioma al reporte de Allure
+        # Actualizar título con el idioma usado y modo
+        allure.dynamic.title(f"Header Link: {link_name} | Browser: {browser.capitalize()} | Env: {env} | Lang: {selected_language} ({language_mode})")
+
+        # Agregar tag del idioma seleccionado para filtrado en Allure
+        if selected_language:
+            allure.dynamic.tag(selected_language)
+
+        # Agregar tag del modo de idioma
+        allure.dynamic.tag(f"lang-mode-{language_mode.lower().replace(' ', '-')}")
+
+        # Adjuntar información detallada de idioma al reporte de Allure
         allure.attach(
             final_url if final_url else "No URL captured",
             name="Final URL",
@@ -117,7 +127,12 @@ def test_header_redirections(driver, base_url, db, header_link, browser, screens
         )
         allure.attach(
             selected_language if selected_language else "No language selected",
-            name="Selected Language",
+            name="Selected Language (Used in Test)",
+            attachment_type=allure.attachment_type.TEXT
+        )
+        allure.attach(
+            f"CLI Parameter: {language if language else 'None (random)'}\nMode: {language_mode}\nActual Language Used: {selected_language}",
+            name="Language Configuration",
             attachment_type=allure.attachment_type.TEXT
         )
 
