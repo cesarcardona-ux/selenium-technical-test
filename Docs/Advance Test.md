@@ -133,9 +133,74 @@ pytest tests/nuxqa/test_pos_change_Case5.py --browser=all --pos=all --env=all -n
 -------------------------------
 
 ### Caso 6: Redirecciones Header
-**Estado:** ⏳ Pendiente
+**Estado:** ✅ Completado
 **Objetivo:** Usar opciones del Navbar para acceder a 3 sitios diferentes
-**Validación:** URLs cargan correctamente según idioma y sitio seleccionado
+**Header Links:** Reserva de hoteles (booking.com), Avianca Credits, Equipaje
+**Navegadores:** Chrome, Edge, Firefox
+**Ambientes:** QA4, QA5
+**Total tests:** 18 (3 links × 2 ambientes × 3 navegadores)
+
+**Archivos implementados:**
+- `pages/nuxqa/home_page.py` - Page Object con locators de navbar y submenús (actualizado)
+- `tests/nuxqa/test_header_redirections_Case6.py` - Test parametrizado dinámicamente
+
+**CLI Options utilizadas:**
+- `--browser` (chrome | edge | firefox | all)
+- `--header-link` (hoteles | credits | equipaje | all)
+- `--env` (qa4 | qa5 | all)
+- `--screenshots` (none | on-failure | all) - Captura de screenshots condicional
+- `--video` (none | enabled) - Grabación de video en formato MP4
+
+**Selectores utilizados:**
+- `//button[contains(@class, 'main-header_nav-primary_item_link')]//span[contains(text(), 'Ofertas y destinos')]` - Botón del navbar "Ofertas y destinos"
+- `//button[contains(@class, 'main-header_nav-primary_item_link')]//span[contains(text(), 'Tu reserva')]` - Botón del navbar "Tu reserva"
+- `//button[contains(@class, 'main-header_nav-primary_item_link')]//span[contains(text(), 'Información y ayuda')]` - Botón del navbar "Información y ayuda"
+- `//span[@class='link_label' and contains(text(), 'Reserva de hoteles')]` - Link del submenú
+- `//span[@class='link_label' and contains(text(), 'avianca credits')]` - Link del submenú
+- `//span[@class='link_label' and contains(text(), 'Equipaje')]` - Link del submenú
+
+**Validaciones implementadas:**
+- Verificación de que la URL cambió después del click
+- Validación de que la URL final contiene la parte esperada:
+  - hoteles → debe contener "booking.com"
+  - credits → debe contener "avianca-credits"
+  - equipaje → debe contener "equipaje"
+- Manejo automático de pestañas nuevas (target="_blank")
+- Cierre de pestañas extras y regreso a pestaña principal
+- Resultados guardados en SQLite database con campo `case_number`
+- Logs detallados de cada paso con validación de URL
+
+**Características técnicas:**
+- Reutiliza infraestructura de Casos 4 y 5 (POM, fixtures, CLI options)
+- Click en navbar button para abrir dropdown (no hover)
+- Explicit waits (WebDriverWait) para elementos del submenú
+- JavaScript click para mayor confiabilidad con links target="_blank"
+- Manejo de múltiples pestañas con switch_to.window()
+- Validación robusta de URLs de destino
+- Parametrización dinámica vía pytest_generate_tests
+- Allure decorators avanzados (tags, labels, dynamic titles)
+
+**Comandos de ejecución:**
+```bash
+# Ejecución básica (todos los browsers, header links y ambientes)
+pytest tests/nuxqa/test_header_redirections_Case6.py --browser=all --header-link=all --env=all -v
+
+# Con video y screenshots completos para Allure
+pytest tests/nuxqa/test_header_redirections_Case6.py --browser=all --header-link=all --env=all --video=enabled --screenshots=all --alluredir=reports/allure
+
+# Solo un header link específico
+pytest tests/nuxqa/test_header_redirections_Case6.py --browser=chrome --header-link=hoteles --env=qa5 -v
+
+# Ejecución paralela
+pytest tests/nuxqa/test_header_redirections_Case6.py --browser=all --header-link=all --env=all -n auto
+```
+
+**Desafíos técnicos resueltos:**
+1. **Menú dropdown aparece con CLICK, no con hover** - Solución: Cambiar de ActionChains hover a click directo
+2. **Elementos no visibles inicialmente** - Solución: Explicit waits con EC.visibility_of_element_located
+3. **Selectores incorrectos inicialmente** - Solución: Inspección del HTML real del sitio y ajuste de XPath
+4. **Links con target="_blank" abren pestañas nuevas** - Solución: Detección automática y cambio a nueva pestaña
+5. **Validación débil (solo verificaba cambio de URL)** - Solución: Validación robusta que verifica URL esperada
 
 -------------------------------
 
@@ -222,12 +287,12 @@ Durante el desarrollo, Chrome se actualizó a la versión 141. Las herramientas 
 - **Fase conceptual:** ✅ Completada (85% comprensión alcanzado)
 - **Repositorio GitHub:** ✅ Configurado (https://github.com/cesarcardona-ux/selenium-technical-test)
 - **Fase de implementación:** ✅ En progreso
-- **Casos completados:** 2/7 (Cases 4 y 5 con video evidence)
+- **Casos completados:** 3/7 (Cases 4, 5 y 6 con video evidence)
 - **Video Evidence:** ✅ Implementado
   - Grabación MP4 con OpenCV
   - Screenshots condicionales
   - Integración completa con Allure
-- **Próximo paso:** Implementar Caso 6 (Redirecciones Header)
+- **Próximo paso:** Implementar Caso 7 (Redirecciones Footer)
 
 -------------------------------
 

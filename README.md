@@ -62,6 +62,7 @@ allure serve reports/allure
 | `--browser`     | chrome, edge, firefox, all                 | Browser selection (default: all)              |
 | `--language`    | Español, English, Français, Português, all | Language selection (default: all)             |
 | `--pos`         | Chile, España, Otros países, all           | POS selection (default: all)                  |
+| `--header-link` | hoteles, credits, equipaje, all            | Header link selection (default: all)          |
 | `--env`         | qa4, qa5, all                              | Environment selection (default: all)          |
 | `--screenshots` | none, on-failure, all                      | Screenshot capture mode (default: on-failure) |
 | `--video`       | none, enabled                              | Video recording (default: none)               |
@@ -73,6 +74,9 @@ pytest tests/nuxqa/test_language_change_Case4.py --browser=chrome --language=Eng
 
 # Case 5: POS change
 pytest tests/nuxqa/test_pos_change_Case5.py --browser=chrome --pos=Chile --env=qa5 --video=enabled --screenshots=all
+
+# Case 6: Header redirections
+pytest tests/nuxqa/test_header_redirections_Case6.py --browser=chrome --header-link=hoteles --env=qa5 -v
 ```
 
 **Parallel execution:**
@@ -82,15 +86,15 @@ pytest tests/ -n auto
 
 ## Test Cases Status
 
-| Case   | Status       | Description               | Tests |
-|--------|--------------|---------------------------|-------|
-| Case 4 | ✅ Complete | Language Change Validation |  24  |
-| Case 5 | ✅ Complete | POS Change Validation      |  18  |
-| Case 6 | ⏳ Pending  | Header Redirections        |  -   |
-| Case 7 | ⏳ Pending  | Footer Redirections        |  -   |
-| Case 3 | ⏳ Pending  | Login and Network Capture  |  -   |
-| Case 1 | ⏳ Pending  | One-way Booking            |  -   |
-| Case 2 | ⏳ Pending  | Round-trip Booking         |  -   |
+| Case   | Status       | Description                | Tests |
+|--------|--------------|----------------------------|-------|
+| Case 4 | ✅ Complete | Language Change Validation  |  24  |
+| Case 5 | ✅ Complete | POS Change Validation       |  18  |
+| Case 6 | ✅ Complete | Header Redirections         |  18  |
+| Case 7 | ⏳ Pending  | Footer Redirections         |  -   |
+| Case 3 | ⏳ Pending  | Login and Network Capture   |  -   |
+| Case 1 | ⏳ Pending  | One-way Booking             |  -   |
+| Case 2 | ⏳ Pending  | Round-trip Booking          |  -   |
 
 ### Case 4: Language Change Validation ✅
 - **Languages:** Spanish, English, French, Portuguese
@@ -105,6 +109,13 @@ pytest tests/ -n auto
 - **Environments:** QA4, QA5
 - **Total combinations:** 18 tests
 - **File:** `tests/nuxqa/test_pos_change_Case5.py`
+
+### Case 6: Header Redirections ✅
+- **Header Links:** Reserva de hoteles (booking.com), Avianca Credits, Equipaje
+- **Browsers:** Chrome, Edge, Firefox
+- **Environments:** QA4, QA5
+- **Total combinations:** 18 tests
+- **File:** `tests/nuxqa/test_header_redirections_Case6.py`
 
 ## Technical Implementation
 

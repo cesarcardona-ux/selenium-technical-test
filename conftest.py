@@ -188,6 +188,12 @@ def pytest_addoption(parser):
         help="POS to test: Chile, España, Otros países, or all (default: all)"
     )
     parser.addoption(
+        "--header-link",
+        action="store",
+        default="all",
+        help="Header link to test: hoteles, credits, equipaje, or all (default: all)"
+    )
+    parser.addoption(
         "--env",
         action="store",
         default="all",
@@ -221,6 +227,7 @@ def pytest_generate_tests(metafunc):
     browser_option = metafunc.config.getoption("browser")
     language_option = metafunc.config.getoption("language")
     pos_option = metafunc.config.getoption("pos")
+    header_link_option = metafunc.config.getoption("header_link")  # pytest convierte guiones a guiones bajos
     env_option = metafunc.config.getoption("env")
 
     # Definir todos los navegadores disponibles
@@ -231,6 +238,9 @@ def pytest_generate_tests(metafunc):
 
     # Definir todos los POS disponibles
     all_pos = ["Chile", "España", "Otros países"]
+
+    # Definir todos los header links disponibles
+    all_header_links = ["hoteles", "credits", "equipaje"]
 
     # Definir todos los ambientes disponibles
     all_envs = {
@@ -261,6 +271,14 @@ def pytest_generate_tests(metafunc):
         else:
             pos_list = [pos_option] if pos_option in all_pos else all_pos
         metafunc.parametrize("pos", pos_list, scope="function")
+
+    # Filtrar header links según opción
+    if "header_link" in metafunc.fixturenames:
+        if header_link_option == "all":
+            header_links = all_header_links
+        else:
+            header_links = [header_link_option] if header_link_option in all_header_links else all_header_links
+        metafunc.parametrize("header_link", header_links, scope="function")
 
     # Filtrar ambientes según opción
     if "base_url" in metafunc.fixturenames:

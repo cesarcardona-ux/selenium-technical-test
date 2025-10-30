@@ -38,6 +38,18 @@ class HomePage:
     POS_SELECTED_TEXT = (By.XPATH, "//button[@id='pointOfSaleSelectorId']//span[@class='button_label']")  # Texto del POS seleccionado
     POS_APPLY_BUTTON = (By.XPATH, "//button[contains(@class, 'points-of-sale_footer_action_button')]")  # Botón "Aplicar" por clase
 
+    # Header Navigation selectors (Case 6)
+    # Botones del navbar con clase específica (basado en inspección del sitio)
+    NAVBAR_OFFERS = (By.XPATH, "//button[contains(@class, 'main-header_nav-primary_item_link')]//span[contains(text(), 'Ofertas y destinos')]")
+    NAVBAR_YOUR_RESERVATION = (By.XPATH, "//button[contains(@class, 'main-header_nav-primary_item_link')]//span[contains(text(), 'Tu reserva')]")
+    NAVBAR_INFO_AND_HELP = (By.XPATH, "//button[contains(@class, 'main-header_nav-primary_item_link')]//span[contains(text(), 'Información y ayuda')]")
+
+    # Links de submenú (dentro del dropdown que aparece al hacer click en navbar)
+    # Buscar por span con clase link_label
+    SUBMENU_HOTEL_RESERVATION = (By.XPATH, "//span[@class='link_label' and contains(text(), 'Reserva de hoteles')]")
+    SUBMENU_AVIANCA_CREDITS = (By.XPATH, "//span[@class='link_label' and contains(text(), 'avianca credits')]")
+    SUBMENU_LUGGAGE = (By.XPATH, "//span[@class='link_label' and contains(text(), 'Equipaje')]")
+
     # ==================== CONSTRUCTOR ====================
     def __init__(self, driver):
         """
@@ -149,3 +161,129 @@ class HomePage:
         text = element.text.strip()  # .strip() remueve espacios en blanco
         logger.info(f"POS text retrieved: '{text}'")
         return text
+
+    # ==================== MÉTODOS HEADER NAVIGATION (Case 6) ====================
+
+    def click_header_link_and_submenu(self, header_link_name):
+        """
+        Hace click en un link del navbar y luego en la opción del submenú.
+        Maneja la apertura de nueva pestaña si es necesario.
+
+        Args:
+            header_link_name: Nombre del link a probar ("hoteles", "credits", "equipaje")
+
+        Returns:
+            tuple: (success: bool, new_url: str, message: str)
+        """
+        from selenium.webdriver.common.action_chains import ActionChains
+        from selenium.webdriver.support.ui import WebDriverWait
+        from selenium.webdriver.support import expected_conditions as EC
+
+        # Mapear nombre corto a selectores y URLs esperadas
+        # expected_url_parts: Lista de strings que DEBEN estar en la URL final (validación multi-parte)
+        navigation_map = {
+            "hoteles": {
+                "navbar": self.NAVBAR_OFFERS,
+                "submenu": self.SUBMENU_HOTEL_RESERVATION,
+                "expected_url_parts": ["booking.com", "/dealspage"]  # Debe contener dominio + path
+            },
+            "credits": {
+                "navbar": self.NAVBAR_YOUR_RESERVATION,
+                "submenu": self.SUBMENU_AVIANCA_CREDITS,
+                "expected_url_parts": ["avianca-credits"]  # URL interna, solo una parte necesaria
+            },
+            "equipaje": {
+                "navbar": self.NAVBAR_INFO_AND_HELP,
+                "submenu": self.SUBMENU_LUGGAGE,
+                "expected_url_parts": ["informacion-y-ayuda", "equipaje"]  # Debe contener ambas partes del path
+            }
+        }
+
+        if header_link_name not in navigation_map:
+            logger.error(f"Invalid header link name: {header_link_name}")
+            return False, None, f"Invalid header link: {header_link_name}"
+
+        nav_data = navigation_map[header_link_name]
+
+        try:
+            # Guardar URL inicial
+            initial_url = self.driver.current_url
+            initial_window = self.driver.current_window_handle
+            logger.info(f"Initial URL: {initial_url}")
+
+            # Paso 1: Hacer CLICK en el navbar button para abrir el menú dropdown
+            logger.info(f"Looking for navbar button for '{header_link_name}'")
+            navbar_element = self.driver.find_element(*nav_data["navbar"])
+            logger.info(f"Navbar button found, clicking it to open dropdown")
+
+            # Click en el botón del navbar
+            navbar_element.click()
+            logger.info("Navbar button clicked, dropdown should open")
+            time.sleep(2)  # Espera para que se abra el menú
+
+            # Paso 2: Esperar explícitamente a que el elemento del submenú sea visible
+            logger.info(f"Waiting for submenu option to be visible for '{header_link_name}'")
+            wait = WebDriverWait(self.driver, 10)
+            submenu_element = wait.until(
+                EC.visibility_of_element_located(nav_data["submenu"])
+            )
+            logger.info(f"Submenu element is now visible")
+
+            # Paso 3: Click en la opción del submenú usando JavaScript (más confiable para links con target="_blank")
+            logger.info(f"Clicking submenu option for '{header_link_name}'")
+            self.driver.execute_script("arguments[0].click();", submenu_element)
+            logger.info(f"Submenu clicked via JavaScript")
+            time.sleep(3)  # Espera a que cargue la página/nueva pestaña
+
+            # Paso 4: Verificar si se abrió en nueva pestaña
+            all_windows = self.driver.window_handles
+            if len(all_windows) > 1:
+                # Se abrió nueva pestaña - cambiar a ella
+                logger.info("New tab detected, switching to new tab")
+                new_window = [w for w in all_windows if w != initial_window][0]
+                self.driver.switch_to.window(new_window)
+                time.sleep(2)
+
+            # Paso 5: Obtener URL final
+            final_url = self.driver.current_url
+            logger.info(f"Final URL: {final_url}")
+
+            # Paso 6: Validar que la URL cambió
+            if final_url == initial_url:
+                logger.warning(f"URL did not change after clicking '{header_link_name}'")
+                return False, final_url, "URL did not change"
+
+            # Paso 7: Validar que la URL contiene TODAS las partes esperadas (validación multi-parte)
+            expected_parts = nav_data["expected_url_parts"]
+            for expected_part in expected_parts:
+                if expected_part not in final_url:
+                    logger.error(f"URL validation failed: expected '{expected_part}' in URL but got '{final_url}'")
+                    return False, final_url, f"URL doesn't contain expected part: '{expected_part}'"
+                else:
+                    logger.info(f"✓ URL validation passed: contains '{expected_part}'")
+
+            logger.info(f"✓ Redirection successful to: {final_url}")
+            logger.info(f"✓ All URL validations passed: {expected_parts}")
+            return True, final_url, "Redirection successful"
+
+        except Exception as e:
+            logger.error(f"Error during header navigation for '{header_link_name}': {str(e)}")
+            return False, None, f"Error: {str(e)}"
+
+    def close_extra_tabs_and_return_to_main(self):
+        """
+        Cierra todas las pestañas extras y regresa a la pestaña principal.
+        Útil para limpiar después de abrir links que abren nuevas pestañas.
+        """
+        try:
+            main_window = self.driver.window_handles[0]
+            # Cerrar todas las pestañas excepto la primera
+            for window in self.driver.window_handles[1:]:
+                self.driver.switch_to.window(window)
+                self.driver.close()
+                logger.info(f"Closed extra tab: {window}")
+            # Regresar a la pestaña principal
+            self.driver.switch_to.window(main_window)
+            logger.info("Returned to main tab")
+        except Exception as e:
+            logger.warning(f"Error closing extra tabs: {str(e)}")
