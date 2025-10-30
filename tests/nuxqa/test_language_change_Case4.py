@@ -27,7 +27,7 @@ EXPECTED_TEXTS = {
 # ==================== TESTS ====================
 @allure.feature("Language Change")
 @allure.severity(allure.severity_level.NORMAL)
-def test_language_change(driver, base_url, db, language, browser, screenshots_mode):
+def test_language_change(driver, base_url, db, language, browser, screenshots_mode, request):
     """
     Test Case 4: Verificar cambio de idioma.
 
@@ -130,6 +130,11 @@ def test_language_change(driver, base_url, db, language, browser, screenshots_mo
 
     # PASO 7: Guardar resultado en base de datos (requisito del PDF)
     test_name = f"Case4_{language}_{env}_{browser}"
+
+    # Obtener configuración de video
+    video_mode = request.config.getoption("--video")
+
+    # Guardar con todos los campos nuevos
     db.save_test_result(
         test_name=test_name,
         status="PASSED",
@@ -137,7 +142,14 @@ def test_language_change(driver, base_url, db, language, browser, screenshots_mo
         browser=browser,
         url=base_url,
         language=language,
-        case_number=case_number
+        case_number=case_number,
+        environment=env,
+        screenshots_mode=screenshots_mode,
+        video_enabled=video_mode,
+        expected_value=expected_text,
+        actual_value=actual_text,
+        validation_result="PASSED",
+        initial_url=base_url
     )
     logger.info(f"Test result saved to database: {test_name}")
 

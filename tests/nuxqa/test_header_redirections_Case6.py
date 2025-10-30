@@ -26,7 +26,7 @@ HEADER_LINK_NAMES = {
 # ==================== TESTS ====================
 @allure.feature("Header Redirections")
 @allure.severity(allure.severity_level.NORMAL)
-def test_header_redirections(driver, base_url, db, header_link, browser, screenshots_mode, language):
+def test_header_redirections(driver, base_url, db, header_link, browser, screenshots_mode, language, request):
     """
     Test Case 6: Verificar redirecciones del header (navbar).
 
@@ -153,6 +153,11 @@ def test_header_redirections(driver, base_url, db, header_link, browser, screens
 
     # PASO 8: Guardar resultado en base de datos (requisito del PDF)
     test_name = f"Case6_{header_link}_{env}_{browser}_{selected_language}"
+
+    # Obtener configuración de video
+    video_mode = request.config.getoption("--video")
+
+    # Guardar con todos los campos nuevos
     db.save_test_result(
         test_name=test_name,
         status="PASSED",
@@ -160,7 +165,18 @@ def test_header_redirections(driver, base_url, db, header_link, browser, screens
         browser=browser,
         url=final_url,
         language=selected_language,  # Idioma usado en el test
-        case_number=case_number
+        case_number=case_number,
+        environment=env,
+        screenshots_mode=screenshots_mode,
+        video_enabled=video_mode,
+        expected_value=link_name,  # El link que se esperaba probar
+        actual_value=final_url,  # La URL final obtenida
+        validation_result="PASSED",
+        initial_url=base_url,
+        header_link=header_link,  # Campo específico del Case 6
+        link_name=link_name,  # Nombre descriptivo del link
+        language_mode=language_mode,  # Random, Specific, o All Languages
+        validation_message=message  # Mensaje detallado de la validación
     )
     logger.info(f"Test result saved to database: {test_name} with language {selected_language}")
 

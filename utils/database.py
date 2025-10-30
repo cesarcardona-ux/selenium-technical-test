@@ -52,13 +52,32 @@ class TestDatabase:
 
         Estructura de la tabla:
         - id: Identificador único autoincremental
+        - case_number: Número del caso de prueba (4, 5, 6, 7)
         - test_name: Nombre del test (ej: "test_cambiar_idioma")
         - status: Resultado ("PASSED", "FAILED", "SKIPPED")
         - execution_time: Duración en segundos
         - error_message: Mensaje de error si falló
         - timestamp: Fecha/hora de ejecución (se asigna automáticamente)
         - browser: Navegador usado (chrome, firefox, edge)
-        - url: URL del sitio probado
+        - url: URL final después de la acción
+        - language: Idioma usado en el test
+
+        NUEVOS CAMPOS GENERALES:
+        - environment: Ambiente de prueba (qa4, qa5)
+        - screenshots_mode: Modo de captura (none, on-failure, all)
+        - video_enabled: Si el video estaba habilitado (enabled, none)
+        - expected_value: Valor esperado en validación
+        - actual_value: Valor obtenido en validación
+        - validation_result: Resultado de la validación (PASSED, FAILED)
+        - initial_url: URL antes de la acción
+
+        CAMPOS ESPECÍFICOS POR CASO:
+        - pos: Case 5 - POS seleccionado (Chile, España, Otros países)
+        - header_link: Case 6 - Link del header probado
+        - footer_link: Case 7 - Link del footer probado
+        - link_name: Cases 6&7 - Nombre descriptivo del link
+        - language_mode: Cases 6&7 - Modo de idioma (Random, Specific, All Languages)
+        - validation_message: Mensaje detallado de validación
         """
         # Crea o abre conexión al archivo de base de datos
         self.connection = sqlite3.connect(self.db_name)
@@ -70,6 +89,7 @@ class TestDatabase:
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS test_executions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                case_number TEXT,
                 test_name TEXT NOT NULL,
                 status TEXT NOT NULL,
                 execution_time REAL,
@@ -78,7 +98,19 @@ class TestDatabase:
                 browser TEXT,
                 url TEXT,
                 language TEXT,
-                case_number TEXT
+                environment TEXT,
+                screenshots_mode TEXT,
+                video_enabled TEXT,
+                expected_value TEXT,
+                actual_value TEXT,
+                validation_result TEXT,
+                initial_url TEXT,
+                pos TEXT,
+                header_link TEXT,
+                footer_link TEXT,
+                link_name TEXT,
+                language_mode TEXT,
+                validation_message TEXT
             )
         """)
 
@@ -87,19 +119,40 @@ class TestDatabase:
         self.connection.commit()
 
     def save_test_result(self, test_name, status, execution_time=None,
-                        error_message=None, browser="chrome", url=None, language=None, case_number=None):
+                        error_message=None, browser="chrome", url=None, language=None, case_number=None,
+                        environment=None, screenshots_mode=None, video_enabled=None,
+                        expected_value=None, actual_value=None, validation_result=None,
+                        initial_url=None, pos=None, header_link=None, footer_link=None,
+                        link_name=None, language_mode=None, validation_message=None):
         """
         Inserta un nuevo registro con el resultado de un test ejecutado.
 
-        Parámetros:
-        - test_name (str): Nombre del test ejecutado (obligatorio)
-        - status (str): "PASSED", "FAILED", o "SKIPPED" (obligatorio)
-        - execution_time (float): Segundos que tardó el test (opcional)
-        - error_message (str): Mensaje de error si falló (opcional)
-        - browser (str): Navegador usado (por defecto: "chrome")
-        - url (str): URL probada (opcional)
-        - language (str): Idioma del test (opcional)
-        - case_number (str): Número del caso de prueba (opcional, ej: "4", "5")
+        PARÁMETROS OBLIGATORIOS:
+        - test_name (str): Nombre del test ejecutado
+        - status (str): "PASSED", "FAILED", o "SKIPPED"
+
+        PARÁMETROS GENERALES:
+        - execution_time (float): Segundos que tardó el test
+        - error_message (str): Mensaje de error si falló
+        - browser (str): Navegador usado (chrome, firefox, edge)
+        - url (str): URL final después de la acción
+        - language (str): Idioma del test (Español, English, Français, Português)
+        - case_number (str): Número del caso de prueba ("4", "5", "6", "7")
+        - environment (str): Ambiente de prueba (qa4, qa5)
+        - screenshots_mode (str): Modo de captura (none, on-failure, all)
+        - video_enabled (str): Si el video estaba habilitado (enabled, none)
+        - expected_value (str): Valor esperado en validación
+        - actual_value (str): Valor obtenido en validación
+        - validation_result (str): Resultado de la validación (PASSED, FAILED)
+        - initial_url (str): URL antes de la acción
+
+        PARÁMETROS ESPECÍFICOS POR CASO:
+        - pos (str): Case 5 - POS seleccionado (Chile, España, Otros países)
+        - header_link (str): Case 6 - Link del header probado (ofertas-vuelos, credits, etc.)
+        - footer_link (str): Case 7 - Link del footer probado (vuelos, noticias, etc.)
+        - link_name (str): Cases 6&7 - Nombre descriptivo del link
+        - language_mode (str): Cases 6&7 - Modo de idioma (Random, Specific, All Languages)
+        - validation_message (str): Mensaje detallado de validación
 
         Uso de ? en SQL:
         - Los ? son placeholders (marcadores de posición)
@@ -108,13 +161,18 @@ class TestDatabase:
         """
         cursor = self.connection.cursor()  # Obtiene el cursor
 
-        # INSERT: Agrega nuevo registro a la tabla
-        # Los ? se reemplazan con los valores de la tupla en el segundo argumento
+        # INSERT: Agrega nuevo registro a la tabla con TODOS los campos
         cursor.execute("""
             INSERT INTO test_executions
-            (test_name, status, execution_time, error_message, browser, url, language, case_number)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """, (test_name, status, execution_time, error_message, browser, url, language, case_number))
+            (case_number, test_name, status, execution_time, error_message, browser, url, language,
+             environment, screenshots_mode, video_enabled, expected_value, actual_value,
+             validation_result, initial_url, pos, header_link, footer_link, link_name,
+             language_mode, validation_message)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (case_number, test_name, status, execution_time, error_message, browser, url, language,
+              environment, screenshots_mode, video_enabled, expected_value, actual_value,
+              validation_result, initial_url, pos, header_link, footer_link, link_name,
+              language_mode, validation_message))
 
         self.connection.commit()  # Guarda cambios en disco
 

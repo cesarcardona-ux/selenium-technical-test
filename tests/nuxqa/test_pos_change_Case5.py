@@ -27,7 +27,7 @@ EXPECTED_POS_TEXTS = {
 # ==================== TESTS ====================
 @allure.feature("POS Change")
 @allure.severity(allure.severity_level.NORMAL)
-def test_pos_change(driver, base_url, db, pos, browser, screenshots_mode):
+def test_pos_change(driver, base_url, db, pos, browser, screenshots_mode, request):
     """
     Test Case 5: Verificar cambio de POS (Point of Sale).
 
@@ -138,6 +138,11 @@ def test_pos_change(driver, base_url, db, pos, browser, screenshots_mode):
 
     # PASO 8: Guardar resultado en base de datos (requisito del PDF)
     test_name = f"Case5_{pos}_{env}_{browser}"
+
+    # Obtener configuración de video
+    video_mode = request.config.getoption("--video")
+
+    # Guardar con todos los campos nuevos
     db.save_test_result(
         test_name=test_name,
         status="PASSED",
@@ -145,7 +150,15 @@ def test_pos_change(driver, base_url, db, pos, browser, screenshots_mode):
         browser=browser,
         url=base_url,
         language=None,  # No aplica para este caso
-        case_number=case_number
+        case_number=case_number,
+        environment=env,
+        screenshots_mode=screenshots_mode,
+        video_enabled=video_mode,
+        expected_value=expected_text,
+        actual_value=actual_text,
+        validation_result="PASSED",
+        initial_url=base_url,
+        pos=pos  # Campo específico del Case 5
     )
     logger.info(f"Test result saved to database: {test_name}")
 
