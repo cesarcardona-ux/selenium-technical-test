@@ -266,12 +266,13 @@ def driver(request, browser):
 
     Parámetros:
     - request: Objeto de pytest con información del test
-    - browser: Parámetro que indica qué navegador usar (chrome o edge)
+    - browser: Parámetro que indica qué navegador usar (chrome, edge o firefox)
                 Viene de pytest_generate_tests según opción CLI
 
     Navegadores soportados:
     - chrome: Google Chrome
     - edge: Microsoft Edge
+    - firefox: Mozilla Firefox
 
     scope="function": Crea un navegador NUEVO para cada test individual
     """
