@@ -11,9 +11,15 @@ IMPORTANTE: Este archivo es especial en pytest
 # ==================== IMPORTS ====================
 import pytest  # Framework de testing
 from selenium import webdriver  # Librería principal para controlar el navegador
-from selenium.webdriver.chrome.service import Service  # Gestiona el driver de Chrome
-from selenium.webdriver.chrome.options import Options  # Para configurar opciones de Chrome
-from webdriver_manager.chrome import ChromeDriverManager  # Descarga automática del driver
+from selenium.webdriver.chrome.service import Service as ChromeService  # Gestiona el driver de Chrome
+from selenium.webdriver.chrome.options import Options as ChromeOptions  # Para configurar opciones de Chrome
+from selenium.webdriver.edge.service import Service as EdgeService  # Gestiona el driver de Edge
+from selenium.webdriver.edge.options import Options as EdgeOptions  # Para configurar opciones de Edge
+from selenium.webdriver.firefox.service import Service as FirefoxService  # Gestiona el driver de Firefox
+from selenium.webdriver.firefox.options import Options as FirefoxOptions  # Para configurar opciones de Firefox
+from webdriver_manager.chrome import ChromeDriverManager  # Descarga automática del driver Chrome
+from webdriver_manager.microsoft import EdgeChromiumDriverManager  # Descarga automática del driver Edge
+from webdriver_manager.firefox import GeckoDriverManager  # Descarga automática del driver Firefox
 from datetime import datetime  # Para trabajar con fechas y horas
 from utils.database import TestDatabase  # Clase personalizada de base de datos
 
@@ -22,82 +28,157 @@ from utils.database import TestDatabase  # Clase personalizada de base de datos
 BASE_URL_QA4 = "https://nuxqa4.avtest.ink/"  # Ambiente QA4
 BASE_URL_QA5 = "https://nuxqa5.avtest.ink/"  # Ambiente QA5
 
+# ==================== OPCIONES PERSONALIZADAS CLI ====================
+def pytest_addoption(parser):
+    """
+    Hook que agrega opciones personalizadas a la línea de comandos de pytest.
+
+    Opciones agregadas:
+    - --browser: Selecciona navegador(es) para ejecutar tests
+    - --language: Selecciona idioma(s) para ejecutar tests
+
+    Uso:
+    pytest --browser=chrome --language=Español
+    pytest --browser=all --language=all
+    """
+    parser.addoption(
+        "--browser",
+        action="store",
+        default="all",
+        help="Browser to run tests on: chrome, edge, firefox, or all (default: all)"
+    )
+    parser.addoption(
+        "--language",
+        action="store",
+        default="all",
+        help="Language to test: Español, English, Français, Português, or all (default: all)"
+    )
+    parser.addoption(
+        "--env",
+        action="store",
+        default="all",
+        help="Environment to test: qa4, qa5, or all (default: all)"
+    )
+
+def pytest_generate_tests(metafunc):
+    """
+    Hook que genera parametrizaciones dinámicas basadas en opciones CLI.
+
+    metafunc: Objeto con información sobre la función de test.
+
+    Funcionamiento:
+    1. Lee las opciones --browser, --language, --env
+    2. Filtra los valores según lo especificado
+    3. Parametriza automáticamente los tests
+    """
+    # Obtener valores de las opciones CLI
+    browser_option = metafunc.config.getoption("browser")
+    language_option = metafunc.config.getoption("language")
+    env_option = metafunc.config.getoption("env")
+
+    # Definir todos los navegadores disponibles
+    all_browsers = ["chrome", "edge", "firefox"]
+
+    # Definir todos los idiomas disponibles
+    all_languages = ["Español", "English", "Français", "Português"]
+
+    # Definir todos los ambientes disponibles
+    all_envs = {
+        "qa4": BASE_URL_QA4,
+        "qa5": BASE_URL_QA5
+    }
+
+    # Filtrar navegadores según opción
+    if "browser" in metafunc.fixturenames:
+        if browser_option == "all":
+            browsers = all_browsers
+        else:
+            browsers = [browser_option] if browser_option in all_browsers else all_browsers
+        metafunc.parametrize("browser", browsers, scope="function")
+
+    # Filtrar idiomas según opción
+    if "language" in metafunc.fixturenames:
+        if language_option == "all":
+            languages = all_languages
+        else:
+            languages = [language_option] if language_option in all_languages else all_languages
+        metafunc.parametrize("language", languages, scope="function")
+
+    # Filtrar ambientes según opción
+    if "base_url" in metafunc.fixturenames:
+        if env_option == "all":
+            envs = list(all_envs.values())
+        else:
+            envs = [all_envs[env_option]] if env_option in all_envs else list(all_envs.values())
+        metafunc.parametrize("base_url", envs, scope="function")
+
 # ==================== FIXTURE: DRIVER DEL NAVEGADOR ====================
 @pytest.fixture(scope="function")
-def driver(request):
+def driver(request, browser):
     """
     Fixture principal: crea, configura y destruye el navegador para cada test.
 
-    ¿Qué es una fixture?
-    - Función que prepara recursos necesarios para los tests
-    - Se ejecuta automáticamente cuando un test la solicita como parámetro
-    - Ejemplo: def test_algo(driver): <- pytest detecta "driver" y ejecuta esta fixture
+    Parámetros:
+    - request: Objeto de pytest con información del test
+    - browser: Parámetro que indica qué navegador usar (chrome o edge)
+                Viene de pytest_generate_tests según opción CLI
 
-    scope="function":
-    - Crea un navegador NUEVO para cada test individual
-    - Alternativas: 
-        "class"     (uno por clase), 
-        "module"    (uno por archivo), 
-        "session"   (uno para todos)
+    Navegadores soportados:
+    - chrome: Google Chrome
+    - edge: Microsoft Edge
 
-    request:
-    - Objeto de pytest con información del test que solicita esta fixture
-    - Útil para capturar nombre del test, parámetros, etc.
+    scope="function": Crea un navegador NUEVO para cada test individual
     """
 
-    # PASO 1: Crear objeto de opciones de Chrome
-    chrome_options = Options()  # Almacena las configuraciones del navegador
+    # PASO 1: Configurar opciones comunes para todos los navegadores
+    common_args = [
+        "--start-maximized",  # Ventana maximizada
+        "--disable-notifications",  # Bloquea notificaciones
+        "--disable-popup-blocking",  # Permite popups
+        "--disable-blink-features=AutomationControlled"  # Oculta detección de Selenium
+    ]
 
-    # PASO 2: Configurar comportamiento del navegador
-    # chrome_options.add_argument("--headless")  # Descomentar para modo invisible (sin ventana)
-    chrome_options.add_argument("--start-maximized")  # Ventana maximizada desde el inicio
-    chrome_options.add_argument("--disable-notifications")  # Bloquea notificaciones
-    chrome_options.add_argument("--disable-popup-blocking")  # Permite popups (algunos sitios los usan)
-    chrome_options.add_argument("--disable-blink-features=AutomationControlled")  # Oculta detección de Selenium
+    # PASO 2: Crear navegador según parámetro
+    if browser == "chrome":
+        # Configurar Chrome
+        chrome_options = ChromeOptions()
+        for arg in common_args:
+            chrome_options.add_argument(arg)
+        # chrome_options.add_argument("--headless")  # Descomentar para modo invisible
 
-    # PASO 3: Crear servicio del driver
-    # ChromeDriverManager().install() descarga automáticamente el driver compatible con Chrome instalado
-    # Service() envuelve el driver para que Selenium pueda usarlo
-    service = Service(ChromeDriverManager().install())
+        service = ChromeService(ChromeDriverManager().install())
+        driver = webdriver.Chrome(service=service, options=chrome_options)
 
-    # PASO 4: Crear instancia del navegador Chrome
-    driver = webdriver.Chrome(
-        service=service,  # Servicio con el driver descargado
-        options=chrome_options  # Opciones configuradas arriba
-    )
+    elif browser == "edge":
+        # Configurar Edge
+        edge_options = EdgeOptions()
+        for arg in common_args:
+            edge_options.add_argument(arg)
+        # edge_options.add_argument("--headless")  # Descomentar para modo invisible
 
-    # PASO 5: Configurar esperas implícitas (MUY IMPORTANTE)
-    # Al buscar un elemento, espera hasta 10 segundos antes de fallar
-    # Útil cuando los elementos tardan en cargar (animaciones, AJAX, etc.)
+        # Usar Selenium Manager (no requiere webdriver-manager)
+        driver = webdriver.Edge(options=edge_options)
+
+    elif browser == "firefox":
+        # Configurar Firefox
+        firefox_options = FirefoxOptions()
+        # Firefox usa diferentes nombres para algunas opciones
+        # firefox_options.add_argument("--headless")  # Descomentar para modo invisible
+
+        service = FirefoxService(GeckoDriverManager().install())
+        driver = webdriver.Firefox(service=service, options=firefox_options)
+
+    else:
+        raise ValueError(f"Browser '{browser}' not supported. Use 'chrome', 'edge', or 'firefox'.")
+
+    # PASO 3: Configurar esperas implícitas (para todos los navegadores)
     driver.implicitly_wait(10)
 
-    # PASO 6: YIELD - Pausa aquí y entrega el driver al test
-    # Todo lo de ARRIBA = SETUP (preparación del navegador)
-    # yield = entrega el driver y espera a que termine el test
-    # El test se ejecuta con el driver...
+    # PASO 4: YIELD - Entrega el driver al test
     yield driver
 
-    # PASO 7: TEARDOWN - Se ejecuta DESPUÉS de que termina el test
-    # quit() cierra el navegador y libera recursos de memoria
-    # IMPORTANTE: Se ejecuta SIEMPRE, incluso si el test falló
+    # PASO 5: TEARDOWN - Cierra el navegador después del test
     driver.quit()
-
-
-# ==================== FIXTURE: URL BASE ====================
-@pytest.fixture(scope="function")
-def base_url():
-    """
-    Fixture de URL base: proporciona la URL del sitio a probar.
-
-    Ventajas de usar fixture en vez de constante directa:
-    - Permite cambiarla dinámicamente según parámetros
-    - Permite leer de variables de entorno
-    - Centraliza la configuración del ambiente
-
-    scope="function":
-    - Se ejecuta para cada test (aunque solo retorna un valor)
-    """
-    return BASE_URL_QA4  # Por defecto retorna QA4, puede cambiarse a QA5 según necesidad
 
 
 # ==================== FIXTURE: BASE DE DATOS ====================

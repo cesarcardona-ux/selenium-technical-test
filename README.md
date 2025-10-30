@@ -2,15 +2,17 @@
 
 Automated testing suite for nuxqa web application using Selenium WebDriver, Python, and pytest.
 
----
+---------------------------------------
 
 ## Requirements
 
 - Python 3.9+
 - Google Chrome browser
+- Microsoft Edge browser
+- Mozilla Firefox browser
 - Git
 
----
+---------------------------------------
 
 ## Setup Instructions
 
@@ -52,48 +54,80 @@ Automated testing suite for nuxqa web application using Selenium WebDriver, Pyth
    pip install -r requirements.txt
    ```
 
----
+---------------------------------------
 
 ## Running Tests
 
-### Run all tests
+### CLI Options
+
+This test suite supports flexible execution with custom CLI options:
+
+**--browser**: Choose browser (default: all)
+- `chrome` - Run tests only in Chrome
+- `edge` - Run tests only in Edge
+- `firefox` - Run tests only in Firefox
+- `all` - Run tests in all browsers
+
+**--language**: Choose language (default: all)
+- `Español`, `English`, `Français`, `Português` - Specific language
+- `all` - Test all languages
+
+**--env**: Choose environment (default: all)
+- `qa4` - Run tests only on QA4 environment
+- `qa5` - Run tests only on QA5 environment
+- `all` - Run tests on both environments
+
+### Examples
+
+**Run all tests (all browsers, all languages, all environments)**
 ```bash
 pytest tests/
 ```
 
-### Run specific test case
+**Run specific test case with all combinations**
 ```bash
-pytest tests/nuxqa/test_language_change_Case4.py
+pytest tests/nuxqa/test_language_change_Case4.py --browser=all --language=all --env=all -v
 ```
 
-### Run tests in parallel
+**Run tests in Chrome only with English on QA4**
+```bash
+pytest tests/nuxqa/test_language_change_Case4.py --browser=chrome --language=English --env=qa4 -v
+```
+
+**Run tests in Firefox with all languages on QA5**
+```bash
+pytest tests/nuxqa/test_language_change_Case4.py --browser=firefox --language=all --env=qa5 -v
+```
+
+**Run tests in parallel (all browsers)**
 ```bash
 pytest tests/ -n auto
 ```
 
-### Generate and view Allure report
+**Generate and view Allure report**
 ```bash
 pytest tests/
 allure serve reports/allure
 ```
 
----
+---------------------------------------
 
 ## Implemented Test Cases
 
 ### ✅ Case 4: Language Change Validation (5 pts)
 - **Description:** Validates language switching functionality
 - **Languages tested:** Spanish, English, French, Portuguese
+- **Browsers:** Chrome, Edge, Firefox
 - **Environments:** QA4 and QA5
-- **Total tests:** 8 (4 languages × 2 environments)
+- **Total tests:** 24 (4 languages × 2 environments × 3 browsers)
 - **File:** `tests/nuxqa/test_language_change_Case4.py`
 
 **Run this case:**
 ```bash
-pytest tests/nuxqa/test_language_change_Case4.py -v
+pytest tests/nuxqa/test_language_change_Case4.py --browser=all --language=all --env=all -v
 ```
 
----
+---------------------------------------
 
 ## Pending Test Cases
 
@@ -104,7 +138,7 @@ pytest tests/nuxqa/test_language_change_Case4.py -v
 - ⏳ Case 1: One-way Booking (15 pts)
 - ⏳ Case 2: Round-trip Booking (15 pts)
 
----
+---------------------------------------
 
 ## Technical Requirements Compliance
 
@@ -115,10 +149,10 @@ pytest tests/nuxqa/test_language_change_Case4.py -v
 - ✅ Parallel Execution with xdist (5 pts)
 - ✅ Clear Assertions (5 pts)
 - ✅ Page Object Model (POM)
-- ⏳ Multiple Browsers (In progress)
+- ✅ Multiple Browsers (Chrome, Edge, Firefox)
 - ⏳ Video Evidence (15 pts - Optional)
 
----
+---------------------------------------
 
 ## Project Structure
 
@@ -138,7 +172,7 @@ pytest tests/nuxqa/test_language_change_Case4.py -v
 └── requirements.txt    # Dependencies
 ```
 
----
+---------------------------------------
 
 ## View Test Results
 
@@ -154,21 +188,24 @@ Test results are saved to `test_results.db` (not in repo).
 ### Logs
 Detailed execution logs are saved to `reports/test_execution.log`.
 
----
+---------------------------------------
 
 ## Notes
 
 - Virtual environment (`venv/`) is excluded from repository
 - Test reports (`reports/`) are excluded from repository
 - Database files (`*.db`) are excluded from repository
-- ChromeDriver is automatically downloaded by webdriver-manager
+- Browser drivers are automatically managed:
+  - ChromeDriver via webdriver-manager
+  - EdgeDriver via Selenium Manager (built-in)
+  - GeckoDriver via webdriver-manager
 
----
+---------------------------------------
 
 ## Repository
 
 https://github.com/cesarcardona-ux/selenium-technical-test
 
----
+---------------------------------------
 
 🤖 *Generated with Claude Code*

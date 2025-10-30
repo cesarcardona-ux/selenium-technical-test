@@ -15,10 +15,6 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 
 # ==================== CONSTANTES ====================
-# URLs de los ambientes (importadas desde conftest)
-BASE_URL_QA4 = "https://nuxqa4.avtest.ink/"
-BASE_URL_QA5 = "https://nuxqa5.avtest.ink/"
-
 # Diccionario con textos esperados según idioma
 EXPECTED_TEXTS = {
     "Español": "Ofertas y destinos",
@@ -28,20 +24,25 @@ EXPECTED_TEXTS = {
 }
 
 # ==================== TESTS ====================
-@pytest.mark.parametrize("base_url", [BASE_URL_QA4, BASE_URL_QA5])
-@pytest.mark.parametrize("language", ["Español", "English", "Français", "Português"])
-def test_language_change(driver, base_url, db, language):
+def test_language_change(driver, base_url, db, language, browser):
     """
     Test Case 4: Verificar cambio de idioma.
 
-    Este test se ejecuta 8 veces en total:
-    - 4 idiomas × 2 ambientes = 8 ejecuciones
+    Parametrización dinámica basada en opciones CLI:
+    - language: Controlado por --language (default: all)
+    - browser: Controlado por --browser (default: all)
+    - base_url: Controlado por --env (default: all)
+
+    Total de ejecuciones:
+    - Por defecto: 4 idiomas × 2 envs × 2 navegadores = 16 tests
+    - Ejemplo: --browser=chrome --language=Español --env=qa4 → 1 test
 
     Args:
-        driver: Fixture del navegador (scope=function)
+        driver: Fixture del navegador (Chrome o Edge según parámetro)
         base_url: URL parametrizada (QA4 o QA5)
         db: Fixture de base de datos (scope=session)
-        language: Idioma parametrizado (Español, English, Français, Português)
+        language: Idioma (viene de pytest_generate_tests)
+        browser: Navegador (viene de pytest_generate_tests)
     """
     # PASO 1: Log de inicio del test
     logger.info(f"========== Starting test: Language change to '{language}' on {base_url} ==========")
@@ -72,11 +73,13 @@ def test_language_change(driver, base_url, db, language):
     logger.info("✓ Assertion passed: Language changed successfully")
 
     # PASO 8: Guardar resultado en base de datos (requisito del PDF)
-    test_name = f"Case4_Language_{language}_{base_url.split('//')[1].split('.')[0]}"
+    env = base_url.split('//')[1].split('.')[0]  # Extrae "nuxqa4" o "nuxqa5"
+    test_name = f"Case4_{language}_{env}_{browser}"
     db.save_test_result(
         test_name=test_name,
         status="PASSED",
         execution_time=0,
+        browser=browser,
         url=base_url
     )
     logger.info(f"Test result saved to database: {test_name}")
