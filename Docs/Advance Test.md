@@ -10,9 +10,43 @@
 ## CASOS IMPLEMENTADOS
 
 ### Caso 4: Verificar Cambio de Idioma (5 pts)
-**Estado:** ⏳ Pendiente
+**Estado:** ✅ Completado
 **Objetivo:** Seleccionar los 4 idiomas y verificar que el cambio se hace correctamente
 **Idiomas:** Español, Inglés, Francés, Portugués
+**Navegadores:** Chrome, Edge, Firefox
+**Ambientes:** QA4, QA5
+**Total tests:** 24 (4 idiomas × 2 ambientes × 3 navegadores)
+
+**Archivos implementados:**
+- `pages/nuxqa/home_page.py` - Page Object con locators XPath
+- `tests/nuxqa/test_language_change_Case4.py` - Test parametrizado dinámicamente
+
+**CLI Options implementadas:**
+- `--browser` (chrome | edge | firefox | all)
+- `--language` (Español | English | Français | Português | all)
+- `--env` (qa4 | qa5 | all)
+
+**Selectores utilizados:**
+- `//button[contains(@class, 'dropdown_trigger')]` - Botón de idioma
+- `//span[contains(text(), '{language}')]` - Opción de idioma por texto
+- `//button[@class='main-header_nav-primary_item_link']//span[@class='button_label']` - Texto "Ofertas"
+
+**Validaciones implementadas:**
+- Verificación de texto esperado según idioma seleccionado
+- Resultados guardados en SQLite database
+- Logs detallados de cada paso
+
+**Características técnicas:**
+- Page Object Model (POM)
+- Parametrización dinámica vía pytest_generate_tests
+- Soporte multi-browser con CLI options
+- Selenium Manager para Edge (sin webdriver-manager)
+- webdriver-manager para Chrome y Firefox
+
+**Comando de ejecución:**
+```bash
+pytest tests/nuxqa/test_language_change_Case4.py --browser=all --language=all --env=all -v
+```
 
 -------------------------------
 
@@ -94,8 +128,9 @@
 ### Estado Actual
 - **Fase conceptual:** ✅ Completada (85% comprensión alcanzado)
 - **Repositorio GitHub:** ✅ Configurado (https://github.com/cesarcardona-ux/selenium-technical-test)
-- **Fase de implementación:** ⏳ Lista para comenzar
-- **Próximo paso:** Implementar Caso 4 (Verificar Cambio de Idioma)
+- **Fase de implementación:** ✅ En progreso
+- **Casos completados:** 1/7 (Case 4)
+- **Próximo paso:** Implementar Caso 5 (Verificar Cambio de POS)
 
 -------------------------------
 
