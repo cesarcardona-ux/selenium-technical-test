@@ -247,10 +247,10 @@ def pytest_generate_tests(metafunc):
     all_pos = ["Chile", "España", "Otros países"]
 
     # Definir todos los header links disponibles
-    all_header_links = ["hoteles", "credits", "equipaje"]
+    all_header_links = ["ofertas-vuelos", "credits", "equipaje"]
 
     # Definir todos los footer links disponibles
-    all_footer_links = ["vuelos", "trabajos", "aviancadirect", "articulos"]
+    all_footer_links = ["vuelos", "noticias", "aviancadirect", "contactanos"]
 
     # Definir todos los ambientes disponibles
     all_envs = {

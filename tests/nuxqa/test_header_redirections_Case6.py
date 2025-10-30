@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 # ==================== CONSTANTES ====================
 # Diccionario con nombres descriptivos de cada header link
 HEADER_LINK_NAMES = {
-    "hoteles": "Reserva de hoteles",
+    "ofertas-vuelos": "Ofertas de vuelos",
     "credits": "Avianca Credits",
     "equipaje": "Equipaje"
 }
@@ -53,7 +53,8 @@ def test_header_redirections(driver, base_url, db, header_link, browser, screens
     case_number = "6"  # Número del caso de prueba
     link_name = HEADER_LINK_NAMES[header_link]
 
-    # Título descriptivo para el reporte
+    # Título descriptivo para el reporte (el idioma se agregará después)
+    # El idioma se establece dinámicamente después de la navegación
     allure.dynamic.title(f"Header Link: {link_name} | Browser: {browser.capitalize()} | Env: {env}")
 
     # Story por navegador (agrupa tests del mismo navegador)
@@ -90,10 +91,10 @@ def test_header_redirections(driver, base_url, db, header_link, browser, screens
         if screenshots_mode == "all":
             allure.attach(driver.get_screenshot_as_png(), name="01_Page_Loaded", attachment_type=allure.attachment_type.PNG)
 
-    # PASO 4: Click en header link y submenu option
+    # PASO 4: Click en header link y submenu option (incluye cambio de idioma aleatorio)
     with allure.step(f"Click on header link: {link_name}"):
-        success, final_url, message = home.click_header_link_and_submenu(header_link)
-        logger.info(f"Redirection result: success={success}, url={final_url}, message={message}")
+        success, final_url, message, selected_language = home.click_header_link_and_submenu(header_link)
+        logger.info(f"Redirection result: success={success}, url={final_url}, message={message}, language={selected_language}")
 
         # Capturar screenshot solo si modo es "all"
         if screenshots_mode == "all":
@@ -101,17 +102,26 @@ def test_header_redirections(driver, base_url, db, header_link, browser, screens
 
     # PASO 5: Validar redirección
     with allure.step(f"Verify redirection to {link_name}"):
-        # Adjuntar URL final al reporte de Allure
+        # Actualizar título con el idioma usado
+        allure.dynamic.title(f"Header Link: {link_name} | Browser: {browser.capitalize()} | Env: {env} | Lang: {selected_language}")
+
+        # Adjuntar URL final e idioma al reporte de Allure
         allure.attach(
             final_url if final_url else "No URL captured",
             name="Final URL",
+            attachment_type=allure.attachment_type.TEXT
+        )
+        allure.attach(
+            selected_language if selected_language else "No language selected",
+            name="Selected Language",
             attachment_type=allure.attachment_type.TEXT
         )
 
         # PASO 6: Validación con assert (requisito del PDF)
         assert success, f"Header redirection to '{link_name}' failed: {message}"
         assert final_url is not None, f"No URL captured after clicking '{link_name}'"
-        logger.info(f"✓ Assertion passed: Redirection to '{link_name}' successful")
+        assert selected_language is not None, f"No language selected"
+        logger.info(f"✓ Assertion passed: Redirection to '{link_name}' successful with language '{selected_language}'")
 
         # Capturar screenshot solo si modo es "all"
         if screenshots_mode == "all":
@@ -123,16 +133,16 @@ def test_header_redirections(driver, base_url, db, header_link, browser, screens
         logger.info("Extra tabs closed, returned to main tab")
 
     # PASO 8: Guardar resultado en base de datos (requisito del PDF)
-    test_name = f"Case6_{header_link}_{env}_{browser}"
+    test_name = f"Case6_{header_link}_{env}_{browser}_{selected_language}"
     db.save_test_result(
         test_name=test_name,
         status="PASSED",
         execution_time=0,
         browser=browser,
         url=final_url,
-        language=None,  # No aplica para este caso
+        language=selected_language,  # Idioma usado en el test
         case_number=case_number
     )
-    logger.info(f"Test result saved to database: {test_name}")
+    logger.info(f"Test result saved to database: {test_name} with language {selected_language}")
 
     logger.info(f"========== Test completed successfully ==========")

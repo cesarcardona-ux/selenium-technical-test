@@ -132,10 +132,11 @@ pytest tests/nuxqa/test_pos_change_Case5.py --browser=all --pos=all --env=all -n
 
 -------------------------------
 
-### Caso 6: Redirecciones Header
+### Caso 6: Redirecciones Header con Validación de Idioma
 **Estado:** ✅ Completado
-**Objetivo:** Usar opciones del Navbar para acceder a 3 sitios diferentes
-**Header Links:** Reserva de hoteles (booking.com), Avianca Credits, Equipaje
+**Objetivo:** Usar opciones del Navbar para acceder a 3 sitios diferentes con validación de idioma
+**Header Links:** Ofertas de vuelos, Avianca Credits, Equipaje
+**Language Validation:** Selección aleatoria de idioma (Español, English, Français, Português) con verificación del código en URL
 **Navegadores:** Chrome, Edge, Firefox
 **Ambientes:** QA4, QA5
 **Total tests:** 18 (3 links × 2 ambientes × 3 navegadores)

@@ -62,8 +62,8 @@ allure serve reports/allure
 | `--browser`     | chrome, edge, firefox, all                              | Browser selection (default: all)              |
 | `--language`    | Español, English, Français, Português, all              | Language selection (default: all)             |
 | `--pos`         | Chile, España, Otros países, all                        | POS selection (default: all)                  |
-| `--header-link` | hoteles, credits, equipaje, all                         | Header link selection (default: all)          |
-| `--footer-link` | vuelos, trabajos, aviancadirect, articulos, all         | Footer link selection (default: all)          |
+| `--header-link` | ofertas-vuelos, credits, equipaje, all                  | Header link selection (default: all)          |
+| `--footer-link` | vuelos, noticias, aviancadirect, contactanos, all       | Footer link selection (default: all)          |
 | `--env`         | qa4, qa5, all                                           | Environment selection (default: all)          |
 | `--screenshots` | none, on-failure, all                                   | Screenshot capture mode (default: on-failure) |
 | `--video`       | none, enabled                                           | Video recording (default: none)               |
@@ -77,10 +77,10 @@ pytest tests/nuxqa/test_language_change_Case4.py --browser=chrome --language=Eng
 pytest tests/nuxqa/test_pos_change_Case5.py --browser=chrome --pos=Chile --env=qa5 --video=enabled --screenshots=all
 
 # Case 6: Header redirections
-pytest tests/nuxqa/test_header_redirections_Case6.py --browser=chrome --header-link=hoteles --env=qa5 -v
+pytest tests/nuxqa/test_header_redirections_Case6.py --browser=chrome --header-link=ofertas-vuelos --env=qa5 -v
 
 # Case 7: Footer redirections
-pytest tests/nuxqa/test_footer_redirections_Case7.py --browser=chrome --footer-link=vuelos --env=qa5 -v
+pytest tests/nuxqa/test_footer_redirections_Case7.py --browser=chrome --footer-link=noticias --env=qa5 -v
 ```
 
 **Parallel execution:**
@@ -114,18 +114,20 @@ pytest tests/ -n auto
 - **Total combinations:** 18 tests
 - **File:** `tests/nuxqa/test_pos_change_Case5.py`
 
-### Case 6: Header Redirections ✅
-- **Header Links:** Reserva de hoteles (booking.com), Avianca Credits, Equipaje
+### Case 6: Header Redirections with Language Validation ✅
+- **Header Links:** Ofertas de vuelos, Avianca Credits, Equipaje
+- **Language Validation:** Random selection (Español, English, Français, Português) with URL code verification
 - **Browsers:** Chrome, Edge, Firefox
 - **Environments:** QA4, QA5
-- **Total combinations:** 18 tests
+- **Total combinations:** 18 tests (3 links × 3 browsers × 2 envs)
 - **File:** `tests/nuxqa/test_header_redirections_Case6.py`
 
-### Case 7: Footer Redirections ✅
-- **Footer Links:** Vuelos baratos, Trabaja con nosotros, aviancadirect, Artículos restringidos
+### Case 7: Footer Redirections with Language Validation ✅
+- **Footer Links:** Vuelos baratos, Noticias corporativas, aviancadirect, Contáctanos
+- **Language Validation:** Random selection (Español, English, Français, Português) with URL code verification
 - **Browsers:** Chrome, Edge, Firefox
 - **Environments:** QA4, QA5
-- **Total combinations:** 24 tests
+- **Total combinations:** 24 tests (4 links × 3 browsers × 2 envs)
 - **File:** `tests/nuxqa/test_footer_redirections_Case7.py`
 
 ## Technical Implementation

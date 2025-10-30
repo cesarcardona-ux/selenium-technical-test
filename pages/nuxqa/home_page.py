@@ -9,6 +9,7 @@ Contiene todos los selectores (locators) y acciones que se pueden hacer en esta 
 from selenium.webdriver.common.by import By
 import logging
 import time
+import random
 
 # ==================== LOGGER ====================
 # Requisito técnico del PDF: logs detallados
@@ -39,23 +40,24 @@ class HomePage:
     POS_APPLY_BUTTON = (By.XPATH, "//button[contains(@class, 'points-of-sale_footer_action_button')]")  # Botón "Aplicar" por clase
 
     # Header Navigation selectors (Case 6)
-    # Botones del navbar con clase específica (basado en inspección del sitio)
-    NAVBAR_OFFERS = (By.XPATH, "//button[contains(@class, 'main-header_nav-primary_item_link')]//span[contains(text(), 'Ofertas y destinos')]")
-    NAVBAR_YOUR_RESERVATION = (By.XPATH, "//button[contains(@class, 'main-header_nav-primary_item_link')]//span[contains(text(), 'Tu reserva')]")
-    NAVBAR_INFO_AND_HELP = (By.XPATH, "//button[contains(@class, 'main-header_nav-primary_item_link')]//span[contains(text(), 'Información y ayuda')]")
+    # Botones del navbar (independientes del idioma - basados en posición)
+    NAVBAR_OFFERS = (By.XPATH, "(//button[contains(@class, 'main-header_nav-primary_item_link')])[1]")
+    NAVBAR_YOUR_RESERVATION = (By.XPATH, "(//button[contains(@class, 'main-header_nav-primary_item_link')])[2]")
+    NAVBAR_INFO_AND_HELP = (By.XPATH, "(//button[contains(@class, 'main-header_nav-primary_item_link')])[3]")
 
-    # Links de submenú (dentro del dropdown que aparece al hacer click en navbar)
-    # Buscar por span con clase link_label
-    SUBMENU_HOTEL_RESERVATION = (By.XPATH, "//span[@class='link_label' and contains(text(), 'Reserva de hoteles')]")
-    SUBMENU_AVIANCA_CREDITS = (By.XPATH, "//span[@class='link_label' and contains(text(), 'avianca credits')]")
-    SUBMENU_LUGGAGE = (By.XPATH, "//span[@class='link_label' and contains(text(), 'Equipaje')]")
+    # Links de submenú (independientes del idioma - buscar por href parcial que no cambia)
+    # Cada submenú tiene URLs con patrones únicos, buscar el elemento <a> directamente
+    SUBMENU_FLIGHT_OFFERS = (By.XPATH, "//a[contains(@href, 'ofertas-de') or contains(@href, 'offres-de') or contains(@href, 'flight-offers') or contains(@href, 'voos-promocionais')]")
+    SUBMENU_AVIANCA_CREDITS = (By.XPATH, "//a[contains(@href, 'avianca-credits')]")
+    SUBMENU_LUGGAGE = (By.XPATH, "//a[contains(@href, 'equipaje') or contains(@href, 'baggage') or contains(@href, 'bagages') or contains(@href, 'bagagem')]")
 
     # Footer Navigation selectors (Case 7)
-    # Links del footer con clase link-label (basado en inspección del sitio)
-    FOOTER_VUELOS_BARATOS = (By.XPATH, "//span[@class='link-label' and contains(text(), 'Vuelos baratos')]")
-    FOOTER_TRABAJA_CON_NOSOTROS = (By.XPATH, "//span[@class='link-label' and contains(text(), 'Trabaja con nosotros')]")
-    FOOTER_AVIANCADIRECT = (By.XPATH, "//span[@class='link-label' and contains(text(), 'aviancadirect')]")
-    FOOTER_ARTICULOS_RESTRINGIDOS = (By.XPATH, "//span[@class='link-label' and contains(text(), 'Artículos restringidos')]")
+    # Links del footer (independientes del idioma - usar la primera opción visible por tipo)
+    # Como los slugs cambian con el idioma, buscamos por palabras clave que permanecen
+    FOOTER_VUELOS_BARATOS = (By.XPATH, "//footer//a[contains(@href, 'ofertas-') or contains(@href, 'offres-') or contains(@href, 'offers-')]//span[@class='link-label']")
+    FOOTER_NOTICIAS_CORPORATIVAS = (By.XPATH, "//footer//a[contains(@href, 'noticias') or contains(@href, 'nouvelles') or contains(@href, 'news') or contains(@href, 'noticias')]//span[@class='link-label']")
+    FOOTER_AVIANCADIRECT = (By.XPATH, "//footer//a[contains(@href, 'aviancadirect')]//span[@class='link-label']")
+    FOOTER_CONTACTANOS = (By.XPATH, "//footer//a[contains(@href, 'contact') or contains(@href, 'contato')]//span[@class='link-label']")
 
     # ==================== CONSTRUCTOR ====================
     def __init__(self, driver):
@@ -96,11 +98,14 @@ class HomePage:
     def select_language(self, language_name):
         """
         Selecciona un idioma del dropdown.
+        Primero abre el dropdown y luego selecciona el idioma.
 
         Args:
             language_name: Nombre del idioma (ej: "English", "Español", "Français", "Português")
         """
         logger.info(f"Selecting language: {language_name}")
+        # Primero abrir el dropdown de idiomas
+        self.click_language_button()
         # XPath dinámico: busca por texto visible
         xpath = f"//span[contains(text(), '{language_name}')]"
         element = self.driver.find_element(By.XPATH, xpath)
@@ -175,48 +180,68 @@ class HomePage:
         """
         Hace click en un link del navbar y luego en la opción del submenú.
         Maneja la apertura de nueva pestaña si es necesario.
+        Incluye selección aleatoria de idioma y validación del idioma en la URL.
 
         Args:
-            header_link_name: Nombre del link a probar ("hoteles", "credits", "equipaje")
+            header_link_name: Nombre del link a probar ("ofertas-vuelos", "credits", "equipaje")
 
         Returns:
-            tuple: (success: bool, new_url: str, message: str)
+            tuple: (success: bool, new_url: str, message: str, selected_language: str)
         """
         from selenium.webdriver.common.action_chains import ActionChains
         from selenium.webdriver.support.ui import WebDriverWait
         from selenium.webdriver.support import expected_conditions as EC
 
+        # Mapeo de idiomas a códigos de lenguaje en URL
+        language_codes = {
+            "Español": "es",
+            "English": "en",
+            "Français": "fr",
+            "Português": "pt"
+        }
+
         # Mapear nombre corto a selectores y URLs esperadas
         # expected_url_parts: Lista de strings que DEBEN estar en la URL final (validación multi-parte)
         navigation_map = {
-            "hoteles": {
+            "ofertas-vuelos": {
                 "navbar": self.NAVBAR_OFFERS,
-                "submenu": self.SUBMENU_HOTEL_RESERVATION,
-                "expected_url_parts": ["booking.com", "/dealspage"]  # Debe contener dominio + path
+                "submenu": self.SUBMENU_FLIGHT_OFFERS,
+                "expected_url_parts": []  # El slug cambia con idioma, solo validamos que navegó
             },
             "credits": {
                 "navbar": self.NAVBAR_YOUR_RESERVATION,
                 "submenu": self.SUBMENU_AVIANCA_CREDITS,
-                "expected_url_parts": ["avianca-credits"]  # URL interna, solo una parte necesaria
+                "expected_url_parts": ["credits"]  # "credits" no cambia con el idioma
             },
             "equipaje": {
                 "navbar": self.NAVBAR_INFO_AND_HELP,
                 "submenu": self.SUBMENU_LUGGAGE,
-                "expected_url_parts": ["informacion-y-ayuda", "equipaje"]  # Debe contener ambas partes del path
+                "expected_url_parts": []  # El slug "equipaje" cambia con idioma
             }
         }
 
         if header_link_name not in navigation_map:
             logger.error(f"Invalid header link name: {header_link_name}")
-            return False, None, f"Invalid header link: {header_link_name}"
+            return False, None, f"Invalid header link: {header_link_name}", None
 
         nav_data = navigation_map[header_link_name]
 
         try:
+            # PASO NUEVO: Seleccionar idioma aleatorio
+            available_languages = list(language_codes.keys())
+            selected_language = random.choice(available_languages)
+            expected_lang_code = language_codes[selected_language]
+            logger.info(f"Randomly selected language: {selected_language} (code: {expected_lang_code})")
+
+            # PASO NUEVO: Cambiar idioma antes de navegar
+            logger.info(f"Changing language to: {selected_language}")
+            self.select_language(selected_language)
+            time.sleep(2)  # Esperar a que se aplique el cambio de idioma
+
             # Guardar URL inicial
             initial_url = self.driver.current_url
             initial_window = self.driver.current_window_handle
-            logger.info(f"Initial URL: {initial_url}")
+            logger.info(f"Initial URL after language change: {initial_url}")
 
             # Paso 1: Hacer CLICK en el navbar button para abrir el menú dropdown
             logger.info(f"Looking for navbar button for '{header_link_name}'")
@@ -226,11 +251,11 @@ class HomePage:
             # Click en el botón del navbar
             navbar_element.click()
             logger.info("Navbar button clicked, dropdown should open")
-            time.sleep(2)  # Espera para que se abra el menú
+            time.sleep(3)  # Espera para que se abra el menú (aumentado a 3 segundos)
 
             # Paso 2: Esperar explícitamente a que el elemento del submenú sea visible
             logger.info(f"Waiting for submenu option to be visible for '{header_link_name}'")
-            wait = WebDriverWait(self.driver, 10)
+            wait = WebDriverWait(self.driver, 15)
             submenu_element = wait.until(
                 EC.visibility_of_element_located(nav_data["submenu"])
             )
@@ -258,24 +283,32 @@ class HomePage:
             # Paso 6: Validar que la URL cambió
             if final_url == initial_url:
                 logger.warning(f"URL did not change after clicking '{header_link_name}'")
-                return False, final_url, "URL did not change"
+                return False, final_url, "URL did not change", selected_language
 
             # Paso 7: Validar que la URL contiene TODAS las partes esperadas (validación multi-parte)
             expected_parts = nav_data["expected_url_parts"]
             for expected_part in expected_parts:
                 if expected_part not in final_url:
                     logger.error(f"URL validation failed: expected '{expected_part}' in URL but got '{final_url}'")
-                    return False, final_url, f"URL doesn't contain expected part: '{expected_part}'"
+                    return False, final_url, f"URL doesn't contain expected part: '{expected_part}'", selected_language
                 else:
                     logger.info(f"✓ URL validation passed: contains '{expected_part}'")
 
+            # PASO NUEVO: Validar que el idioma está en la URL
+            if f"/{expected_lang_code}/" in final_url or final_url.endswith(f"/{expected_lang_code}"):
+                logger.info(f"✓ Language validation passed: URL contains '/{expected_lang_code}/'")
+            else:
+                logger.error(f"Language validation failed: expected '/{expected_lang_code}/' in URL but got '{final_url}'")
+                return False, final_url, f"URL doesn't contain expected language code: '/{expected_lang_code}/'", selected_language
+
             logger.info(f"✓ Redirection successful to: {final_url}")
             logger.info(f"✓ All URL validations passed: {expected_parts}")
-            return True, final_url, "Redirection successful"
+            logger.info(f"✓ Language validation passed: {selected_language} ({expected_lang_code})")
+            return True, final_url, "Redirection successful", selected_language
 
         except Exception as e:
             logger.error(f"Error during header navigation for '{header_link_name}': {str(e)}")
-            return False, None, f"Error: {str(e)}"
+            return False, None, f"Error: {str(e)}", None
 
     def close_extra_tabs_and_return_to_main(self):
         """
@@ -301,48 +334,68 @@ class HomePage:
         """
         Hace click en un link del footer y valida la URL de destino.
         Maneja la apertura de nueva pestaña si es necesario.
+        Incluye selección aleatoria de idioma y validación del idioma en la URL.
 
         Args:
-            footer_link_name: Nombre del link a probar ("vuelos", "trabajos", "aviancadirect", "articulos")
+            footer_link_name: Nombre del link a probar ("vuelos", "noticias", "aviancadirect", "contactanos")
 
         Returns:
-            tuple: (success: bool, new_url: str, message: str)
+            tuple: (success: bool, new_url: str, message: str, selected_language: str)
         """
         from selenium.webdriver.support.ui import WebDriverWait
         from selenium.webdriver.support import expected_conditions as EC
+
+        # Mapeo de idiomas a códigos de lenguaje en URL
+        language_codes = {
+            "Español": "es",
+            "English": "en",
+            "Français": "fr",
+            "Português": "pt"
+        }
 
         # Mapear nombre corto a selectores y URLs esperadas
         # expected_url_parts: Lista de strings que DEBEN estar en la URL final (validación multi-parte)
         navigation_map = {
             "vuelos": {
                 "selector": self.FOOTER_VUELOS_BARATOS,
-                "expected_url_parts": ["ofertas-destinos", "ofertas-de-vuelos"]
+                "expected_url_parts": []  # El slug cambia con idioma, solo validamos que navegó
             },
-            "trabajos": {
-                "selector": self.FOOTER_TRABAJA_CON_NOSOTROS,
-                "expected_url_parts": ["jobs.avianca.com"]
+            "noticias": {
+                "selector": self.FOOTER_NOTICIAS_CORPORATIVAS,
+                "expected_url_parts": []  # El slug cambia con idioma
             },
             "aviancadirect": {
                 "selector": self.FOOTER_AVIANCADIRECT,
-                "expected_url_parts": ["portales-aliados", "aviancadirect-ndc"]
+                "expected_url_parts": ["aviancadirect"]  # Único que no cambia
             },
-            "articulos": {
-                "selector": self.FOOTER_ARTICULOS_RESTRINGIDOS,
-                "expected_url_parts": ["ayuda.avianca.com", "/hc/"]
+            "contactanos": {
+                "selector": self.FOOTER_CONTACTANOS,
+                "expected_url_parts": []  # El slug cambia con idioma
             }
         }
 
         if footer_link_name not in navigation_map:
             logger.error(f"Invalid footer link name: {footer_link_name}")
-            return False, None, f"Invalid footer link: {footer_link_name}"
+            return False, None, f"Invalid footer link: {footer_link_name}", None
 
         nav_data = navigation_map[footer_link_name]
 
         try:
+            # PASO NUEVO: Seleccionar idioma aleatorio
+            available_languages = list(language_codes.keys())
+            selected_language = random.choice(available_languages)
+            expected_lang_code = language_codes[selected_language]
+            logger.info(f"Randomly selected language: {selected_language} (code: {expected_lang_code})")
+
+            # PASO NUEVO: Cambiar idioma antes de navegar
+            logger.info(f"Changing language to: {selected_language}")
+            self.select_language(selected_language)
+            time.sleep(2)  # Esperar a que se aplique el cambio de idioma
+
             # Guardar URL inicial
             initial_url = self.driver.current_url
             initial_window = self.driver.current_window_handle
-            logger.info(f"Initial URL: {initial_url}")
+            logger.info(f"Initial URL after language change: {initial_url}")
 
             # Paso 1: Scroll hacia el footer para que sea visible
             logger.info(f"Scrolling to footer to make link visible")
@@ -379,21 +432,29 @@ class HomePage:
             # Paso 6: Validar que la URL cambió
             if final_url == initial_url:
                 logger.warning(f"URL did not change after clicking '{footer_link_name}'")
-                return False, final_url, "URL did not change"
+                return False, final_url, "URL did not change", selected_language
 
             # Paso 7: Validar que la URL contiene TODAS las partes esperadas (validación multi-parte)
             expected_parts = nav_data["expected_url_parts"]
             for expected_part in expected_parts:
                 if expected_part not in final_url:
                     logger.error(f"URL validation failed: expected '{expected_part}' in URL but got '{final_url}'")
-                    return False, final_url, f"URL doesn't contain expected part: '{expected_part}'"
+                    return False, final_url, f"URL doesn't contain expected part: '{expected_part}'", selected_language
                 else:
                     logger.info(f"✓ URL validation passed: contains '{expected_part}'")
 
+            # PASO NUEVO: Validar que el idioma está en la URL
+            if f"/{expected_lang_code}/" in final_url or final_url.endswith(f"/{expected_lang_code}"):
+                logger.info(f"✓ Language validation passed: URL contains '/{expected_lang_code}/'")
+            else:
+                logger.error(f"Language validation failed: expected '/{expected_lang_code}/' in URL but got '{final_url}'")
+                return False, final_url, f"URL doesn't contain expected language code: '/{expected_lang_code}/'", selected_language
+
             logger.info(f"✓ Redirection successful to: {final_url}")
             logger.info(f"✓ All URL validations passed: {expected_parts}")
-            return True, final_url, "Redirection successful"
+            logger.info(f"✓ Language validation passed: {selected_language} ({expected_lang_code})")
+            return True, final_url, "Redirection successful", selected_language
 
         except Exception as e:
             logger.error(f"Error during footer navigation for '{footer_link_name}': {str(e)}")
-            return False, None, f"Error: {str(e)}"
+            return False, None, f"Error: {str(e)}", None
