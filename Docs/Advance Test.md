@@ -9,7 +9,7 @@
 
 ## CASOS IMPLEMENTADOS
 
-### Caso 4: Verificar Cambio de Idioma (5 pts)
+### Caso 4: Verificar Cambio de Idioma
 **Estado:** ✅ Completado
 **Objetivo:** Seleccionar los 4 idiomas y verificar que el cambio se hace correctamente
 **Idiomas:** Español, Inglés, Francés, Portugués
@@ -77,28 +77,28 @@ pytest tests/nuxqa/test_language_change_Case4.py --browser=all --language=all --
 
 -------------------------------
 
-### Caso 5: Verificar Cambio de POS (5 pts)
+### Caso 5: Verificar Cambio de POS
 **Estado:** ⏳ Pendiente
 **Objetivo:** Seleccionar 3 POS y verificar que el cambio se hace correctamente
 **POS:** Otros países, España, Chile
 
 -------------------------------
 
-### Caso 6: Redirecciones Header (5 pts)
+### Caso 6: Redirecciones Header
 **Estado:** ⏳ Pendiente
 **Objetivo:** Usar opciones del Navbar para acceder a 3 sitios diferentes
 **Validación:** URLs cargan correctamente según idioma y sitio seleccionado
 
 -------------------------------
 
-### Caso 7: Redirecciones Footer (5 pts)
+### Caso 7: Redirecciones Footer
 **Estado:** ⏳ Pendiente
 **Objetivo:** Usar links del footer para acceder a 4 sitios diferentes
 **Validación:** URLs cargan correctamente según idioma y sitio seleccionado
 
 -------------------------------
 
-### Caso 3: Login en UAT1 (10 pts)
+### Caso 3: Login en UAT1
 **Estado:** ⏳ Pendiente
 **Objetivo:** Realizar login y capturar campos del Network
 **Detalles:**
@@ -108,7 +108,7 @@ pytest tests/nuxqa/test_language_change_Case4.py --browser=all --language=all --
 
 -------------------------------
 
-### Caso 1: Booking One-way (15 pts)
+### Caso 1: Booking One-way
 **Estado:** ⏳ Pendiente
 **Objetivo:** Realizar booking de solo ida completo
 **Páginas:**
@@ -121,7 +121,7 @@ pytest tests/nuxqa/test_language_change_Case4.py --browser=all --language=all --
 
 -------------------------------
 
-### Caso 2: Booking Round-trip (15 pts)
+### Caso 2: Booking Round-trip
 **Estado:** ⏳ Pendiente
 **Objetivo:** Realizar booking de ida y vuelta completo
 **Páginas:**
@@ -157,7 +157,7 @@ pytest tests/nuxqa/test_language_change_Case4.py --browser=all --language=all --
 - **Repositorio GitHub:** ✅ Configurado (https://github.com/cesarcardona-ux/selenium-technical-test)
 - **Fase de implementación:** ✅ En progreso
 - **Casos completados:** 1/7 (Case 4 con video evidence)
-- **Video Evidence:** ✅ Implementado (15 pts opcionales)
+- **Video Evidence:** ✅ Implementado
   - Grabación MP4 con OpenCV
   - Screenshots condicionales
   - Integración completa con Allure

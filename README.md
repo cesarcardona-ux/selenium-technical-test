@@ -133,7 +133,7 @@ allure serve reports/allure
 
 ## Implemented Test Cases
 
-### ✅ Case 4: Language Change Validation (5 pts)
+### ✅ Case 4: Language Change Validation
 - **Description:** Validates language switching functionality
 - **Languages tested:** Spanish, English, French, Portuguese
 - **Browsers:** Chrome, Edge, Firefox
@@ -150,26 +150,26 @@ pytest tests/nuxqa/test_language_change_Case4.py --browser=all --language=all --
 
 ## Pending Test Cases
 
-- ⏳ Case 5: POS Change Validation (5 pts)
-- ⏳ Case 6: Header Redirections (5 pts)
-- ⏳ Case 7: Footer Redirections (5 pts)
-- ⏳ Case 3: Login and Network Capture (10 pts)
-- ⏳ Case 1: One-way Booking (15 pts)
-- ⏳ Case 2: Round-trip Booking (15 pts)
+- ⏳ Case 5: POS Change Validation
+- ⏳ Case 6: Header Redirections
+- ⏳ Case 7: Footer Redirections
+- ⏳ Case 3: Login and Network Capture
+- ⏳ Case 1: One-way Booking
+- ⏳ Case 2: Round-trip Booking
 
 ---------------------------------------
 
 ## Technical Requirements Compliance
 
-- ✅ Allure Reports (10 pts)
-- ✅ Detailed Logging (5 pts)
-- ✅ SQLite Database (5 pts)
-- ✅ QA4 and QA5 Environments (5 pts)
-- ✅ Parallel Execution with xdist (5 pts)
-- ✅ Clear Assertions (5 pts)
+- ✅ Allure Reports
+- ✅ Detailed Logging
+- ✅ SQLite Database
+- ✅ QA4 and QA5 Environments
+- ✅ Parallel Execution with xdist
+- ✅ Clear Assertions
 - ✅ Page Object Model (POM)
 - ✅ Multiple Browsers (Chrome, Edge, Firefox)
-- ✅ Video Evidence (15 pts - Optional) - MP4 recording with OpenCV
+- ✅ Video Evidence - MP4 recording with OpenCV
 
 ---------------------------------------
 
