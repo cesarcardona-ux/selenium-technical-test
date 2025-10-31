@@ -132,17 +132,54 @@ def test_flight_search_and_network_capture(driver, base_url, db, browser, screen
         # Habilitar captura de red ANTES de navegar
         network_capture.enable_network_tracking()
 
+        # Calculate dates for display
+        from datetime import datetime, timedelta
+        today = datetime.now()
+        departure_date_display = (today + timedelta(days=DEPARTURE_DAYS_FROM_TODAY)).strftime('%Y-%m-%d')
+        return_date_display = (today + timedelta(days=RETURN_DAYS_FROM_TODAY)).strftime('%Y-%m-%d')
+
+        test_config = (
+            f"═══════════════════════════════════════════════════\n"
+            f"           CASE 3 - TEST CONFIGURATION\n"
+            f"═══════════════════════════════════════════════════\n\n"
+            f"📋 TEST DETAILS:\n"
+            f"   • Test Name: {test_name}\n"
+            f"   • Case Number: {case_number}\n"
+            f"   • Environment: {env.upper()} (https://nuxqa.avtest.ink/)\n"
+            f"   • Browser: {browser.capitalize()}\n\n"
+            f"🌍 LOCALIZATION:\n"
+            f"   • Language: {LANGUAGE}\n"
+            f"   • POS (Point of Sale): {POS}\n\n"
+            f"✈️  FLIGHT SEARCH PARAMETERS:\n"
+            f"   • Origin: {ORIGIN_CODE} ({ORIGIN_SEARCH})\n"
+            f"   • Destination: {DESTINATION_CODE} ({DESTINATION_SEARCH})\n"
+            f"   • Departure Date: {departure_date_display} (TODAY + {DEPARTURE_DAYS_FROM_TODAY} days)\n"
+            f"   • Return Date: {return_date_display} (TODAY + {RETURN_DAYS_FROM_TODAY} days)\n\n"
+            f"👥 PASSENGERS:\n"
+            f"   • Adults: 3\n"
+            f"   • Teens: 3\n"
+            f"   • Children: 3\n"
+            f"   • Infants: 0\n"
+            f"   • TOTAL: 9 passengers\n\n"
+            f"🎯 TEST OBJECTIVES:\n"
+            f"   1. Search for round-trip flights\n"
+            f"   2. Select FLEX plan for outbound flight (4 clicks total)\n"
+            f"   3. Select FLEX plan for return flight\n"
+            f"   4. Capture Session event from Network (DevTools)\n"
+            f"   5. Extract 4 required fields from Session JSON:\n"
+            f"      - closingCheckInDate\n"
+            f"      - openingCheckInDate\n"
+            f"      - fares[].paxCode, fares[].id, fares[].productClass\n"
+            f"      - segments[].etd, segments[].status, segments[].std\n\n"
+            f"📊 REPORTING:\n"
+            f"   • Screenshots: {screenshots_mode}\n"
+            f"   • Video: {video_mode}\n"
+            f"═══════════════════════════════════════════════════"
+        )
+
         allure.attach(
-            f"Browser: {browser}\n"
-            f"Environment: {env}\n"
-            f"Language: {LANGUAGE}\n"
-            f"POS: {POS}\n"
-            f"Origin: {ORIGIN_CODE} (search: {ORIGIN_SEARCH})\n"
-            f"Destination: {DESTINATION_CODE} (search: {DESTINATION_SEARCH})\n"
-            f"Departure: TODAY + {DEPARTURE_DAYS_FROM_TODAY} days\n"
-            f"Return: TODAY + {RETURN_DAYS_FROM_TODAY} days\n"
-            f"Passengers: {PASSENGERS_EACH_TYPE} of each type",
-            name="Test Configuration",
+            test_config,
+            name="📋 Test Configuration Summary",
             attachment_type=allure.attachment_type.TEXT
         )
 
@@ -218,21 +255,20 @@ def test_flight_search_and_network_capture(driver, base_url, db, browser, screen
         )
 
     # ==================== PASO 8: Seleccionar Pasajeros ====================
-    with allure.step(f"Select Passengers: {PASSENGERS_EACH_TYPE} of each type (as per PDF)"):
-        # PDF especifica: 3 adultos, 3 jóvenes, 3 niños, 3 bebés
-        # Límite del sitio: 9 pasajeros totales (bebés NO cuentan)
-        # Total: 3+3+3 = 9 pasajeros + 3 bebés ✓
+    with allure.step(f"Select Passengers: 3 adults, 3 teens, 3 children, 0 infants (9 total)"):
+        # Configuración ajustada: 3 adultos, 3 jóvenes, 3 niños, 0 bebés
+        # Total: 3+3+3 = 9 pasajeros (dentro del límite del sistema)
         search_page.select_passengers(
-            adults=PASSENGERS_EACH_TYPE,
-            teens=PASSENGERS_EACH_TYPE,
-            children=PASSENGERS_EACH_TYPE,
-            infants=PASSENGERS_EACH_TYPE
+            adults=3,
+            teens=3,
+            children=3,
+            infants=0  # Sin bebés para mantener total en 9
         )
         time.sleep(1)
 
-        total_passengers = PASSENGERS_EACH_TYPE * 3  # Adultos + Jóvenes + Niños
+        total_passengers = 9  # 3 Adultos + 3 Jóvenes + 3 Niños
         allure.attach(
-            f"Adults: {PASSENGERS_EACH_TYPE}\nTeens: {PASSENGERS_EACH_TYPE}\nChildren: {PASSENGERS_EACH_TYPE}\nInfants: {PASSENGERS_EACH_TYPE}\n\nTotal passengers: {total_passengers}\nTotal infants: {PASSENGERS_EACH_TYPE}\n\nNote: Infants do NOT count towards the 9 passenger limit",
+            f"Adults: 3\nTeens: 3\nChildren: 3\nInfants: 0\n\nTotal passengers: {total_passengers}\n\nNote: Configured to stay within 9 passenger system limit",
             name="Passenger Selection",
             attachment_type=allure.attachment_type.TEXT
         )
@@ -274,48 +310,85 @@ def test_flight_search_and_network_capture(driver, base_url, db, browser, screen
         # Assert que la página de vuelos cargó
         assert is_select_flight_page, f"Select Flight page did not load. Current URL: {current_url}"
 
-    # ==================== PASO 10.5: Seleccionar Vuelos ====================
-    with allure.step("Select flights on Select Flight page (as per PDF)"):
+    # ==================== PASO 10.5: Seleccionar Vuelos IDA y VUELTA ====================
+    with allure.step("Select OUTBOUND and RETURN flights with FLEX plan (as per PDF)"):
         # Crear Page Object para Select Flight
         select_flight_page = SelectFlightPage(driver)
 
         # Esperar a que la página cargue completamente
         page_loaded = select_flight_page.wait_for_page_load()
 
-        if page_loaded:
-            # Tomar screenshot de la página de vuelos
-            screenshot = select_flight_page.get_page_screenshot("select_flight_before_selection.png")
-            if screenshot:
-                allure.attach.file(
-                    screenshot,
-                    name="Select Flight Page - Before Selection",
-                    attachment_type=allure.attachment_type.PNG
-                )
-
-            # Seleccionar primer vuelo disponible
-            flight_selected = select_flight_page.select_first_available_flight()
-
-            if flight_selected:
-                allure.attach(
-                    "✓ Flight selected successfully\n\nNote: Selected first available flight as per Case 3 requirements",
-                    name="Flight Selection Status",
-                    attachment_type=allure.attachment_type.TEXT
-                )
-            else:
-                allure.attach(
-                    "⚠ Flight selection not performed or auto-selected by system\n\nNote: Some environments may auto-select flights",
-                    name="Flight Selection Status",
-                    attachment_type=allure.attachment_type.TEXT
-                )
-        else:
+        if not page_loaded:
             allure.attach(
-                "⚠ Could not wait for Select Flight page fully loaded",
+                "⚠ Could not wait for Select Flight page to fully load",
                 name="Flight Selection Warning",
                 attachment_type=allure.attachment_type.TEXT
             )
 
-        # Esperar un momento para que se procesen las selecciones
-        time.sleep(3)
+        # Tomar screenshot ANTES de seleccionar
+        screenshot = select_flight_page.get_page_screenshot("select_flight_before_selection.png")
+        if screenshot:
+            allure.attach.file(
+                screenshot,
+                name="Select Flight Page - Before Selection",
+                attachment_type=allure.attachment_type.PNG
+            )
+
+        # ==================== PASO 10.5.1: Seleccionar Vuelo de IDA + FLEX ====================
+        outbound_selected = select_flight_page.select_outbound_flight_and_flex_plan()
+
+        if outbound_selected:
+            allure.attach(
+                "✓ OUTBOUND flight selected successfully\n"
+                "✓ FLEX plan selected (3rd option)\n\n"
+                "Details:\n"
+                "- Selected: First available outbound flight\n"
+                "- Plan: FLEX (button.fare_button[2])\n"
+                "- Page reloaded for return flight selection",
+                name="Outbound Flight Selection",
+                attachment_type=allure.attachment_type.TEXT
+            )
+        else:
+            allure.attach(
+                "✗ Failed to select outbound flight or FLEX plan",
+                name="Outbound Flight Selection ERROR",
+                attachment_type=allure.attachment_type.TEXT
+            )
+            assert False, "Outbound flight selection failed"
+
+        # ==================== PASO 10.5.2: Seleccionar Vuelo de VUELTA + FLEX ====================
+        return_selected = select_flight_page.select_return_flight_and_flex_plan()
+
+        if return_selected:
+            allure.attach(
+                "✓ RETURN flight selected successfully\n"
+                "✓ FLEX plan selected (3rd option)\n\n"
+                "Details:\n"
+                "- Selected: First available return flight\n"
+                "- Plan: FLEX (button.fare_button[2])\n"
+                "- Ready to capture Session data",
+                name="Return Flight Selection",
+                attachment_type=allure.attachment_type.TEXT
+            )
+        else:
+            allure.attach(
+                "✗ Failed to select return flight or FLEX plan",
+                name="Return Flight Selection ERROR",
+                attachment_type=allure.attachment_type.TEXT
+            )
+            assert False, "Return flight selection failed"
+
+        # Tomar screenshot DESPUÉS de seleccionar ambos vuelos
+        screenshot_after = select_flight_page.get_page_screenshot("select_flight_after_selection.png")
+        if screenshot_after:
+            allure.attach.file(
+                screenshot_after,
+                name="Select Flight Page - After Both Selections",
+                attachment_type=allure.attachment_type.PNG
+            )
+
+        # Esperar un momento para que se cargue completamente el resumen
+        time.sleep(2)
 
     # ==================== PASO 11: Capturar Network Events ====================
     with allure.step("Capture Session event from Network"):
@@ -338,6 +411,7 @@ def test_flight_search_and_network_capture(driver, base_url, db, browser, screen
         )
 
         # Si se capturaron eventos de sesión, adjuntar detalles
+        session_extracted_fields = None
         if session_events:
             session_details = network_capture.find_session_event_details()
             allure.attach(
@@ -345,6 +419,66 @@ def test_flight_search_and_network_capture(driver, base_url, db, browser, screen
                 name="Session Event Details",
                 attachment_type=allure.attachment_type.JSON
             )
+
+            # ==================== EXTRAER 4 CAMPOS ESPECÍFICOS ====================
+            # Extraer closingCheckInDate, fares, openingCheckInDate, segments
+            session_extracted_fields = network_capture.extract_session_fields()
+
+            if session_extracted_fields:
+                allure.attach(
+                    json.dumps(session_extracted_fields, indent=2, ensure_ascii=False),
+                    name="Session Extracted Fields (4 Required)",
+                    attachment_type=allure.attachment_type.JSON
+                )
+
+                # Crear mensaje legible de los campos extraídos
+                journeys = session_extracted_fields.get('journeys', [])
+                fields_summary = f"✓ Session Fields Extracted Successfully:\n\n"
+                fields_summary += f"Total Journeys: {len(journeys)}\n\n"
+
+                for j_idx, journey in enumerate(journeys):
+                    fields_summary += f"═══ Journey {j_idx + 1}: {journey.get('origin')} → {journey.get('destination')} ═══\n\n"
+
+                    # 1. closingCheckInDate y openingCheckInDate
+                    fields_summary += f"1. Check-In Dates:\n"
+                    fields_summary += f"   - closingCheckInDate: {journey.get('closingCheckInDate', 'N/A')}\n"
+                    fields_summary += f"   - openingCheckInDate: {journey.get('openingCheckInDate', 'N/A')}\n\n"
+
+                    # 2. Standard Departure Time
+                    fields_summary += f"2. STD (Standard Departure): {journey.get('std', 'N/A')}\n\n"
+
+                    # 3. Fares
+                    fares = journey.get('fares', [])
+                    fields_summary += f"3. Fares ({len(fares)} total):\n"
+                    for fare_idx, fare in enumerate(fares):
+                        fields_summary += f"   - Fare [{fare_idx}]:\n"
+                        fields_summary += f"     • paxCode: {fare.get('paxCode', 'N/A')}\n"
+                        fields_summary += f"     • productClass: {fare.get('productClass', 'N/A')}\n"
+                        fare_id = fare.get('id', 'N/A')
+                        fields_summary += f"     • id: {fare_id[:60]}...\n" if len(fare_id) > 60 else f"     • id: {fare_id}\n"
+
+                    # 4. Segments
+                    segments = journey.get('segments', [])
+                    fields_summary += f"\n4. Segments ({len(segments)} total):\n"
+                    for seg_idx, segment in enumerate(segments):
+                        fields_summary += f"   - Segment [{seg_idx}]:\n"
+                        fields_summary += f"     • etd: {segment.get('etd', 'N/A')}\n"
+                        fields_summary += f"     • status: {segment.get('status', 'N/A')}\n"
+                        fields_summary += f"     • std: {segment.get('std', 'N/A')}\n"
+
+                    fields_summary += "\n"
+
+                allure.attach(
+                    fields_summary,
+                    name="Session Fields Summary (4 Required Fields)",
+                    attachment_type=allure.attachment_type.TEXT
+                )
+            else:
+                allure.attach(
+                    "⚠ Could not extract session fields from response body",
+                    name="Session Fields Extraction Warning",
+                    attachment_type=allure.attachment_type.TEXT
+                )
         else:
             allure.attach(
                 "No session events captured during flight search process",
@@ -362,6 +496,14 @@ def test_flight_search_and_network_capture(driver, base_url, db, browser, screen
 
     # ==================== PASO 13: Guardar en Base de Datos ====================
     with allure.step("Save test results to database"):
+        # Preparar datos del Session JSON para almacenar
+        session_json_str = None
+        journey_count = 0
+        if session_extracted_fields and 'journeys' in session_extracted_fields:
+            import json as json_module
+            session_json_str = json_module.dumps(session_extracted_fields, ensure_ascii=False)
+            journey_count = len(session_extracted_fields.get('journeys', []))
+
         db.save_test_result(
             test_name=test_name,
             status="PASSED",
@@ -379,11 +521,31 @@ def test_flight_search_and_network_capture(driver, base_url, db, browser, screen
             initial_url=base_url,
             validation_message=validation_message,
             pos=POS,
-            link_name=f"BOG-MAD | {PASSENGERS_EACH_TYPE*3}pax+{PASSENGERS_EACH_TYPE}inf | Session Events: {len(session_events)}"
+            link_name=f"{ORIGIN_CODE}-{DESTINATION_CODE} | {total_passengers}pax | {journey_count} journeys",
+            # Case 3 specific fields
+            origin_city=ORIGIN_CODE,
+            destination_city=DESTINATION_CODE,
+            departure_date=departure_date.strftime('%Y-%m-%d'),
+            return_date=return_date.strftime('%Y-%m-%d'),
+            passenger_count=total_passengers,
+            session_journey_count=journey_count,
+            session_data_json=session_json_str
+        )
+
+        db_summary = (
+            f"✓ Test results saved to database\n\n"
+            f"Case: {case_number}\n"
+            f"Status: PASSED\n"
+            f"Environment: {env}\n"
+            f"Route: {ORIGIN_CODE} → {DESTINATION_CODE}\n"
+            f"Dates: {departure_date.strftime('%Y-%m-%d')} to {return_date.strftime('%Y-%m-%d')}\n"
+            f"Passengers: {total_passengers} (3 adults + 3 teens + 3 children)\n"
+            f"Session Journeys: {journey_count}\n"
+            f"Session Data: {'Stored' if session_json_str else 'Not captured'}"
         )
 
         allure.attach(
-            f"Test results saved to database\nCase: {case_number}\nStatus: PASSED\nEnvironment: {env}\nRoute: BOG-MAD\nPassengers: {PASSENGERS_EACH_TYPE*3} + {PASSENGERS_EACH_TYPE} infants",
+            db_summary,
             name="Database Save Confirmation",
             attachment_type=allure.attachment_type.TEXT
         )

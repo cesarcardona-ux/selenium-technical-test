@@ -78,6 +78,15 @@ class TestDatabase:
         - link_name: Cases 6&7 - Nombre descriptivo del link
         - language_mode: Cases 6&7 - Modo de idioma (Random, Specific, All Languages)
         - validation_message: Mensaje detallado de validación
+
+        CAMPOS CASE 3 - Session JSON Capture:
+        - origin_city: Ciudad de origen (BOG, MDE, etc)
+        - destination_city: Ciudad de destino
+        - departure_date: Fecha de salida
+        - return_date: Fecha de vuelta
+        - passenger_count: Cantidad total de pasajeros
+        - session_journey_count: Número de journeys capturados del Session JSON
+        - session_data_json: JSON completo del Session extraído (formato TEXT)
         """
         # Crea o abre conexión al archivo de base de datos
         self.connection = sqlite3.connect(self.db_name)
@@ -110,7 +119,14 @@ class TestDatabase:
                 footer_link TEXT,
                 link_name TEXT,
                 language_mode TEXT,
-                validation_message TEXT
+                validation_message TEXT,
+                origin_city TEXT,
+                destination_city TEXT,
+                departure_date TEXT,
+                return_date TEXT,
+                passenger_count INTEGER,
+                session_journey_count INTEGER,
+                session_data_json TEXT
             )
         """)
 
@@ -123,7 +139,9 @@ class TestDatabase:
                         environment=None, screenshots_mode=None, video_enabled=None,
                         expected_value=None, actual_value=None, validation_result=None,
                         initial_url=None, pos=None, header_link=None, footer_link=None,
-                        link_name=None, language_mode=None, validation_message=None):
+                        link_name=None, language_mode=None, validation_message=None,
+                        origin_city=None, destination_city=None, departure_date=None, return_date=None,
+                        passenger_count=None, session_journey_count=None, session_data_json=None):
         """
         Inserta un nuevo registro con el resultado de un test ejecutado.
 
@@ -153,6 +171,13 @@ class TestDatabase:
         - link_name (str): Cases 6&7 - Nombre descriptivo del link
         - language_mode (str): Cases 6&7 - Modo de idioma (Random, Specific, All Languages)
         - validation_message (str): Mensaje detallado de validación
+        - origin_city (str): Case 3 - Ciudad de origen (BOG, MDE, etc)
+        - destination_city (str): Case 3 - Ciudad de destino
+        - departure_date (str): Case 3 - Fecha de salida
+        - return_date (str): Case 3 - Fecha de vuelta
+        - passenger_count (int): Case 3 - Cantidad total de pasajeros
+        - session_journey_count (int): Case 3 - Número de journeys capturados
+        - session_data_json (str): Case 3 - JSON completo del Session extraído
 
         Uso de ? en SQL:
         - Los ? son placeholders (marcadores de posición)
@@ -167,12 +192,14 @@ class TestDatabase:
             (case_number, test_name, status, execution_time, error_message, browser, url, language,
              environment, screenshots_mode, video_enabled, expected_value, actual_value,
              validation_result, initial_url, pos, header_link, footer_link, link_name,
-             language_mode, validation_message)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             language_mode, validation_message, origin_city, destination_city, departure_date,
+             return_date, passenger_count, session_journey_count, session_data_json)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (case_number, test_name, status, execution_time, error_message, browser, url, language,
               environment, screenshots_mode, video_enabled, expected_value, actual_value,
               validation_result, initial_url, pos, header_link, footer_link, link_name,
-              language_mode, validation_message))
+              language_mode, validation_message, origin_city, destination_city, departure_date,
+              return_date, passenger_count, session_journey_count, session_data_json))
 
         self.connection.commit()  # Guarda cambios en disco
 

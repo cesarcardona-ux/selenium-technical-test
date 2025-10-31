@@ -350,7 +350,12 @@ class LoginPage(HomePage):
         Hace click en el botón "Rechercher" para buscar vuelos.
         """
         logger.info("Clicking search button")
-        search_btn = self.wait.until(EC.element_to_be_clickable(self.SEARCH_BUTTON))
-        search_btn.click()
+        search_btn = self.wait.until(EC.presence_of_element_located(self.SEARCH_BUTTON))
+
+        # Scroll al botón y usar JavaScript click para evitar interceptación
+        self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", search_btn)
+        time.sleep(0.5)
+        self.driver.execute_script("arguments[0].click();", search_btn)
+
         time.sleep(3)  # Espera a que cargue la página de selección de vuelos
         logger.info("Search button clicked, waiting for Select Flight page to load")
