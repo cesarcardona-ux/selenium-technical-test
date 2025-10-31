@@ -473,6 +473,42 @@ def test_flight_search_and_network_capture(driver, base_url, db, browser, screen
                     name="Session Fields Summary (4 Required Fields)",
                     attachment_type=allure.attachment_type.TEXT
                 )
+
+                # ==================== PDF REQUIRED FIELDS - DESTACADO ====================
+                # Crear attachment específico con SOLO los 4 campos que pide el PDF
+                pdf_fields = "═══════════════════════════════════════════════════════════\n"
+                pdf_fields += "   📋 PDF REQUIRED FIELDS - Session JSON Extraction\n"
+                pdf_fields += "═══════════════════════════════════════════════════════════\n\n"
+
+                for j_idx, journey in enumerate(journeys):
+                    pdf_fields += f"{'OUTBOUND FLIGHT (IDA)' if j_idx == 0 else 'RETURN FLIGHT (VUELTA)'}:\n\n"
+
+                    # Campo 1: origin
+                    pdf_fields += f"  1. origin: {journey.get('origin', 'N/A')}\n\n"
+
+                    # Campo 2: destination
+                    pdf_fields += f"  2. destination: {journey.get('destination', 'N/A')}\n\n"
+
+                    # Campo 3: std
+                    pdf_fields += f"  3. std (Standard Departure Time): {journey.get('std', 'N/A')}\n\n"
+
+                    # Campo 4: productClass (del primer fare)
+                    fares = journey.get('fares', [])
+                    product_class = fares[0].get('productClass', 'N/A') if fares else 'N/A'
+                    pdf_fields += f"  4. productClass: {product_class}\n"
+
+                    if j_idx < len(journeys) - 1:
+                        pdf_fields += "\n" + "─" * 63 + "\n\n"
+
+                pdf_fields += "\n═══════════════════════════════════════════════════════════\n"
+                pdf_fields += "✅ All 4 required fields extracted successfully\n"
+                pdf_fields += "═══════════════════════════════════════════════════════════"
+
+                allure.attach(
+                    pdf_fields,
+                    name="🎯 PDF REQUIRED FIELDS (origin, destination, std, productClass)",
+                    attachment_type=allure.attachment_type.TEXT
+                )
             else:
                 allure.attach(
                     "⚠ Could not extract session fields from response body",
