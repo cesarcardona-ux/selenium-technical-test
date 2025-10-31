@@ -118,13 +118,43 @@ pytest tests/ -n auto
 
 | Case   | Status       | Description                        | Tests |
 |--------|--------------|-----------------------------------|-------|
+| Case 1 | 🚧 In Dev   | One-way Booking (Complete Flow)    |  TBD |
+| Case 2 | ⏳ Pending  | Round-trip Booking                 |  -   |
 | Case 3 | ✅ Complete | Flight Search & Network Capture    |   2  |
 | Case 4 | ✅ Complete | Language Change Validation         |  24  |
 | Case 5 | ✅ Complete | POS Change Validation              |  18  |
 | Case 6 | ✅ Complete | Header Redirections                |  18  |
 | Case 7 | ✅ Complete | Footer Redirections                |  24  |
-| Case 1 | ⏳ Pending  | One-way Booking                    |  -   |
-| Case 2 | ⏳ Pending  | Round-trip Booking                 |  -   |
+
+### Case 1: One-way Booking 🚧
+- **Flow:** Complete booking flow (6 pages)
+- **Pages:** Home → Select Flight → Passengers → Services → Seatmap → Payment
+- **Configuration:** Language, POS, 4 passengers (1 Adult, 1 Teen, 1 Child, 1 Infant)
+- **Flight Type:** One-way (Solo ida)
+- **Fare:** Basic
+- **Services:** None selected (skip all)
+- **Seats:** Economy
+- **Payment:** Fake credit card data (rejection acceptable)
+- **Browsers:** Chrome, Edge, Firefox
+- **Environments:** QA4, QA5
+- **Total tests:** TBD (depends on parametrization)
+- **File:** `tests/nuxqa/test_oneway_booking_Case1.py`
+- **Status:** Framework completed, pending first execution and adjustments
+
+**Page Objects Created:**
+- `pages/nuxqa/passengers_page.py` - Passenger information forms
+- `pages/nuxqa/services_page.py` - Additional services selection
+- `pages/nuxqa/seatmap_page.py` - Seat selection
+- `pages/nuxqa/payment_page.py` - Payment information
+
+**Technical Highlights:**
+- Complete 6-page booking flow automation
+- Dynamic passenger data handling (4 different passenger types)
+- Service skipping mechanism
+- Economy seat selection
+- Payment form filling with test data
+- Comprehensive Allure reporting for each step
+- Database tracking with case-specific fields
 
 ### Case 3: Flight Search & Network Capture ✅
 - **Environment:** UAT1 (nuxqa.avtest.ink)

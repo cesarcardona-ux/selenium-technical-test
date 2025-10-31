@@ -4,6 +4,74 @@ All notable changes and milestones for this automation project will be documente
 
 ---
 
+## [v1.2.0-dev] - 2025-10-31
+
+### 🎯 Case 1 Framework Implementation - One-way Booking
+
+This release adds the **complete framework for Case 1: One-way Booking**, bringing the project closer to full completion.
+
+### ✅ Case 1 Implementation (In Development)
+
+#### One-way Booking - Complete Flow
+- **Flow**: 6 pages (Home → Select Flight → Passengers → Services → Seatmap → Payment)
+- **Browsers**: Chrome, Edge, Firefox (to be tested)
+- **Environments**: QA4, QA5
+- **Total tests**: TBD (pending parametrization testing)
+- **Status**: 🚧 Framework complete, pending first execution and adjustments
+
+**Key Features:**
+- **Complete 6-Page Flow**: Full booking automation from search to payment
+- **4 Passenger Types**: Adult, Teen, Child, Infant (1 of each)
+- **Flight Type**: One-way (Solo ida)
+- **Fare Selection**: Basic (lowest tier)
+- **Services**: Skip all services (as per Case 1 requirements)
+- **Seat Selection**: Economy seat
+- **Payment**: Fake credit card data (rejection is acceptable)
+
+**New Page Objects Created (4 total):**
+- `pages/nuxqa/passengers_page.py` (315 lines) - Passenger information handling
+- `pages/nuxqa/services_page.py` (280 lines) - Services selection/skipping
+- `pages/nuxqa/seatmap_page.py` (290 lines) - Seat map and seat selection
+- `pages/nuxqa/payment_page.py` (360 lines) - Payment form filling
+
+**New Test File:**
+- `tests/nuxqa/test_oneway_booking_Case1.py` (550+ lines) - Complete one-way booking flow
+
+**Technical Achievements:**
+- **Passenger Data Handling**: Dynamic forms for 4 different passenger types
+- **Service Skipping Logic**: Intelligent detection of skip buttons vs continue
+- **Seat Map Interaction**: Economy seat selection with fallback strategies
+- **Payment Form Automation**: Credit card and billing information filling
+- **Comprehensive Logging**: Detailed logs for each page and action
+- **Allure Integration**: 7-step flow with attachments for each page
+- **Database Tracking**: Reuses existing 30-field schema
+
+**Pending Work:**
+- First test execution
+- Selector adjustments based on actual page structure
+- Flight search methods implementation in HomePage
+- Basic fare selection method in SelectFlightPage
+- Cross-browser testing
+- Parametrization testing
+
+### 📊 Updated Statistics
+
+- **Completed Cases**: 5/7 (Cases 3, 4, 5, 6, 7 complete; Case 1 in development)
+- **Total Page Objects**: 8 (home, login, select_flight, passengers, services, seatmap, payment, network_capture)
+- **Total Test Files**: 6 (1 in development + 5 complete)
+- **Lines of Code Added**: ~1,800 (4 page objects + 1 test file)
+
+### 🔜 Next Steps
+
+- Execute Case 1 for first time
+- Adjust selectors based on actual page behavior
+- Complete HomePage search methods
+- Complete SelectFlightPage Basic fare selection
+- Cross-browser validation
+- Move Case 1 from 🚧 to ✅
+
+---
+
 ## [v1.1.0] - 2025-10-31
 
 ### 🎯 Case 3 Complete - Flight Search & Network Capture
