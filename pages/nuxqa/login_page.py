@@ -70,7 +70,7 @@ class LoginPage(HomePage):
 
     # Pasajeros
     PASSENGERS_BUTTON = (By.XPATH, "//button[@class='control_field_button' and contains(@aria-label, 'Passagers')]")
-    PASSENGERS_CONFIRM_BUTTON = (By.XPATH, "//button[contains(@class, 'control_options_selector_action_button')]//span[contains(text(), 'Confirmer')]")
+    PASSENGERS_CONFIRM_BUTTON = (By.XPATH, "//button[contains(@class, 'control_options_selector_action_button')]//span[contains(text(), 'Confirmer') or contains(text(), 'Confirmar') or contains(text(), 'Confirm')]")
 
     # Botones "+" y "-" para pasajeros (por posición en el modal)
     # Nota: El modal de pasajeros se carga dinámicamente, por lo que usamos los IDs de los inputs
