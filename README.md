@@ -178,6 +178,58 @@ allure serve reports/allure
 
 **Database:** Test results are saved to `test_results.db`
 
+### Database Schema
+
+Test results are stored in SQLite with **23 comprehensive fields** for detailed tracking and analysis:
+
+**General Fields (10):**
+- `id`: Primary key
+- `case_number`: Test case number (4, 5, 6, 7) - positioned as 2nd column for easy filtering
+- `test_name`: Unique test identifier
+- `status`: Test result (PASSED, FAILED, SKIPPED)
+- `execution_time`: Duration in seconds
+- `error_message`: Error details if failed
+- `timestamp`: Execution date/time
+- `browser`: Browser used (chrome, edge, firefox)
+- `url`: Final URL after test action
+- `language`: Language used in test
+
+**New Tracking Fields (7):**
+- `environment`: Test environment (qa4, qa5)
+- `screenshots_mode`: Screenshot configuration (none, on-failure, all)
+- `video_enabled`: Video recording status (enabled, none)
+- `expected_value`: Expected validation value
+- `actual_value`: Actual value retrieved
+- `validation_result`: Validation outcome (PASSED, FAILED)
+- `initial_url`: URL before test action
+
+**Case-Specific Fields (6):**
+- `pos`: Case 5 - POS selected (Chile, España, Otros países)
+- `header_link`: Case 6 - Header link tested
+- `footer_link`: Case 7 - Footer link tested
+- `link_name`: Cases 6&7 - Descriptive link name
+- `language_mode`: Cases 6&7 - Language selection mode (Random, Specific, All Languages)
+- `validation_message`: Detailed validation message
+
+**Benefits:**
+- Advanced SQL queries for analysis
+- Complete test traceability
+- Easy debugging with expected vs actual values
+- Configuration tracking per test
+- Case-specific data properly structured
+
+**Example queries:**
+```sql
+-- Filter by environment
+SELECT * FROM test_executions WHERE environment = 'qa5';
+
+-- Filter by POS (Case 5)
+SELECT * FROM test_executions WHERE pos = 'Chile';
+
+-- Filter by language mode (Cases 6&7)
+SELECT * FROM test_executions WHERE language_mode = 'Random';
+```
+
 **Logs:** Detailed execution logs in `reports/test_execution.log`
 
 ## Repository
