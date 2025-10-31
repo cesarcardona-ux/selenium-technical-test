@@ -164,13 +164,13 @@ proyecto/
 
 ## REQUISITOS TÉCNICOS (Puntaje)
 
-- [x] Allure Reports (10 pts)
-- [x] Logs detallados (5 pts)
-- [x] BD SQLite (5 pts)
-- [x] QA4 y QA5 (5 pts)
-- [ ] Ejecución paralela - xdist (5 pts)
-- [ ] Aserciones claras (5 pts)
-- [ ] Video + Allure (15 pts extra)
+- [x] Allure Reports (10 pts) ✅
+- [x] Logs detallados (5 pts) ✅
+- [x] BD SQLite (5 pts) ✅ - Extendida a 30 campos
+- [x] QA4 y QA5 (5 pts) ✅ - Incluye UAT1 para Case 3
+- [x] Ejecución paralela - xdist (5 pts) ✅
+- [x] Aserciones claras (5 pts) ✅
+- [x] Video + Allure (15 pts extra) ✅ - Implementado con OpenCV
 
 ## CASOS DE PRUEBA
 
@@ -211,20 +211,31 @@ allure serve reports/allure
 - Instalación de dependencias
 - Estructura de carpetas
 - Archivos de configuración documentados
-- **Fase de aprendizaje conceptual:**
-  - Comprensión de fixtures y scopes
-  - Entendimiento de yield vs return
-  - Concepto de teardown y ejecución garantizada
-  - State contamination y cuándo usar cada scope
-  - Verificación de comprensión: 85% alcanzado
-  - **Estado:** Listo para comenzar implementación de tests
+- **Fase de aprendizaje conceptual** (85% alcanzado)
+- **Repositorio GitHub** configurado y actualizado
+- **Ejecución paralela** con pytest-xdist
+- **Grabación de video** con OpenCV (MP4)
+- **Casos implementados:** 5/7 (Cases 3, 4, 5, 6, 7)
+  - ✅ Case 3: Flight Search & Network Capture (UAT1)
+  - ✅ Case 4: Language Change Validation
+  - ✅ Case 5: POS Change Validation
+  - ✅ Case 6: Header Redirections
+  - ✅ Case 7: Footer Redirections
+- **Database SQLite:** 30 campos comprehensivos
+- **Allure Reports:** Totalmente implementado
+- **Selenium Manager:** Configurado (sin webdriver-manager)
 
 ### ⏳ Pendiente
-- Implementar 7 casos de prueba (empezar por Caso 4 - más simple)
-- Configurar ejecución paralela
-- Grabación de video (extra)
-- Repositorio GitHub + README.md
+- **Case 1:** One-way Booking (complejo - flujo completo)
+- **Case 2:** Round-trip Booking (complejo - flujo completo)
+
+### 📊 Estadísticas Actuales
+- **Casos completados:** 5/7 (71%)
+- **Total tests:** 86 (2 + 24 + 18 + 18 + 24)
+- **Navegadores:** Chrome, Edge, Firefox (+ CDP para Chrome/Edge en Case 3)
+- **Ambientes:** QA4, QA5, UAT1
+- **CLI Parameters:** 12 opciones configurables
 
 ----------------------------------------------------------
 
-*Última actualización: Fase de aprendizaje conceptual completada. Documentación actualizada con TEARDOWN y STATE CONTAMINATION*
+*Última actualización: Case 3 completado (2025-10-31). 5 de 7 casos implementados y funcionando.*

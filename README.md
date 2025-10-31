@@ -57,16 +57,20 @@ allure serve reports/allure
 
 ### CLI Options
 
-| Option          | Values                                                  | Description                                   |
-|-----------------|--------------------------------------------------------|-----------------------------------------------|
-| `--browser`     | chrome, edge, firefox, all                              | Browser selection (default: all)              |
-| `--language`    | Español, English, Français, Português, all              | Language selection (default varies by case)   |
-| `--pos`         | Chile, España, Otros países, all                        | POS selection (default: all)                  |
-| `--header-link` | ofertas-vuelos, credits, equipaje, all                  | Header link selection (default: all)          |
-| `--footer-link` | vuelos, noticias, aviancadirect, contactanos, all       | Footer link selection (default: all)          |
-| `--env`         | qa4, qa5, all                                           | Environment selection (default: all)          |
-| `--screenshots` | none, on-failure, all                                   | Screenshot capture mode (default: on-failure) |
-| `--video`       | none, enabled                                           | Video recording (default: none)               |
+| Option            | Values                                                  | Description                                   |
+|-------------------|---------------------------------------------------------|-----------------------------------------------|
+| `--browser`       | chrome, edge, firefox, all                              | Browser selection (default: all)              |
+| `--language`      | Español, English, Français, Português, all              | Language selection (default varies by case)   |
+| `--pos`           | Chile, España, Otros países, all                        | POS selection (default: all)                  |
+| `--header-link`   | ofertas-vuelos, credits, equipaje, all                  | Header link selection (default: all)          |
+| `--footer-link`   | vuelos, noticias, aviancadirect, contactanos, all       | Footer link selection (default: all)          |
+| `--env`           | qa4, qa5, uat1, all                                     | Environment selection (default: all)          |
+| `--origin`        | BOG, MDE, CLO, MAD, etc. (IATA codes)                   | Origin airport (Case 3, default: BOG)         |
+| `--destination`   | BOG, MDE, CLO, MAD, etc. (IATA codes)                   | Destination airport (Case 3, default: MDE)    |
+| `--departure-days`| Integer (days from today)                               | Departure date offset (Case 3, default: 4)    |
+| `--return-days`   | Integer (days from today)                               | Return date offset (Case 3, default: 5)       |
+| `--screenshots`   | none, on-failure, all                                   | Screenshot capture mode (default: on-failure) |
+| `--video`         | none, enabled                                           | Video recording (default: none)               |
 
 **Note on `--language` parameter:**
 - **Case 4**: Default is `all` (tests all 4 languages)
@@ -97,6 +101,12 @@ pytest tests/nuxqa/test_footer_redirections_Case7.py --browser=chrome --footer-l
 
 # Case 7: Footer redirections (specific language)
 pytest tests/nuxqa/test_footer_redirections_Case7.py --browser=chrome --footer-link=noticias --env=qa5 --language=English -v
+
+# Case 3: Flight search and network capture (dynamic dates and cities)
+pytest tests/nuxqa/test_login_network_Case3.py --browser=chrome --origin=BOG --destination=MDE --departure-days=4 --return-days=5 --env=uat1 -v
+
+# Case 3: With video and Allure report
+pytest tests/nuxqa/test_login_network_Case3.py --browser=chrome --origin=BOG --destination=MAD --departure-days=7 --return-days=10 --env=uat1 --video=enabled --screenshots=all --alluredir=reports/allure
 ```
 
 **Parallel execution:**
@@ -106,15 +116,42 @@ pytest tests/ -n auto
 
 ## Test Cases Status
 
-| Case   | Status       | Description                | Tests |
-|--------|--------------|----------------------------|-------|
-| Case 4 | ✅ Complete | Language Change Validation  |  24  |
-| Case 5 | ✅ Complete | POS Change Validation       |  18  |
-| Case 6 | ✅ Complete | Header Redirections         |  18  |
-| Case 7 | ✅ Complete | Footer Redirections         |  24  |
-| Case 3 | ⏳ Pending  | Login and Network Capture   |  -   |
-| Case 1 | ⏳ Pending  | One-way Booking             |  -   |
-| Case 2 | ⏳ Pending  | Round-trip Booking          |  -   |
+| Case   | Status       | Description                        | Tests |
+|--------|--------------|-----------------------------------|-------|
+| Case 3 | ✅ Complete | Flight Search & Network Capture    |   2  |
+| Case 4 | ✅ Complete | Language Change Validation         |  24  |
+| Case 5 | ✅ Complete | POS Change Validation              |  18  |
+| Case 6 | ✅ Complete | Header Redirections                |  18  |
+| Case 7 | ✅ Complete | Footer Redirections                |  24  |
+| Case 1 | ⏳ Pending  | One-way Booking                    |  -   |
+| Case 2 | ⏳ Pending  | Round-trip Booking                 |  -   |
+
+### Case 3: Flight Search & Network Capture ✅
+- **Environment:** UAT1 (nuxqa.avtest.ink)
+- **Language/POS:** French, France
+- **Flight Search:** Dynamic dates (TODAY + N days), parametrizable cities (IATA codes)
+- **Flight Selection:** 4 clicks - Outbound FLEX, Return FLEX
+- **Passengers:** 9 (3 adults + 3 teens + 3 children)
+- **Network Capture:** Chrome DevTools Protocol (CDP) for Session JSON extraction
+- **Extracted Fields:** origin, destination, std, productClass (4 fields from PDF requirements)
+- **Browsers:** Chrome ✅, Edge ✅ (Chromium-based only - CDP limitation)
+- **Total tests:** 2 (Chrome + Edge)
+- **File:** `tests/nuxqa/test_login_network_Case3.py`
+- **CLI Parameters:** `--origin`, `--destination`, `--departure-days`, `--return-days`
+
+**Technical Highlights:**
+- Real-time network capture using CDP (captures response bodies immediately)
+- Dynamic date calculation to prevent test failures on future dates
+- Complex flight selection with 25-30 second page loader handling
+- Text-based filtering for return flights ("Choisir le tarif")
+- Session JSON parsing from nested structure: `response.result.data.journeys[]`
+- Dedicated Allure attachment for PDF-required fields
+- 7 additional database fields for Case 3 tracking
+
+**Browser Compatibility:**
+- ✅ Chrome: Fully functional with CDP
+- ✅ Edge: Fully functional with CDP
+- ❌ Firefox: Not supported (CDP is Chromium-only)
 
 ### Case 4: Language Change Validation ✅
 - **Languages:** Spanish, English, French, Portuguese
@@ -180,11 +217,11 @@ allure serve reports/allure
 
 ### Database Schema
 
-Test results are stored in SQLite with **23 comprehensive fields** for detailed tracking and analysis:
+Test results are stored in SQLite with **30 comprehensive fields** for detailed tracking and analysis:
 
 **General Fields (10):**
 - `id`: Primary key
-- `case_number`: Test case number (4, 5, 6, 7) - positioned as 2nd column for easy filtering
+- `case_number`: Test case number (3, 4, 5, 6, 7) - positioned as 2nd column for easy filtering
 - `test_name`: Unique test identifier
 - `status`: Test result (PASSED, FAILED, SKIPPED)
 - `execution_time`: Duration in seconds
@@ -194,8 +231,8 @@ Test results are stored in SQLite with **23 comprehensive fields** for detailed 
 - `url`: Final URL after test action
 - `language`: Language used in test
 
-**New Tracking Fields (7):**
-- `environment`: Test environment (qa4, qa5)
+**Tracking Fields (7):**
+- `environment`: Test environment (qa4, qa5, uat1)
 - `screenshots_mode`: Screenshot configuration (none, on-failure, all)
 - `video_enabled`: Video recording status (enabled, none)
 - `expected_value`: Expected validation value
@@ -203,13 +240,22 @@ Test results are stored in SQLite with **23 comprehensive fields** for detailed 
 - `validation_result`: Validation outcome (PASSED, FAILED)
 - `initial_url`: URL before test action
 
-**Case-Specific Fields (6):**
+**Cases 4, 5, 6, 7 Specific Fields (6):**
 - `pos`: Case 5 - POS selected (Chile, España, Otros países)
 - `header_link`: Case 6 - Header link tested
 - `footer_link`: Case 7 - Footer link tested
 - `link_name`: Cases 6&7 - Descriptive link name
 - `language_mode`: Cases 6&7 - Language selection mode (Random, Specific, All Languages)
 - `validation_message`: Detailed validation message
+
+**Case 3 Specific Fields (7):**
+- `origin_city`: Origin airport IATA code (BOG, MDE, etc.)
+- `destination_city`: Destination airport IATA code
+- `departure_date`: Calculated departure date (TODAY + N days)
+- `return_date`: Calculated return date (TODAY + N days)
+- `passenger_count`: Total passengers (adults + teens + children)
+- `session_journey_count`: Number of journeys extracted from Session JSON (should be 2)
+- `session_data_json`: Complete Session JSON data with all extracted fields
 
 **Benefits:**
 - Advanced SQL queries for analysis
@@ -223,11 +269,20 @@ Test results are stored in SQLite with **23 comprehensive fields** for detailed 
 -- Filter by environment
 SELECT * FROM test_executions WHERE environment = 'qa5';
 
+-- Filter by case number
+SELECT * FROM test_executions WHERE case_number = 3;
+
 -- Filter by POS (Case 5)
 SELECT * FROM test_executions WHERE pos = 'Chile';
 
 -- Filter by language mode (Cases 6&7)
 SELECT * FROM test_executions WHERE language_mode = 'Random';
+
+-- Filter by origin/destination (Case 3)
+SELECT * FROM test_executions WHERE origin_city = 'BOG' AND destination_city = 'MDE';
+
+-- View Case 3 session data
+SELECT test_name, session_journey_count, session_data_json FROM test_executions WHERE case_number = 3;
 ```
 
 **Logs:** Detailed execution logs in `reports/test_execution.log`

@@ -4,6 +4,123 @@ All notable changes and milestones for this automation project will be documente
 
 ---
 
+## [v1.1.0] - 2025-10-31
+
+### 🎯 Case 3 Complete - Flight Search & Network Capture
+
+This release adds **Case 3: Flight Search and Network Capture** to the automation suite, bringing the total completed cases to **5 out of 7**.
+
+### ✅ Case 3 Implementation
+
+#### Flight Search & Network Session Capture
+- **Environment**: UAT1 (nuxqa.avtest.ink)
+- **Language/POS**: French, France
+- **Browsers**: Chrome ✅, Edge ✅ (CDP-compatible only)
+- **Total tests**: 2 combinations
+- **Status**: ✅ 100% PASSED
+
+**Key Features:**
+- **Dynamic Date Calculation**: Dates relative to TODAY (TODAY + N days) to prevent test failures
+- **Parametrizable Cities**: IATA codes via CLI (--origin, --destination)
+- **Complex Flight Selection**: 4-click workflow with FLEX plan selection
+  1. Select outbound flight
+  2. Select FLEX plan for outbound
+  3. Select return flight (with 25-30s page loader wait)
+  4. Select FLEX plan for return
+- **Chrome DevTools Protocol (CDP)**: Real-time network traffic capture
+- **Session JSON Extraction**: 4 PDF-required fields from nested JSON structure
+  - `origin`
+  - `destination`
+  - `std` (Standard Departure Time)
+  - `productClass`
+
+**Technical Achievements:**
+- **Network Capture**: Real-time response body capture using CDP to avoid Chrome cache issues
+- **Text-based Filtering**: Reliable return flight selection using "Choisir le tarif" text
+- **Page Loader Handling**: Automatic detection and waiting for 25-30 second airplane animation
+- **JSON Parsing**: Navigates nested structure `response.result.data.journeys[]`
+- **Dedicated Allure Attachment**: Clear PDF fields section in report
+- **Database Extension**: 7 new fields for Case 3 tracking (total: 30 fields)
+
+**New CLI Parameters:**
+```bash
+--origin          # Origin airport IATA code (default: BOG)
+--destination     # Destination airport IATA code (default: MDE)
+--departure-days  # Days from today for departure (default: 4)
+--return-days     # Days from today for return (default: 5)
+```
+
+**Example Execution:**
+```bash
+pytest tests/nuxqa/test_login_network_Case3.py \
+  --browser=chrome \
+  --origin=BOG \
+  --destination=MDE \
+  --departure-days=4 \
+  --return-days=5 \
+  --env=uat1 -v
+```
+
+**Browser Compatibility:**
+- ✅ Chrome: Fully functional (142s execution time)
+- ✅ Edge: Fully functional (142s execution time)
+- ❌ Firefox: Not supported (CDP is Chromium-only - expected limitation)
+
+**Files Added:**
+- `tests/nuxqa/test_login_network_Case3.py` (550+ lines)
+- `pages/nuxqa/login_page.py` (361 lines)
+- `pages/nuxqa/select_flight_page.py` (315 lines)
+- `utils/network_capture.py` (465 lines)
+
+**Files Modified:**
+- `utils/database.py` - Added 7 Case 3 fields
+- `conftest.py` - Added 4 CLI parameters for Case 3
+
+### 📊 Updated Statistics
+
+- **Completed Cases**: 5/7 (Cases 3, 4, 5, 6, 7)
+- **Total Tests**: 86 (2 + 24 + 18 + 18 + 24)
+- **Database Fields**: 30 (increased from 23)
+- **Page Objects**: 4 (home_page, login_page, select_flight_page, network_capture)
+- **Test Files**: 5 complete test cases
+
+### 🔧 Technical Improvements
+
+**Database Schema:**
+- Extended from 23 to 30 fields
+- Added Case 3 specific fields:
+  - `origin_city`, `destination_city`
+  - `departure_date`, `return_date`
+  - `passenger_count`
+  - `session_journey_count`
+  - `session_data_json`
+
+**Allure Reporting:**
+- Dedicated attachment for PDF-required fields
+- Clear separation from debug information
+- Enhanced configuration summary
+- Dynamic test metadata
+
+**Code Quality:**
+- Comprehensive documentation in all files
+- Clear method comments explaining complex logic
+- Proper error handling and logging
+- Page loader detection and handling
+- Element visibility strategies (JavaScript forcing)
+
+### 🔜 Pending Implementation
+
+- **Case 1**: One-way Booking (complete flow)
+- **Case 2**: Round-trip Booking (complete flow)
+
+### 📝 Commits in This Release
+
+- `c9bc246` - Implement Case 3: Flight Search & Network Session Capture (COMPLETE)
+- `57afd43` - Add dedicated PDF fields attachment to Allure report
+- `e4ec631` - ✅ Case 3 COMPLETO Y VALIDADO - Flight Search & Network Capture
+
+---
+
 ## [v1.0.0-stable] - 2025-10-30
 
 ### 🎯 STABLE MILESTONE - Reference Point
@@ -113,9 +230,10 @@ git checkout v1.0.0-stable
 
 ### 🔜 Pending Implementation
 
-- **Case 3**: Login and Network Capture (UAT1 environment)
 - **Case 1**: One-way Booking (complete flow)
 - **Case 2**: Round-trip Booking (complete flow)
+
+**Note**: Case 3 was completed in v1.1.0 (2025-10-31)
 
 ### 📝 Commit Reference
 
