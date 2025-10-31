@@ -85,6 +85,68 @@ class SelectFlightPage:
             logger.error(f"✗ Error waiting for Select Flight page: {e}")
             return False
 
+    def select_outbound_flight_and_basic_plan(self):
+        """
+        Selecciona el vuelo de IDA y el plan BASIC.
+
+        Flujo:
+        1. Click en primer vuelo disponible (button.journey_price_button)
+        2. Espera a que aparezcan los 3 planes (Basic, Classic, Flex)
+        3. Click en el PRIMER plan (Basic) (button.fare_button[0])
+
+        Returns:
+            bool: True si se seleccionó correctamente
+        """
+        logger.info("Selecting OUTBOUND flight (first available) with BASIC plan...")
+
+        try:
+            # PASO 1: Seleccionar primer vuelo de IDA
+            journey_buttons = self.wait.until(
+                EC.presence_of_all_elements_located((By.CSS_SELECTOR, "button.journey_price_button"))
+            )
+
+            if not journey_buttons:
+                logger.error("No journey buttons found for outbound flight")
+                return False
+
+            logger.info(f"Found {len(journey_buttons)} journey buttons")
+
+            # Click en el PRIMERO usando JavaScript para mayor confiabilidad
+            first_journey = journey_buttons[0]
+            self.driver.execute_script("arguments[0].scrollIntoView(true);", first_journey)
+            time.sleep(1)
+            self.driver.execute_script("arguments[0].click();", first_journey)  # JavaScript click
+            logger.info("✓ Outbound flight selected (first one)")
+
+            time.sleep(2)  # Esperar a que aparezcan los planes
+
+            # PASO 2: Seleccionar plan BASIC (primer botón fare_button)
+            logger.info("Waiting for fare plans to appear...")
+            fare_buttons = self.wait.until(
+                EC.presence_of_all_elements_located((By.CSS_SELECTOR, "button.fare_button"))
+            )
+
+            if len(fare_buttons) < 1:
+                logger.error(f"Expected at least 1 fare button, found {len(fare_buttons)}")
+                return False
+
+            logger.info(f"Found {len(fare_buttons)} fare buttons (Basic, Classic, Flex)")
+
+            # Click en el PRIMERO (índice 0) = BASIC usando JavaScript
+            basic_button = fare_buttons[0]
+            self.driver.execute_script("arguments[0].scrollIntoView(true);", basic_button)
+            time.sleep(1)
+            self.driver.execute_script("arguments[0].click();", basic_button)  # JavaScript click
+            logger.info("✓ BASIC plan selected for outbound flight (1st button)")
+
+            time.sleep(3)  # Esperar a que la página se recargue
+
+            return True
+
+        except Exception as e:
+            logger.error(f"✗ Error selecting outbound flight and BASIC plan: {e}")
+            return False
+
     def select_outbound_flight_and_flex_plan(self):
         """
         Selecciona el vuelo de IDA y el plan FLEX.
@@ -97,7 +159,7 @@ class SelectFlightPage:
         Returns:
             bool: True si se seleccionó correctamente
         """
-        logger.info("Selecting OUTBOUND flight (first available)...")
+        logger.info("Selecting OUTBOUND flight (first available) with FLEX plan...")
 
         try:
             # PASO 1: Seleccionar primer vuelo de IDA

@@ -22,7 +22,7 @@ PUNTOS: 15 pts (según PDF)
 import pytest
 import allure
 import time
-from pages.nuxqa.home_page import HomePage
+from pages.nuxqa.login_page import LoginPage  # Usamos LoginPage que tiene métodos de búsqueda
 from pages.nuxqa.select_flight_page import SelectFlightPage
 from pages.nuxqa.passengers_page import PassengersPage
 from pages.nuxqa.services_page import ServicesPage
@@ -191,12 +191,12 @@ def test_oneway_booking(driver, base_url, db, browser, language, screenshots_mod
     # ==================== PASO 2: Home Page - Abrir y Configurar Idioma ====================
     with allure.step(f"Step 1: Open Home Page and Configure Language ({language})"):
         current_step = "Home - Language Selection"
-        home_page = HomePage(driver)
-        home_page.open(base_url)
+        search_page = LoginPage(driver)  # Usamos LoginPage que tiene métodos de búsqueda
+        search_page.open(base_url)
         time.sleep(2)
 
         # Seleccionar idioma
-        home_page.select_language(language)
+        search_page.select_language(language)
         time.sleep(1)
 
         step_results["language_selection"] = "SUCCESS"
@@ -210,38 +210,42 @@ def test_oneway_booking(driver, base_url, db, browser, language, screenshots_mod
     with allure.step("Step 2: Configure Flight Search (One-way, 4 passengers)"):
         current_step = "Home - Flight Search"
 
-        # NOTA: Aquí necesitarías implementar métodos en HomePage para:
-        # - Seleccionar tipo de viaje (One-way)
-        # - Seleccionar origen y destino
-        # - Seleccionar fecha (solo ida)
-        # - Configurar 4 pasajeros (1 de cada tipo)
-        # - Click en buscar
+        # Configurar POS (opcional pero recomendado)
+        # search_page.configure_pos("Colombia")  # Comentado por ahora
 
-        # Por ahora, asumimos que estos métodos están disponibles en HomePage
-        # o que se pueden reutilizar métodos similares al Case 3
+        # Seleccionar origen y destino
+        search_page.select_origin("BOG", "Bogo")  # Bogotá, Colombia
+        time.sleep(1)
+
+        search_page.select_destination("MDE", "Mede")  # Medellín, Colombia
+        time.sleep(1)
+
+        # Seleccionar fecha (solo ida - sin fecha de regreso)
+        search_page.select_dates(departure_days_from_today=7, return_days_from_today=None)
+        time.sleep(1)
+
+        # Configurar pasajeros: 1 de cada tipo
+        search_page.select_passengers(adults=1, teens=1, children=1, infants=1)
+        time.sleep(1)
 
         search_info = (
-            f"Trip Type: One-way\n"
-            f"Passengers: 4 total (1 Adult, 1 Teen, 1 Child, 1 Infant)\n"
-            f"Note: Origin and destination are configurable\n"
-            f"Departure: TODAY + 7 days (dynamic)"
+            f"Trip Type: One-way (Solo ida)\n"
+            f"Origin: BOG (Bogotá)\n"
+            f"Destination: MDE (Medellín)\n"
+            f"Departure: TODAY + 7 days\n"
+            f"Passengers: 4 total (1 Adult, 1 Teen, 1 Child, 1 Infant)"
         )
 
+        step_results["flight_search_config"] = "SUCCESS"
         allure.attach(
             search_info,
             name="Flight Search Configuration",
             attachment_type=allure.attachment_type.TEXT
         )
 
-        # Placeholder: Aquí iría el código real de búsqueda
-        # home_page.select_trip_type("one-way")
-        # home_page.select_origin("BOG")
-        # home_page.select_destination("MDE")
-        # home_page.select_departure_date(days_from_today=7)
-        # home_page.configure_passengers(adults=1, teens=1, children=1, infants=1)
-        # home_page.click_search()
-
-        time.sleep(3)  # Esperar resultados de búsqueda
+        # Click en buscar
+        search_page.click_search_button()
+        time.sleep(5)  # Esperar resultados de búsqueda
 
     # ==================== PASO 4: Select Flight Page - Seleccionar Tarifa BASIC ====================
     with allure.step("Step 3: Select Flight with BASIC Fare"):
@@ -252,14 +256,14 @@ def test_oneway_booking(driver, base_url, db, browser, language, screenshots_mod
         assert page_loaded, "Select Flight page did not load"
 
         # Para One-way solo necesitamos seleccionar 1 vuelo (no 2 como en Case 3)
-        # Además, necesitamos BASIC fare (no FLEX)
-
-        # NOTA: Necesitarías implementar método para seleccionar BASIC en SelectFlightPage
-        # Por ahora, como placeholder:
+        # Seleccionar vuelo de IDA con tarifa BASIC (primera opción)
+        flight_selected = select_flight_page.select_outbound_flight_and_basic_plan()
+        assert flight_selected, "Failed to select outbound flight with BASIC fare"
 
         flight_selection_info = (
             f"Flight Type: Outbound only (One-way)\n"
             f"Fare Type: BASIC (1st option)\n"
+            f"Selected: First available outbound flight\n"
             f"Note: Different from Case 3 which uses FLEX (3rd option)"
         )
 
