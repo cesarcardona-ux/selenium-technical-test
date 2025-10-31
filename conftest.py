@@ -30,6 +30,7 @@ import traceback  # Para logging detallado de errores
 # URLs de los ambientes de prueba (definidas en el PDF de la prueba técnica)
 BASE_URL_QA4 = "https://nuxqa4.avtest.ink/"  # Ambiente QA4
 BASE_URL_QA5 = "https://nuxqa5.avtest.ink/"  # Ambiente QA5
+BASE_URL_UAT1 = "https://nuxqa.avtest.ink/"  # Ambiente UAT1 (Case 3: Login y Network Capture)
 
 # ==================== FUNCIÓN AUXILIAR ====================
 def sanitize_filename(filename):
@@ -203,7 +204,7 @@ def pytest_addoption(parser):
         "--env",
         action="store",
         default="all",
-        help="Environment to test: qa4, qa5, or all (default: all)"
+        help="Environment to test: qa4, qa5, uat1, or all (default: all)"
     )
     parser.addoption(
         "--screenshots",
@@ -216,6 +217,33 @@ def pytest_addoption(parser):
         action="store",
         default="none",
         help="Video recording mode: none or enabled (default: none)"
+    )
+    # ==================== CASE 3 SPECIFIC OPTIONS ====================
+    parser.addoption(
+        "--origin",
+        action="store",
+        default="BOG",
+        help="Origin airport IATA code for Case 3 (default: BOG - Bogotá)"
+    )
+    parser.addoption(
+        "--destination",
+        action="store",
+        default="MAD",
+        help="Destination airport IATA code for Case 3 (default: MAD - Madrid)"
+    )
+    parser.addoption(
+        "--departure-days",
+        action="store",
+        default="4",
+        type=int,
+        help="Days from today for departure date in Case 3 (default: 4)"
+    )
+    parser.addoption(
+        "--return-days",
+        action="store",
+        default="5",
+        type=int,
+        help="Days from today for return date in Case 3 (default: 5)"
     )
 
 def pytest_generate_tests(metafunc):
@@ -255,7 +283,8 @@ def pytest_generate_tests(metafunc):
     # Definir todos los ambientes disponibles
     all_envs = {
         "qa4": BASE_URL_QA4,
-        "qa5": BASE_URL_QA5
+        "qa5": BASE_URL_QA5,
+        "uat1": BASE_URL_UAT1
     }
 
     # Filtrar navegadores según opción
@@ -366,6 +395,10 @@ def driver(request, browser):
             chrome_options.add_argument(arg)
         # chrome_options.add_argument("--headless")  # Descomentar para modo invisible
 
+        # Habilitar performance logging para captura de red (Case 3: CDP Network)
+        # Permite acceder a eventos de red mediante driver.get_log('performance')
+        chrome_options.set_capability('goog:loggingPrefs', {'performance': 'ALL'})
+
         # Usar Selenium Manager (integrado en Selenium 4.x)
         # No requiere webdriver-manager, descarga el driver automáticamente
         driver = webdriver.Chrome(options=chrome_options)
@@ -376,6 +409,10 @@ def driver(request, browser):
         for arg in common_args:
             edge_options.add_argument(arg)
         # edge_options.add_argument("--headless")  # Descomentar para modo invisible
+
+        # Habilitar performance logging para captura de red (Case 3: CDP Network)
+        # Edge es Chromium-based, soporta las mismas capacidades que Chrome
+        edge_options.set_capability('ms:loggingPrefs', {'performance': 'ALL'})
 
         # Usar Selenium Manager (no requiere webdriver-manager)
         driver = webdriver.Edge(options=edge_options)
