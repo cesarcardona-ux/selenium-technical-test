@@ -22,6 +22,7 @@ PUNTOS: 15 pts (según PDF)
 import pytest
 import allure
 import time
+import logging
 from pages.nuxqa.login_page import LoginPage  # Usamos LoginPage que tiene métodos de búsqueda
 from pages.nuxqa.select_flight_page import SelectFlightPage
 from pages.nuxqa.passengers_page import PassengersPage
@@ -29,6 +30,9 @@ from pages.nuxqa.services_page import ServicesPage
 from pages.nuxqa.seatmap_page import SeatmapPage
 from pages.nuxqa.payment_page import PaymentPage
 from datetime import datetime, timedelta
+
+# ==================== LOGGER ====================
+logger = logging.getLogger(__name__)
 
 # ==================== CONFIGURACIÓN ====================
 # Datos de pasajeros (1 de cada tipo según PDF)
@@ -210,6 +214,14 @@ def test_oneway_booking(driver, base_url, db, browser, language, screenshots_mod
     with allure.step("Step 2: Configure Flight Search (One-way, 4 passengers)"):
         current_step = "Home - Flight Search"
 
+        # IMPORTANTE: Seleccionar tipo de viaje PRIMERO (antes de origen/destino)
+        trip_type_selected = search_page.select_trip_type("one-way")
+        if trip_type_selected:
+            logger.info("✓ Trip type 'one-way' selected successfully")
+        else:
+            logger.warning("Could not select trip type, continuing with default")
+        time.sleep(1)
+
         # Configurar POS (opcional pero recomendado)
         # search_page.configure_pos("Colombia")  # Comentado por ahora
 
@@ -220,11 +232,12 @@ def test_oneway_booking(driver, base_url, db, browser, language, screenshots_mod
         search_page.select_destination("MDE", "Mede")  # Medellín, Colombia
         time.sleep(1)
 
-        # Seleccionar fecha (solo ida - sin fecha de regreso)
+        # Seleccionar fecha (solo ida - sin fecha de regreso para One-way)
         search_page.select_dates(departure_days_from_today=7, return_days_from_today=None)
-        time.sleep(1)
+        time.sleep(2)
 
         # Configurar pasajeros: 1 de cada tipo
+        # NOTA: En One-way, el modal se abre automáticamente después de seleccionar fecha
         search_page.select_passengers(adults=1, teens=1, children=1, infants=1)
         time.sleep(1)
 

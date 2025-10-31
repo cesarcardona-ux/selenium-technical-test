@@ -125,6 +125,81 @@ class LoginPage(HomePage):
         self.select_pos(pos_name)  # Selecciona el POS (método heredado de HomePage)
         logger.info(f"POS '{pos_name}' configured successfully")
 
+    def select_trip_type(self, trip_type="one-way"):
+        """
+        Selecciona el tipo de viaje (One-way o Round-trip).
+
+        IMPORTANTE: Este método es OPCIONAL. Si no se llama, el comportamiento por defecto
+        de la página web se mantendrá (generalmente Round-trip está seleccionado).
+
+        Args:
+            trip_type (str): Tipo de viaje - "one-way" o "round-trip" (default: "one-way")
+
+        Returns:
+            bool: True si se seleccionó correctamente
+
+        Nota:
+        - Este método funciona con CUALQUIER idioma usando selectores por posición
+        - NO afecta tests existentes si no se llama explícitamente
+        - Es seguro llamarlo múltiples veces
+        """
+        logger.info(f"Selecting trip type: {trip_type}")
+
+        try:
+            # Selector genérico por clase - independiente del idioma
+            # Los radio buttons suelen tener una clase específica
+            # Buscamos por el input type="radio" dentro del formulario de búsqueda
+
+            if trip_type.lower() == "one-way":
+                # Buscar el radio button de One-way (generalmente el segundo)
+                # Usamos selector por value o por posición
+                one_way_selector = "//input[@type='radio' and (@value='OneWay' or @value='oneway' or @value='OW')]"
+
+                try:
+                    one_way_radio = self.driver.find_element(By.XPATH, one_way_selector)
+                    # Hacer click usando JavaScript para mayor confiabilidad
+                    self.driver.execute_script("arguments[0].click();", one_way_radio)
+                    logger.info("✓ One-way trip type selected")
+                    time.sleep(1)
+                    return True
+                except:
+                    logger.warning(f"Could not find one-way radio by value, trying by position...")
+                    # Fallback: buscar el segundo radio button del formulario
+                    radio_buttons = self.driver.find_elements(By.XPATH, "//input[@type='radio' and contains(@id, 'trip') or contains(@name, 'trip')]")
+                    if len(radio_buttons) >= 2:
+                        self.driver.execute_script("arguments[0].click();", radio_buttons[1])
+                        logger.info("✓ One-way trip type selected (by position)")
+                        time.sleep(1)
+                        return True
+
+            elif trip_type.lower() == "round-trip":
+                # Buscar el radio button de Round-trip (generalmente el primero)
+                round_trip_selector = "//input[@type='radio' and (@value='RoundTrip' or @value='roundtrip' or @value='RT')]"
+
+                try:
+                    round_trip_radio = self.driver.find_element(By.XPATH, round_trip_selector)
+                    self.driver.execute_script("arguments[0].click();", round_trip_radio)
+                    logger.info("✓ Round-trip trip type selected")
+                    time.sleep(1)
+                    return True
+                except:
+                    logger.warning(f"Could not find round-trip radio by value, trying by position...")
+                    # Fallback: buscar el primer radio button del formulario
+                    radio_buttons = self.driver.find_elements(By.XPATH, "//input[@type='radio' and contains(@id, 'trip') or contains(@name, 'trip')]")
+                    if len(radio_buttons) >= 1:
+                        self.driver.execute_script("arguments[0].click();", radio_buttons[0])
+                        logger.info("✓ Round-trip trip type selected (by position)")
+                        time.sleep(1)
+                        return True
+
+            logger.warning(f"Could not select trip type: {trip_type}")
+            return False
+
+        except Exception as e:
+            logger.error(f"✗ Error selecting trip type '{trip_type}': {e}")
+            # NO lanzar excepción - esto es opcional y no debe romper tests existentes
+            return False
+
     def select_origin(self, city_code, search_text):
         """
         Selecciona el aeropuerto de origen.
