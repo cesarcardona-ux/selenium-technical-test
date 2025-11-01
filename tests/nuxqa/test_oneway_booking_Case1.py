@@ -38,11 +38,13 @@ logger = logging.getLogger(__name__)
 # Datos de pasajeros (1 de cada tipo según PDF)
 # Datos fake permitidos según PDF
 PASSENGERS_DATA = [
+    # IMPORTANTE: El orden debe coincidir con el orden de los contenedores en la página
+    # Orden en la página: 1=Adulto, 2=Bebé, 3=Joven, 4=Niño
     {
-        "type": "Adult",
+        "type": "Adult",  # Posición 1 en la página
         "first_name": "Juan",
         "last_name": "Perez",
-        "birth_date": "1990-01-15",
+        "birth_date": "1990-01-15",  # Adult: 35 years (18+ años)
         "gender": "M",
         "doc_type": "CC",
         "doc_number": "1234567890",
@@ -50,31 +52,31 @@ PASSENGERS_DATA = [
         "phone": "3001234567"
     },
     {
-        "type": "Teen",
+        "type": "Infant",  # Posición 2 en la página (BEBÉ)
+        "first_name": "Sofia",
+        "last_name": "Martinez",
+        "birth_date": "2024-06-25",  # Infant: 1 año (0-2 años)
+        "gender": "F",
+        "doc_type": "RC",
+        "doc_number": "5556667778"
+    },
+    {
+        "type": "Teen",  # Posición 3 en la página (JOVEN)
         "first_name": "Maria",
         "last_name": "Gomez",
-        "birth_date": "2012-05-20",  # Teen: 12-13 years old (valid range for Teen)
+        "birth_date": "2009-05-20",  # Teen: 16 years (15+ to 18 años)
         "gender": "F",
         "doc_type": "TI",
         "doc_number": "9876543210"
     },
     {
-        "type": "Child",
+        "type": "Child",  # Posición 4 en la página (NIÑO)
         "first_name": "Pedro",
         "last_name": "Rodriguez",
-        "birth_date": "2020-08-10",  # Child: 4-5 years old (valid range for Child)
+        "birth_date": "2015-08-10",  # Child: 10 años (2-15 años)
         "gender": "M",
         "doc_type": "RC",
         "doc_number": "1112223334"
-    },
-    {
-        "type": "Infant",
-        "first_name": "Sofia",
-        "last_name": "Martinez",
-        "birth_date": "2024-06-25",  # Infant: ~1 year old (valid range for Infant)
-        "gender": "F",
-        "doc_type": "RC",
-        "doc_number": "5556667778"
     }
 ]
 
