@@ -5,13 +5,14 @@ Este archivo representa la página PASSENGERS usando el patrón Page Object Mode
 Contiene todos los selectores y acciones para llenar información de pasajeros.
 
 Caso 1 y 2: Ingresar información de pasajeros (datos fake permitidos)
+
+SELECTORES BASADOS EN DEVTOOLS HTML DE NUXQA4/NUXQA5
 """
 
 # ==================== IMPORTS ====================
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import Select
 import logging
 import time
 
@@ -25,44 +26,16 @@ class PassengersPage:
 
     Responsabilidades:
     - Esperar a que cargue la página Passengers
-    - Llenar formularios de pasajeros (adultos, jóvenes, niños, infantes)
+    - Llenar formularios de pasajeros usando IDs dinámicos de nuxqa
     - Validar que se complete correctamente
     - Continuar al siguiente paso
     """
 
-    # ==================== LOCATORS ====================
-    # Formularios de pasajeros - selectores genéricos que funcionan con índices
-    # Los formularios suelen estar en contenedores repetidos
-
-    # Campo de primer nombre (genérico, se ajustará con índice)
-    FIRST_NAME_INPUT = "//input[contains(@id, 'firstName') or contains(@name, 'firstName') or contains(@placeholder, 'First name') or contains(@placeholder, 'Primer nombre')]"
-
-    # Campo de apellido
-    LAST_NAME_INPUT = "//input[contains(@id, 'lastName') or contains(@name, 'lastName') or contains(@placeholder, 'Last name') or contains(@placeholder, 'Apellido')]"
-
-    # Campo de fecha de nacimiento (puede ser input o select)
-    DATE_OF_BIRTH_INPUT = "//input[contains(@id, 'dateOfBirth') or contains(@name, 'dateOfBirth') or contains(@placeholder, 'Date of birth')]"
-
-    # Selector de género
-    GENDER_SELECT = "//select[contains(@id, 'gender') or contains(@name, 'gender')]"
-
-    # Selector de tipo de documento
-    DOCUMENT_TYPE_SELECT = "//select[contains(@id, 'documentType') or contains(@name, 'documentType') or contains(@id, 'idType')]"
-
-    # Campo de número de documento
-    DOCUMENT_NUMBER_INPUT = "//input[contains(@id, 'documentNumber') or contains(@name, 'documentNumber') or contains(@id, 'idNumber')]"
-
-    # Campo de email (solo para adulto contacto)
-    EMAIL_INPUT = "//input[contains(@id, 'email') or contains(@name, 'email') or contains(@type, 'email')]"
-
-    # Campo de teléfono
-    PHONE_INPUT = "//input[contains(@id, 'phone') or contains(@name, 'phone') or contains(@type, 'tel')]"
+    # ==================== LOCATORS (basados en DevTools HTML) ====================
+    # Los IDs tienen hashes dinámicos pero prefijos consistentes
 
     # Botón continuar
-    CONTINUE_BUTTON = (By.XPATH, "//button[contains(text(), 'Continuar') or contains(text(), 'Continue') or contains(text(), 'Continuer') or contains(@id, 'continueButton')]")
-
-    # Contenedor de pasajeros
-    PASSENGER_FORM = "//div[contains(@class, 'passenger') or contains(@class, 'pax')]"
+    CONTINUE_BUTTON = (By.XPATH, "//button[contains(text(), 'Continuar') or contains(text(), 'Continue') or contains(text(), 'Contin') or contains(@class, 'button-booking')]")
 
     # ==================== CONSTRUCTOR ====================
     def __init__(self, driver):
@@ -73,7 +46,7 @@ class PassengersPage:
             driver: Instancia de Selenium WebDriver
         """
         self.driver = driver
-        self.wait = WebDriverWait(driver, 20)
+        self.wait = WebDriverWait(driver, 25)  # Timeout más largo para formularios
         logger.info("PassengersPage object initialized")
 
     # ==================== MÉTODOS ====================
@@ -88,19 +61,19 @@ class PassengersPage:
         logger.info("Waiting for Passengers page to load...")
 
         try:
-            time.sleep(3)  # Tiempo para que la página empiece a cargar
+            time.sleep(5)  # Esperar a que la página Angular se estabilice
 
             current_url = self.driver.current_url
             logger.info(f"Current URL: {current_url}")
 
-            # Verificar que estamos en la página de pasajeros
-            is_passengers_page = "passenger" in current_url.lower() or "pax" in current_url.lower()
-
-            if not is_passengers_page:
-                logger.warning(f"URL doesn't contain 'passenger' or 'pax': {current_url}")
-
-            # Esperar a que aparezcan formularios de pasajeros
-            time.sleep(2)
+            # Esperar a que aparezcan los campos de nombre (primero que se carga)
+            try:
+                first_name_inputs = self.wait.until(
+                    EC.presence_of_all_elements_located((By.CSS_SELECTOR, "input[id^='IdFirstName']"))
+                )
+                logger.info(f"✓ Found {len(first_name_inputs)} passenger forms")
+            except:
+                logger.warning("Could not find passenger forms immediately, will retry later")
 
             logger.info("✓ Passengers page loaded successfully")
             return True
@@ -110,149 +83,166 @@ class PassengersPage:
             return False
 
     def fill_passenger_info(self, passenger_index, passenger_type, first_name, last_name,
-                           birth_date, gender="M", doc_type="CC", doc_number="1234567890",
-                           email=None, phone=None):
+                           birth_date, gender="M", nationality="Colombia"):
         """
-        Llena la información de un pasajero específico.
+        Llena la información de un pasajero específico usando los IDs exactos de nuxqa.
 
         Args:
             passenger_index (int): Índice del pasajero (0 = primero, 1 = segundo, etc.)
             passenger_type (str): Tipo de pasajero ("Adult", "Teen", "Child", "Infant")
             first_name (str): Primer nombre
             last_name (str): Apellido
-            birth_date (str): Fecha de nacimiento (formato YYYY-MM-DD o DD/MM/YYYY)
+            birth_date (str): Fecha de nacimiento (formato YYYY-MM-DD)
             gender (str): Género ("M" o "F")
-            doc_type (str): Tipo de documento ("CC", "Passport", etc.)
-            doc_number (str): Número de documento
-            email (str): Email (solo para adulto contacto)
-            phone (str): Teléfono (solo para adulto contacto)
+            nationality (str): Nacionalidad del documento
 
         Returns:
             bool: True si se llenó correctamente
         """
-        logger.info(f"Filling passenger {passenger_index + 1} info ({passenger_type})...")
+        logger.info(f"Filling passenger {passenger_index + 1} info ({passenger_type}): {first_name} {last_name}")
 
         try:
-            # Buscar todos los formularios de entrada de texto (para firstName)
-            first_name_inputs = self.driver.find_elements(By.XPATH, self.FIRST_NAME_INPUT)
+            # PASO 1: Llenar NOMBRE
+            logger.info(f"  1. Filling first name: {first_name}")
+            first_name_inputs = self.driver.find_elements(By.CSS_SELECTOR, "input[id^='IdFirstName']")
 
             if len(first_name_inputs) <= passenger_index:
-                logger.error(f"Passenger form {passenger_index + 1} not found")
+                logger.error(f"Passenger form {passenger_index + 1} not found (only {len(first_name_inputs)} forms)")
                 return False
 
-            # Llenar primer nombre
-            logger.info(f"Filling first name: {first_name}")
             first_name_field = first_name_inputs[passenger_index]
             self.driver.execute_script("arguments[0].scrollIntoView(true);", first_name_field)
             time.sleep(0.5)
             first_name_field.clear()
             first_name_field.send_keys(first_name)
+            logger.info(f"  ✓ First name filled: {first_name}")
 
-            # Llenar apellido
-            last_name_inputs = self.driver.find_elements(By.XPATH, self.LAST_NAME_INPUT)
+            # PASO 2: Llenar APELLIDO
+            logger.info(f"  2. Filling last name: {last_name}")
+            last_name_inputs = self.driver.find_elements(By.CSS_SELECTOR, "input[id^='IdLastName']")
             if len(last_name_inputs) > passenger_index:
-                logger.info(f"Filling last name: {last_name}")
                 last_name_field = last_name_inputs[passenger_index]
                 last_name_field.clear()
                 last_name_field.send_keys(last_name)
+                logger.info(f"  ✓ Last name filled: {last_name}")
 
-            # Llenar fecha de nacimiento (puede ser input de texto o date picker)
-            birth_date_inputs = self.driver.find_elements(By.XPATH, self.DATE_OF_BIRTH_INPUT)
-            if len(birth_date_inputs) > passenger_index:
-                logger.info(f"Filling birth date: {birth_date}")
-                birth_date_field = birth_date_inputs[passenger_index]
-
-                # Intentar JavaScript para fechas más confiable
-                self.driver.execute_script(f"arguments[0].value = '{birth_date}';", birth_date_field)
-
-                # Si falla, intentar send_keys
-                if not birth_date_field.get_attribute('value'):
-                    birth_date_field.clear()
-                    birth_date_field.send_keys(birth_date)
-
-            # Seleccionar género (si está disponible)
+            # PASO 3: Seleccionar GÉNERO (Dropdown)
+            logger.info(f"  3. Selecting gender: {gender}")
             try:
-                gender_selects = self.driver.find_elements(By.XPATH, self.GENDER_SELECT)
-                if len(gender_selects) > passenger_index:
-                    logger.info(f"Selecting gender: {gender}")
-                    gender_select = Select(gender_selects[passenger_index])
-                    # Intentar por valor
-                    try:
-                        gender_select.select_by_value(gender)
-                    except:
-                        # Si falla, intentar por índice (M suele ser 0, F = 1)
-                        gender_select.select_by_index(0 if gender == "M" else 1)
-            except Exception as e:
-                logger.warning(f"Could not select gender: {e}")
+                gender_buttons = self.driver.find_elements(By.CSS_SELECTOR, "button[id^='IdPaxGender_']")
+                if len(gender_buttons) > passenger_index:
+                    gender_button = gender_buttons[passenger_index]
+                    self.driver.execute_script("arguments[0].scrollIntoView(true);", gender_button)
+                    time.sleep(0.5)
+                    self.driver.execute_script("arguments[0].click();", gender_button)
+                    time.sleep(1)
 
-            # Seleccionar tipo de documento (si está disponible)
+                    # Seleccionar opción según género
+                    gender_text = "Masculino" if gender == "M" else "Femenino"
+                    gender_option = self.driver.find_element(By.XPATH, f"//span[text()='{gender_text}']")
+                    self.driver.execute_script("arguments[0].click();", gender_option)
+                    logger.info(f"  ✓ Gender selected: {gender_text}")
+                    time.sleep(0.5)
+            except Exception as e:
+                logger.warning(f"  Could not select gender: {e}")
+
+            # PASO 4: Seleccionar FECHA DE NACIMIENTO (3 dropdowns: día, mes, año)
+            logger.info(f"  4. Filling birth date: {birth_date}")
             try:
-                doc_type_selects = self.driver.find_elements(By.XPATH, self.DOCUMENT_TYPE_SELECT)
-                if len(doc_type_selects) > passenger_index:
-                    logger.info(f"Selecting document type: {doc_type}")
-                    doc_type_select = Select(doc_type_selects[passenger_index])
-                    # Intentar por valor
-                    try:
-                        doc_type_select.select_by_value(doc_type)
-                    except:
-                        # Si falla, seleccionar el primero (suele ser CC o Passport)
-                        doc_type_select.select_by_index(0)
+                # Parsear fecha YYYY-MM-DD
+                year, month, day = birth_date.split("-")
+                year = int(year)
+                month = int(month)
+                day = int(day)
+
+                # Nombres de meses en español
+                month_names = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+                             "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
+                month_name = month_names[month - 1]
+
+                # A) Seleccionar DÍA
+                day_buttons = self.driver.find_elements(By.CSS_SELECTOR, "button[id^='dateDayId_IdDateOfBirthHidden_']")
+                if len(day_buttons) > passenger_index:
+                    day_button = day_buttons[passenger_index]
+                    self.driver.execute_script("arguments[0].scrollIntoView(true);", day_button)
+                    time.sleep(0.5)
+                    self.driver.execute_script("arguments[0].click();", day_button)
+                    time.sleep(1)
+
+                    # Buscar día por texto
+                    day_option = self.driver.find_element(By.XPATH, f"//span[text()='{day}']")
+                    self.driver.execute_script("arguments[0].click();", day_option)
+                    logger.info(f"  ✓ Day selected: {day}")
+                    time.sleep(0.5)
+
+                # B) Seleccionar MES
+                month_buttons = self.driver.find_elements(By.CSS_SELECTOR, "button[id^='dateMonthId_IdDateOfBirthHidden_']")
+                if len(month_buttons) > passenger_index:
+                    month_button = month_buttons[passenger_index]
+                    self.driver.execute_script("arguments[0].scrollIntoView(true);", month_button)
+                    time.sleep(0.5)
+                    self.driver.execute_script("arguments[0].click();", month_button)
+                    time.sleep(1)
+
+                    # Buscar mes por nombre
+                    month_option = self.driver.find_element(By.XPATH, f"//span[text()='{month_name}']")
+                    self.driver.execute_script("arguments[0].click();", month_option)
+                    logger.info(f"  ✓ Month selected: {month_name}")
+                    time.sleep(0.5)
+
+                # C) Seleccionar AÑO
+                year_buttons = self.driver.find_elements(By.CSS_SELECTOR, "button[id^='dateYearId_IdDateOfBirthHidden_']")
+                if len(year_buttons) > passenger_index:
+                    year_button = year_buttons[passenger_index]
+                    self.driver.execute_script("arguments[0].scrollIntoView(true);", year_button)
+                    time.sleep(0.5)
+                    self.driver.execute_script("arguments[0].click();", year_button)
+                    time.sleep(1)
+
+                    # Buscar año por texto
+                    year_option = self.driver.find_element(By.XPATH, f"//span[text()='{year}']")
+                    self.driver.execute_script("arguments[0].click();", year_option)
+                    logger.info(f"  ✓ Year selected: {year}")
+                    time.sleep(0.5)
+
             except Exception as e:
-                logger.warning(f"Could not select document type: {e}")
+                logger.warning(f"  Could not fill birth date: {e}")
 
-            # Llenar número de documento
-            doc_number_inputs = self.driver.find_elements(By.XPATH, self.DOCUMENT_NUMBER_INPUT)
-            if len(doc_number_inputs) > passenger_index:
-                logger.info(f"Filling document number: {doc_number}")
-                doc_number_field = doc_number_inputs[passenger_index]
-                doc_number_field.clear()
-                doc_number_field.send_keys(doc_number)
+            # PASO 5: Seleccionar NACIONALIDAD (Dropdown)
+            logger.info(f"  5. Selecting nationality: {nationality}")
+            try:
+                nationality_buttons = self.driver.find_elements(By.CSS_SELECTOR, "button[id^='IdDocNationality_']")
+                if len(nationality_buttons) > passenger_index:
+                    nationality_button = nationality_buttons[passenger_index]
+                    self.driver.execute_script("arguments[0].scrollIntoView(true);", nationality_button)
+                    time.sleep(0.5)
+                    self.driver.execute_script("arguments[0].click();", nationality_button)
+                    time.sleep(1)
 
-            # Email y teléfono (solo para el primer adulto - contacto)
-            if email and passenger_index == 0:
-                email_inputs = self.driver.find_elements(By.XPATH, self.EMAIL_INPUT)
-                if email_inputs:
-                    logger.info(f"Filling email: {email}")
-                    email_field = email_inputs[0]  # Primer campo de email
-                    email_field.clear()
-                    email_field.send_keys(email)
+                    # Buscar nacionalidad por texto
+                    nationality_option = self.driver.find_element(By.XPATH, f"//span[text()='{nationality}']")
+                    self.driver.execute_script("arguments[0].click();", nationality_option)
+                    logger.info(f"  ✓ Nationality selected: {nationality}")
+                    time.sleep(0.5)
+            except Exception as e:
+                logger.warning(f"  Could not select nationality: {e}")
 
-            if phone and passenger_index == 0:
-                phone_inputs = self.driver.find_elements(By.XPATH, self.PHONE_INPUT)
-                if phone_inputs:
-                    logger.info(f"Filling phone: {phone}")
-                    phone_field = phone_inputs[0]  # Primer campo de teléfono
-                    phone_field.clear()
-                    phone_field.send_keys(phone)
-
-            logger.info(f"✓ Passenger {passenger_index + 1} info filled successfully")
+            logger.info(f"✓ Passenger {passenger_index + 1} ({passenger_type}) filled successfully")
             return True
 
         except Exception as e:
-            logger.error(f"✗ Error filling passenger {passenger_index + 1} info: {e}")
+            logger.error(f"✗ Error filling passenger {passenger_index + 1}: {e}")
+            import traceback
+            traceback.print_exc()
             return False
 
     def fill_all_passengers(self, passengers_data):
         """
-        Llena información de todos los pasajeros.
+        Llena la información de todos los pasajeros.
 
         Args:
             passengers_data (list): Lista de diccionarios con datos de pasajeros
-                Ejemplo:
-                [
-                    {
-                        "type": "Adult",
-                        "first_name": "Juan",
-                        "last_name": "Perez",
-                        "birth_date": "1990-01-01",
-                        "gender": "M",
-                        "doc_type": "CC",
-                        "doc_number": "1234567890",
-                        "email": "juan@test.com",
-                        "phone": "3001234567"
-                    },
-                    ...
-                ]
+                Cada diccionario debe contener: type, first_name, last_name, birth_date, gender, nationality
 
         Returns:
             bool: True si se llenaron todos correctamente
@@ -263,22 +253,24 @@ class PassengersPage:
         for index, passenger in enumerate(passengers_data):
             success = self.fill_passenger_info(
                 passenger_index=index,
-                passenger_type=passenger.get("type", "Adult"),
-                first_name=passenger.get("first_name", "Test"),
-                last_name=passenger.get("last_name", "Passenger"),
-                birth_date=passenger.get("birth_date", "1990-01-01"),
+                passenger_type=passenger["type"],
+                first_name=passenger["first_name"],
+                last_name=passenger["last_name"],
+                birth_date=passenger["birth_date"],
                 gender=passenger.get("gender", "M"),
-                doc_type=passenger.get("doc_type", "CC"),
-                doc_number=passenger.get("doc_number", "1234567890"),
-                email=passenger.get("email"),
-                phone=passenger.get("phone")
+                nationality=passenger.get("nationality", "Colombia")
             )
 
             if not success:
-                all_success = False
                 logger.warning(f"Failed to fill passenger {index + 1}")
+                all_success = False
 
-            time.sleep(1)  # Espera entre pasajeros
+            time.sleep(1)  # Pausa entre pasajeros
+
+        if all_success:
+            logger.info("✓ All passengers filled successfully")
+        else:
+            logger.warning("Some passengers could not be filled")
 
         return all_success
 
@@ -294,18 +286,31 @@ class PassengersPage:
         try:
             # Scroll hacia abajo para asegurar que el botón esté visible
             self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-            time.sleep(1)
+            time.sleep(2)
 
-            continue_btn = self.wait.until(
-                EC.element_to_be_clickable(self.CONTINUE_BUTTON)
-            )
+            # Buscar botón continuar con múltiples estrategias
+            continue_selectors = [
+                "//button[contains(text(), 'Continuar')]",
+                "//button[contains(text(), 'Continue')]",
+                "//button[contains(@class, 'button-booking')]",
+                "//button[contains(@class, 'btn-primary')]",
+            ]
 
-            # JavaScript click para mayor confiabilidad
-            self.driver.execute_script("arguments[0].click();", continue_btn)
-            logger.info("✓ Continue button clicked successfully")
-            time.sleep(3)  # Espera a que cargue la siguiente página
+            for selector in continue_selectors:
+                try:
+                    continue_btn = self.driver.find_element(By.XPATH, selector)
+                    if continue_btn.is_displayed():
+                        self.driver.execute_script("arguments[0].scrollIntoView(true);", continue_btn)
+                        time.sleep(1)
+                        self.driver.execute_script("arguments[0].click();", continue_btn)
+                        logger.info("✓ Continue button clicked successfully")
+                        time.sleep(3)
+                        return True
+                except:
+                    continue
 
-            return True
+            logger.warning("Continue button not found with any selector")
+            return False
 
         except Exception as e:
             logger.error(f"✗ Error clicking continue button: {e}")
