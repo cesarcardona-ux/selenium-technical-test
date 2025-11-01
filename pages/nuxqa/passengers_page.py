@@ -61,9 +61,8 @@ class PassengersPage:
         logger.info("Waiting for Passengers page to load...")
 
         try:
-            # Esperar más tiempo a que la página Angular se estabilice
-            # La página puede tardar en cargar después de validaciones de Services
-            time.sleep(10)  # Aumentado de 5 a 10 segundos
+            # Esperar a que la página Angular se estabilice
+            time.sleep(3)  # Reducido para acelerar test
 
             current_url = self.driver.current_url
             logger.info(f"Current URL: {current_url}")
@@ -195,37 +194,12 @@ class PassengersPage:
                 if len(year_buttons) > passenger_index:
                     year_button = year_buttons[passenger_index]
                     self.driver.execute_script("arguments[0].scrollIntoView(true);", year_button)
-                    time.sleep(1)
+                    time.sleep(0.3)
 
                     # Click en el botón para abrir dropdown
                     self.driver.execute_script("arguments[0].click();", year_button)
                     logger.info(f"  → Year dropdown opened")
-                    time.sleep(2)  # Esperar a que el dropdown se abra completamente
-
-                    # DEBUG: Capturar TODOS los años disponibles en el dropdown actual
-                    logger.info(f"  🔍 DEBUG - Attempting to capture available years...")
-
-                    # Intentar con diferentes selectores
-                    all_available_years = self.driver.find_elements(By.XPATH,
-                        "//span[ancestor::div[contains(@class, 'ng-dropdown-panel') and contains(@style, 'display') and not(contains(@style, 'none'))]]")
-
-                    logger.info(f"  🔍 DEBUG - Found {len(all_available_years)} span elements in visible dropdown")
-
-                    if all_available_years:
-                        year_texts = [y.text.strip() for y in all_available_years if y.text.strip()]
-                        logger.info(f"  📋 DEBUG - Available years in dropdown: {year_texts[:20]}")  # Primeros 20
-                        logger.info(f"  📋 DEBUG - Total years available: {len(year_texts)}")
-
-                        # Verificar si el año buscado está en la lista
-                        if str(year) in year_texts:
-                            logger.info(f"  ✓ Year {year} IS available in dropdown")
-                        else:
-                            logger.warning(f"  ✗ Year {year} NOT available. Closest years: {year_texts[:10]}")
-                    else:
-                        logger.warning(f"  ⚠️ DEBUG - No year elements found with XPath selector. Trying alternative...")
-                        # Intentar selector más simple
-                        all_years_simple = self.driver.find_elements(By.XPATH, "//span")
-                        logger.info(f"  🔍 DEBUG - Total span elements on page: {len(all_years_simple)}")
+                    time.sleep(0.8)  # Reducido para acelerar
 
                     # IMPORTANT FIX: Search within visible dropdown panel only
                     # Buscar opciones solo en el panel visible (no en toda la página)
@@ -243,19 +217,19 @@ class PassengersPage:
                     else:
                         logger.warning(f"  ✗ Year {year} not found in dropdown")
 
-                    time.sleep(2)  # IMPORTANTE: Esperar más tiempo para que el sistema filtre meses válidos
+                    time.sleep(0.5)  # Reducido: esperar a que filtre meses válidos
 
                 # B) Seleccionar MES SEGUNDO (filtrado según año)
                 month_buttons = self.driver.find_elements(By.CSS_SELECTOR, "button[id^='dateMonthId_IdDateOfBirthHidden_']")
                 if len(month_buttons) > passenger_index:
                     month_button = month_buttons[passenger_index]
                     self.driver.execute_script("arguments[0].scrollIntoView(true);", month_button)
-                    time.sleep(1)
+                    time.sleep(0.3)
 
                     # Click en el botón para abrir dropdown
                     self.driver.execute_script("arguments[0].click();", month_button)
                     logger.info(f"  → Month dropdown opened")
-                    time.sleep(2)  # Esperar a que el dropdown se abra completamente
+                    time.sleep(0.8)  # Reducido para acelerar
 
                     # IMPORTANT FIX: Search within visible dropdown panel only
                     # Buscar opciones solo en el panel visible (no en toda la página)
@@ -273,19 +247,19 @@ class PassengersPage:
                     else:
                         logger.warning(f"  ✗ Month {month_name} not found in dropdown")
 
-                    time.sleep(2)  # IMPORTANTE: Esperar más tiempo para que el sistema filtre días válidos
+                    time.sleep(0.5)  # Reducido: esperar a que filtre días válidos
 
                 # C) Seleccionar DÍA TERCERO (filtrado según año+mes)
                 day_buttons = self.driver.find_elements(By.CSS_SELECTOR, "button[id^='dateDayId_IdDateOfBirthHidden_']")
                 if len(day_buttons) > passenger_index:
                     day_button = day_buttons[passenger_index]
                     self.driver.execute_script("arguments[0].scrollIntoView(true);", day_button)
-                    time.sleep(1)
+                    time.sleep(0.3)
 
                     # Click en el botón para abrir dropdown
                     self.driver.execute_script("arguments[0].click();", day_button)
                     logger.info(f"  → Day dropdown opened")
-                    time.sleep(2)  # Esperar a que el dropdown se abra completamente
+                    time.sleep(0.8)  # Reducido para acelerar
 
                     # IMPORTANT FIX: Search within visible dropdown panel only
                     # Buscar opciones solo en el panel visible (no en toda la página)
