@@ -328,21 +328,33 @@ class SelectFlightPage:
         logger.info("Clicking continue button...")
 
         try:
-            # Buscar botón continuar con diferentes textos según idioma
+            # Buscar botón continuar con diferentes estrategias
+            # El botón tiene estructura: <button class="btn-next"><span>Continuar</span></button>
             continue_selectors = [
+                # Buscar por clase btn-next (más confiable para nuxqa)
+                "//button[contains(@class, 'btn-next')]",
+                # Buscar por span interno con texto
+                "//button//span[contains(text(), 'Continuar')]",
+                "//button//span[contains(text(), 'Continue')]",
+                "//button//span[contains(text(), 'Continuer')]",
+                # Fallback a selectores antiguos
                 "//button[contains(text(), 'Continuar')]",
-                "//button[contains(text(), 'Continue')]",
-                "//button[contains(text(), 'Continuer')]",
                 "//button[contains(@class, 'continue')]",
                 "//button[@id='continueButton']",
             ]
 
             for selector in continue_selectors:
                 try:
-                    continue_btn = self.driver.find_element(By.XPATH, selector)
+                    # Si el selector busca span, obtenemos el botón padre
+                    if "//span" in selector:
+                        span_elem = self.driver.find_element(By.XPATH, selector)
+                        continue_btn = span_elem.find_element(By.XPATH, "..")  # Padre = button
+                    else:
+                        continue_btn = self.driver.find_element(By.XPATH, selector)
+
                     self.driver.execute_script("arguments[0].scrollIntoView(true);", continue_btn)
                     time.sleep(0.5)
-                    continue_btn.click()
+                    self.driver.execute_script("arguments[0].click();", continue_btn)  # JavaScript click
                     time.sleep(2)
 
                     logger.info("✓ Continue button clicked successfully")

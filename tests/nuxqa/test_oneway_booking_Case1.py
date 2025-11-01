@@ -53,7 +53,7 @@ PASSENGERS_DATA = [
         "type": "Teen",
         "first_name": "Maria",
         "last_name": "Gomez",
-        "birth_date": "2010-05-20",
+        "birth_date": "2012-05-20",  # Teen: 12-13 years old (valid range for Teen)
         "gender": "F",
         "doc_type": "TI",
         "doc_number": "9876543210"
@@ -62,7 +62,7 @@ PASSENGERS_DATA = [
         "type": "Child",
         "first_name": "Pedro",
         "last_name": "Rodriguez",
-        "birth_date": "2018-08-10",
+        "birth_date": "2020-08-10",  # Child: 4-5 years old (valid range for Child)
         "gender": "M",
         "doc_type": "RC",
         "doc_number": "1112223334"
@@ -71,7 +71,7 @@ PASSENGERS_DATA = [
         "type": "Infant",
         "first_name": "Sofia",
         "last_name": "Martinez",
-        "birth_date": "2023-12-25",
+        "birth_date": "2024-06-25",  # Infant: ~1 year old (valid range for Infant)
         "gender": "F",
         "doc_type": "RC",
         "doc_number": "5556667778"
@@ -289,6 +289,16 @@ def test_oneway_booking(driver, base_url, db, browser, language, screenshots_mod
 
         time.sleep(2)
 
+        # Intentar click "Continuar" si existe (puede no ser necesario en One-way)
+        # Después de seleccionar BASIC, puede navegar automáticamente a Passengers
+        try:
+            select_flight_page.click_continue()
+            logger.info("Continue button clicked successfully")
+        except:
+            logger.info("No Continue button found or not needed - may auto-navigate to Passengers")
+
+        time.sleep(5)  # Esperar a que cargue la página de Passengers
+
     # ==================== PASO 5: Passengers Page - Llenar Información ====================
     with allure.step(f"Step 4: Fill Passenger Information ({len(PASSENGERS_DATA)} passengers)"):
         current_step = "Passengers Information"
@@ -314,6 +324,11 @@ def test_oneway_booking(driver, base_url, db, browser, language, screenshots_mod
             name="Passengers Information Summary",
             attachment_type=allure.attachment_type.TEXT
         )
+
+        # DEBUG: Tomar screenshot después de llenar pasajeros
+        time.sleep(2)  # Esperar a que se actualice la UI
+        driver.save_screenshot("reports/debug_passengers_after_fill.png")
+        logger.info("DEBUG screenshot saved: debug_passengers_after_fill.png")
 
         # Continuar al siguiente paso
         continue_clicked = passengers_page.click_continue()

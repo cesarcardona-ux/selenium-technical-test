@@ -251,18 +251,44 @@ class ServicesPage:
         try:
             # Scroll hacia abajo para asegurar que el botón esté visible
             self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-            time.sleep(1)
+            time.sleep(2)
 
-            continue_btn = self.wait.until(
-                EC.element_to_be_clickable(self.CONTINUE_BUTTON)
-            )
+            # Buscar botón continuar con diferentes estrategias
+            # El botón tiene estructura: <button class="btn-next"><span>Continuar</span></button>
+            continue_selectors = [
+                # Buscar por clase btn-next (más confiable para nuxqa)
+                "//button[contains(@class, 'btn-next')]",
+                # Buscar por span interno con texto
+                "//button//span[contains(text(), 'Continuar')]",
+                "//button//span[contains(text(), 'Continue')]",
+                "//button//span[contains(text(), 'Continuer')]",
+                # Fallback a selectores antiguos
+                "//button[contains(text(), 'Continuar')]",
+                "//button[contains(@class, 'continue')]",
+                "//button[@id='continueButton']",
+            ]
 
-            # JavaScript click para mayor confiabilidad
-            self.driver.execute_script("arguments[0].click();", continue_btn)
-            logger.info("✓ Continue button clicked successfully")
-            time.sleep(3)  # Espera a que cargue la siguiente página
+            for selector in continue_selectors:
+                try:
+                    # Si el selector busca span, obtenemos el botón padre
+                    if "//span" in selector:
+                        span_elem = self.driver.find_element(By.XPATH, selector)
+                        continue_btn = span_elem.find_element(By.XPATH, "..")  # Padre = button
+                    else:
+                        continue_btn = self.driver.find_element(By.XPATH, selector)
 
-            return True
+                    self.driver.execute_script("arguments[0].scrollIntoView(true);", continue_btn)
+                    time.sleep(0.5)
+                    self.driver.execute_script("arguments[0].click();", continue_btn)  # JavaScript click
+                    time.sleep(2)
+
+                    logger.info("✓ Continue button clicked successfully")
+                    return True
+                except:
+                    continue
+
+            logger.warning("Continue button not found with common selectors")
+            return False
 
         except Exception as e:
             logger.error(f"✗ Error clicking continue button: {e}")

@@ -61,19 +61,34 @@ class PassengersPage:
         logger.info("Waiting for Passengers page to load...")
 
         try:
-            time.sleep(5)  # Esperar a que la página Angular se estabilice
+            # Esperar más tiempo a que la página Angular se estabilice
+            # La página puede tardar en cargar después de validaciones de Services
+            time.sleep(10)  # Aumentado de 5 a 10 segundos
 
             current_url = self.driver.current_url
             logger.info(f"Current URL: {current_url}")
 
             # Esperar a que aparezcan los campos de nombre (primero que se carga)
+            # Aumentar el timeout para dar más tiempo
             try:
-                first_name_inputs = self.wait.until(
+                logger.info("Waiting for passenger form fields to appear (timeout: 30s)...")
+                wait_extended = WebDriverWait(self.driver, 30)  # 30 segundos de espera
+                first_name_inputs = wait_extended.until(
                     EC.presence_of_all_elements_located((By.CSS_SELECTOR, "input[id^='IdFirstName']"))
                 )
                 logger.info(f"✓ Found {len(first_name_inputs)} passenger forms")
-            except:
-                logger.warning("Could not find passenger forms immediately, will retry later")
+
+                if len(first_name_inputs) == 0:
+                    logger.error("No passenger forms found after waiting 30 seconds")
+                    # Tomar screenshot para debug
+                    self.driver.save_screenshot("reports/debug_no_forms.png")
+                    return False
+
+            except Exception as e:
+                logger.error(f"Could not find passenger forms: {e}")
+                # Tomar screenshot para debug
+                self.driver.save_screenshot("reports/debug_forms_timeout.png")
+                raise
 
             logger.info("✓ Passengers page loaded successfully")
             return True
@@ -137,17 +152,32 @@ class PassengersPage:
                     self.driver.execute_script("arguments[0].click();", gender_button)
                     time.sleep(1)
 
-                    # Seleccionar opción según género
+                    # IMPORTANTE: Buscar la opción en el dropdown abierto más cercano
+                    # Usar un selector que busque spans visibles (del dropdown abierto actual)
                     gender_text = "Masculino" if gender == "M" else "Femenino"
-                    gender_option = self.driver.find_element(By.XPATH, f"//span[text()='{gender_text}']")
-                    self.driver.execute_script("arguments[0].click();", gender_option)
-                    logger.info(f"  ✓ Gender selected: {gender_text}")
-                    time.sleep(0.5)
+
+                    # Buscar todas las opciones visibles y seleccionar la primera (del dropdown actual)
+                    all_gender_options = self.driver.find_elements(By.XPATH, f"//span[text()='{gender_text}' and ancestor::div[contains(@class, 'ng-dropdown-panel') and contains(@style, 'display') and not(contains(@style, 'none'))]]")
+
+                    if not all_gender_options:
+                        # Fallback: buscar sin restricción de visibilidad
+                        all_gender_options = self.driver.find_elements(By.XPATH, f"//span[text()='{gender_text}']")
+
+                    if all_gender_options:
+                        gender_option = all_gender_options[0]  # Primera opción visible (del dropdown abierto)
+                        self.driver.execute_script("arguments[0].click();", gender_option)
+                        logger.info(f"  ✓ Gender selected: {gender_text}")
+                        time.sleep(0.5)
+                    else:
+                        logger.warning(f"  Could not find gender option: {gender_text}")
             except Exception as e:
                 logger.warning(f"  Could not select gender: {e}")
 
-            # PASO 4: Seleccionar FECHA DE NACIMIENTO (3 dropdowns: día, mes, año)
-            logger.info(f"  4. Filling birth date: {birth_date}")
+            # PASO 4: Seleccionar FECHA DE NACIMIENTO (3 dropdowns: AÑO primero, luego MES, luego DÍA)
+            # IMPORTANTE: El orden es crítico porque el sistema valida en tiempo real
+            # Si seleccionamos Día→Mes→Año, podría crear una fecha inválida temporalmente
+            # Al seleccionar Año→Mes→Día, el sistema filtra dinámicamente las opciones válidas
+            logger.info(f"  4. Filling birth date: {birth_date} (Order: Year → Month → Day)")
             try:
                 # Parsear fecha YYYY-MM-DD
                 year, month, day = birth_date.split("-")
@@ -160,50 +190,95 @@ class PassengersPage:
                              "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
                 month_name = month_names[month - 1]
 
-                # A) Seleccionar DÍA
-                day_buttons = self.driver.find_elements(By.CSS_SELECTOR, "button[id^='dateDayId_IdDateOfBirthHidden_']")
-                if len(day_buttons) > passenger_index:
-                    day_button = day_buttons[passenger_index]
-                    self.driver.execute_script("arguments[0].scrollIntoView(true);", day_button)
-                    time.sleep(0.5)
-                    self.driver.execute_script("arguments[0].click();", day_button)
-                    time.sleep(1)
-
-                    # Buscar día por texto
-                    day_option = self.driver.find_element(By.XPATH, f"//span[text()='{day}']")
-                    self.driver.execute_script("arguments[0].click();", day_option)
-                    logger.info(f"  ✓ Day selected: {day}")
-                    time.sleep(0.5)
-
-                # B) Seleccionar MES
-                month_buttons = self.driver.find_elements(By.CSS_SELECTOR, "button[id^='dateMonthId_IdDateOfBirthHidden_']")
-                if len(month_buttons) > passenger_index:
-                    month_button = month_buttons[passenger_index]
-                    self.driver.execute_script("arguments[0].scrollIntoView(true);", month_button)
-                    time.sleep(0.5)
-                    self.driver.execute_script("arguments[0].click();", month_button)
-                    time.sleep(1)
-
-                    # Buscar mes por nombre
-                    month_option = self.driver.find_element(By.XPATH, f"//span[text()='{month_name}']")
-                    self.driver.execute_script("arguments[0].click();", month_option)
-                    logger.info(f"  ✓ Month selected: {month_name}")
-                    time.sleep(0.5)
-
-                # C) Seleccionar AÑO
+                # A) Seleccionar AÑO PRIMERO (más importante para validación)
                 year_buttons = self.driver.find_elements(By.CSS_SELECTOR, "button[id^='dateYearId_IdDateOfBirthHidden_']")
                 if len(year_buttons) > passenger_index:
                     year_button = year_buttons[passenger_index]
                     self.driver.execute_script("arguments[0].scrollIntoView(true);", year_button)
-                    time.sleep(0.5)
-                    self.driver.execute_script("arguments[0].click();", year_button)
                     time.sleep(1)
 
-                    # Buscar año por texto
-                    year_option = self.driver.find_element(By.XPATH, f"//span[text()='{year}']")
-                    self.driver.execute_script("arguments[0].click();", year_option)
-                    logger.info(f"  ✓ Year selected: {year}")
-                    time.sleep(0.5)
+                    # Click en el botón para abrir dropdown
+                    self.driver.execute_script("arguments[0].click();", year_button)
+                    logger.info(f"  → Year dropdown opened")
+                    time.sleep(2)  # Esperar a que el dropdown se abra completamente
+
+                    # IMPORTANT FIX: Search within visible dropdown panel only
+                    # Buscar opciones solo en el panel visible (no en toda la página)
+                    all_year_options = self.driver.find_elements(By.XPATH,
+                        f"//span[text()='{year}' and ancestor::div[contains(@class, 'ng-dropdown-panel') and contains(@style, 'display') and not(contains(@style, 'none'))]]")
+
+                    if not all_year_options:
+                        # Fallback: buscar sin restricción de visibilidad
+                        all_year_options = self.driver.find_elements(By.XPATH, f"//span[text()='{year}']")
+
+                    if all_year_options:
+                        year_option = all_year_options[0]  # First visible option (from current dropdown)
+                        self.driver.execute_script("arguments[0].click();", year_option)
+                        logger.info(f"  ✓ Year selected FIRST: {year}")
+                    else:
+                        logger.warning(f"  ✗ Year {year} not found in dropdown")
+
+                    time.sleep(2)  # IMPORTANTE: Esperar más tiempo para que el sistema filtre meses válidos
+
+                # B) Seleccionar MES SEGUNDO (filtrado según año)
+                month_buttons = self.driver.find_elements(By.CSS_SELECTOR, "button[id^='dateMonthId_IdDateOfBirthHidden_']")
+                if len(month_buttons) > passenger_index:
+                    month_button = month_buttons[passenger_index]
+                    self.driver.execute_script("arguments[0].scrollIntoView(true);", month_button)
+                    time.sleep(1)
+
+                    # Click en el botón para abrir dropdown
+                    self.driver.execute_script("arguments[0].click();", month_button)
+                    logger.info(f"  → Month dropdown opened")
+                    time.sleep(2)  # Esperar a que el dropdown se abra completamente
+
+                    # IMPORTANT FIX: Search within visible dropdown panel only
+                    # Buscar opciones solo en el panel visible (no en toda la página)
+                    all_month_options = self.driver.find_elements(By.XPATH,
+                        f"//span[text()='{month_name}' and ancestor::div[contains(@class, 'ng-dropdown-panel') and contains(@style, 'display') and not(contains(@style, 'none'))]]")
+
+                    if not all_month_options:
+                        # Fallback: buscar sin restricción de visibilidad
+                        all_month_options = self.driver.find_elements(By.XPATH, f"//span[text()='{month_name}']")
+
+                    if all_month_options:
+                        month_option = all_month_options[0]  # First visible option (from current dropdown)
+                        self.driver.execute_script("arguments[0].click();", month_option)
+                        logger.info(f"  ✓ Month selected SECOND: {month_name}")
+                    else:
+                        logger.warning(f"  ✗ Month {month_name} not found in dropdown")
+
+                    time.sleep(2)  # IMPORTANTE: Esperar más tiempo para que el sistema filtre días válidos
+
+                # C) Seleccionar DÍA TERCERO (filtrado según año+mes)
+                day_buttons = self.driver.find_elements(By.CSS_SELECTOR, "button[id^='dateDayId_IdDateOfBirthHidden_']")
+                if len(day_buttons) > passenger_index:
+                    day_button = day_buttons[passenger_index]
+                    self.driver.execute_script("arguments[0].scrollIntoView(true);", day_button)
+                    time.sleep(1)
+
+                    # Click en el botón para abrir dropdown
+                    self.driver.execute_script("arguments[0].click();", day_button)
+                    logger.info(f"  → Day dropdown opened")
+                    time.sleep(2)  # Esperar a que el dropdown se abra completamente
+
+                    # IMPORTANT FIX: Search within visible dropdown panel only
+                    # Buscar opciones solo en el panel visible (no en toda la página)
+                    all_day_options = self.driver.find_elements(By.XPATH,
+                        f"//span[text()='{day}' and ancestor::div[contains(@class, 'ng-dropdown-panel') and contains(@style, 'display') and not(contains(@style, 'none'))]]")
+
+                    if not all_day_options:
+                        # Fallback: buscar sin restricción de visibilidad
+                        all_day_options = self.driver.find_elements(By.XPATH, f"//span[text()='{day}']")
+
+                    if all_day_options:
+                        day_option = all_day_options[0]  # First visible option (from current dropdown)
+                        self.driver.execute_script("arguments[0].click();", day_option)
+                        logger.info(f"  ✓ Day selected THIRD: {day}")
+                    else:
+                        logger.warning(f"  ✗ Day {day} not found in dropdown")
+
+                    time.sleep(1)
 
             except Exception as e:
                 logger.warning(f"  Could not fill birth date: {e}")
@@ -217,23 +292,75 @@ class PassengersPage:
                     self.driver.execute_script("arguments[0].scrollIntoView(true);", nationality_button)
                     time.sleep(0.5)
                     self.driver.execute_script("arguments[0].click();", nationality_button)
+                    logger.info(f"  → Nationality dropdown opened")
                     time.sleep(1)
 
-                    # Buscar nacionalidad por texto
-                    nationality_option = self.driver.find_element(By.XPATH, f"//span[text()='{nationality}']")
-                    self.driver.execute_script("arguments[0].click();", nationality_option)
-                    logger.info(f"  ✓ Nationality selected: {nationality}")
+                    # IMPORTANT FIX: Search within visible dropdown panel only
+                    # Buscar opciones solo en el panel visible (no en toda la página)
+                    all_nationality_options = self.driver.find_elements(By.XPATH,
+                        f"//span[text()='{nationality}' and ancestor::div[contains(@class, 'ng-dropdown-panel') and contains(@style, 'display') and not(contains(@style, 'none'))]]")
+
+                    if not all_nationality_options:
+                        # Fallback: buscar sin restricción de visibilidad
+                        all_nationality_options = self.driver.find_elements(By.XPATH, f"//span[text()='{nationality}']")
+
+                    if all_nationality_options:
+                        nationality_option = all_nationality_options[0]  # First visible option (from current dropdown)
+                        self.driver.execute_script("arguments[0].click();", nationality_option)
+                        logger.info(f"  ✓ Nationality selected: {nationality}")
+                    else:
+                        logger.warning(f"  ✗ Nationality {nationality} not found in dropdown")
+
                     time.sleep(0.5)
             except Exception as e:
                 logger.warning(f"  Could not select nationality: {e}")
 
             logger.info(f"✓ Passenger {passenger_index + 1} ({passenger_type}) filled successfully")
+
+            # PAUSA PARA VALIDACIÓN MANUAL - Con Screenshot
+            logger.info(f"\n{'='*80}")
+            logger.info(f"VALIDACIÓN MANUAL: Pasajero {passenger_index + 1} ({passenger_type})")
+            logger.info(f"{'='*80}")
+            logger.info(f"Por favor revisa el formulario del pasajero {passenger_index + 1} en la página.")
+            logger.info(f"Datos esperados:")
+            logger.info(f"  - Nombre: {first_name}")
+            logger.info(f"  - Apellido: {last_name}")
+            logger.info(f"  - Género: {gender}")
+            logger.info(f"  - Fecha de nacimiento: {birth_date}")
+            logger.info(f"  - Nacionalidad: {nationality}")
+
+            # Tomar screenshot
+            screenshot_name = f"reports/debug_passenger_{passenger_index+1}_{passenger_type}.png"
+            self.driver.save_screenshot(screenshot_name)
+            logger.info(f"📸 Screenshot guardado: {screenshot_name}")
+
+            # Pausa larga para que el usuario pueda revisar
+            # COMENTADO TEMPORALMENTE para pruebas rápidas
+            # logger.info(f"⏸️  PAUSANDO 15 SEGUNDOS para revisión manual...")
+            # time.sleep(15)
+            logger.info(f"✓ Continuando con siguiente pasajero...")
+
             return True
 
         except Exception as e:
             logger.error(f"✗ Error filling passenger {passenger_index + 1}: {e}")
             import traceback
             traceback.print_exc()
+
+            # PAUSA Y SCREENSHOT EN CASO DE ERROR
+            logger.error(f"\n{'='*80}")
+            logger.error(f"ERROR AL LLENAR PASAJERO {passenger_index + 1} ({passenger_type})")
+            logger.error(f"{'='*80}")
+            logger.error(f"Error: {e}")
+
+            # Tomar screenshot del error
+            error_screenshot = f"reports/ERROR_passenger_{passenger_index+1}_{passenger_type}.png"
+            self.driver.save_screenshot(error_screenshot)
+            logger.error(f"📸 Screenshot del error: {error_screenshot}")
+
+            logger.error(f"⏸️  PAUSANDO 10 SEGUNDOS para revisar error...")
+            time.sleep(10)
+
             return False
 
     def fill_all_passengers(self, passengers_data):
@@ -288,24 +415,36 @@ class PassengersPage:
             self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
             time.sleep(2)
 
-            # Buscar botón continuar con múltiples estrategias
+            # Buscar botón continuar con diferentes estrategias
+            # El botón tiene estructura: <button class="btn-next"><span>Continuar</span></button>
             continue_selectors = [
+                # Buscar por clase btn-next (más confiable para nuxqa)
+                "//button[contains(@class, 'btn-next')]",
+                # Buscar por span interno con texto
+                "//button//span[contains(text(), 'Continuar')]",
+                "//button//span[contains(text(), 'Continue')]",
+                "//button//span[contains(text(), 'Continuer')]",
+                # Fallback a selectores antiguos
                 "//button[contains(text(), 'Continuar')]",
-                "//button[contains(text(), 'Continue')]",
                 "//button[contains(@class, 'button-booking')]",
                 "//button[contains(@class, 'btn-primary')]",
             ]
 
             for selector in continue_selectors:
                 try:
-                    continue_btn = self.driver.find_element(By.XPATH, selector)
-                    if continue_btn.is_displayed():
-                        self.driver.execute_script("arguments[0].scrollIntoView(true);", continue_btn)
-                        time.sleep(1)
-                        self.driver.execute_script("arguments[0].click();", continue_btn)
-                        logger.info("✓ Continue button clicked successfully")
-                        time.sleep(3)
-                        return True
+                    # Si el selector busca span, obtenemos el botón padre
+                    if "//span" in selector:
+                        span_elem = self.driver.find_element(By.XPATH, selector)
+                        continue_btn = span_elem.find_element(By.XPATH, "..")  # Padre = button
+                    else:
+                        continue_btn = self.driver.find_element(By.XPATH, selector)
+
+                    self.driver.execute_script("arguments[0].scrollIntoView(true);", continue_btn)
+                    time.sleep(0.5)
+                    self.driver.execute_script("arguments[0].click();", continue_btn)  # JavaScript click
+                    logger.info("✓ Continue button clicked successfully")
+                    time.sleep(3)
+                    return True
                 except:
                     continue
 
