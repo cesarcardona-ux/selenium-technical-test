@@ -139,13 +139,13 @@ pytest tests/ -n auto
 - **Environments:** QA4, QA5
 - **Total tests:** TBD (depends on parametrization)
 - **File:** `tests/nuxqa/test_oneway_booking_Case1.py`
-- **Status:** Framework completed, pending first execution and adjustments
+- **Status:** Framework completed, iframe handling implemented, testing in progress
 
 **Page Objects Created:**
 - `pages/nuxqa/passengers_page.py` - Passenger information forms
 - `pages/nuxqa/services_page.py` - Additional services selection
 - `pages/nuxqa/seatmap_page.py` - Seat selection
-- `pages/nuxqa/payment_page.py` - Payment information
+- `pages/nuxqa/payment_page.py` - Payment information with iframe handling
 
 **Technical Highlights:**
 - Complete 6-page booking flow automation
@@ -155,6 +155,47 @@ pytest tests/ -n auto
 - Payment form filling with test data
 - Comprehensive Allure reporting for each step
 - Database tracking with case-specific fields
+
+**Critical Payment Page Implementation:**
+
+The Payment page presents unique challenges that required advanced iframe handling:
+
+1. **Cookie Consent Modal (OneTrust Framework):**
+   - Modal appears as overlay on Payment page with dark background
+   - Implemented dual-strategy detection:
+     - **Strategy 1:** Search for button `#onetrust-accept-btn-handler` in main DOM
+     - **Strategy 2:** If not found, search in OneTrust iframe and switch context
+   - After clicking "Aceptar", returns to main DOM context
+   - Modal completely disappears before proceeding with form filling
+
+2. **Payment Gateway External Iframe:**
+   - **Critical Discovery:** Card form fields (Holder, Card Number, CVV, Expiration) are NOT in main Payment page DOM
+   - Fields are hosted in external payment gateway iframe: `api-pay.avtest.ink`
+   - Iframe class: `payment-forms-layout_iframe`
+   - Implemented for PCI compliance (secure credit card data handling)
+
+3. **Context Switching Strategy:**
+   ```
+   Main DOM → Accept Cookies (if present) → Return to Main DOM →
+   Switch to Payment Iframe → Fill Card Fields → Return to Main DOM →
+   Fill Billing Fields (email, address, city, country)
+   ```
+
+4. **Why This Matters:**
+   - Using `driver.find_element()` directly on Payment page will NOT find card fields
+   - Must explicitly switch to iframe context: `driver.switch_to.frame(payment_iframe)`
+   - After filling card fields, must return to main DOM: `driver.switch_to.default_content()`
+   - Billing fields (email, address, city, country, terms) remain in main DOM
+
+5. **Implementation Details:**
+   - Added 15-second wait for Angular to inject payment iframe into DOM
+   - Detect iframe using `By.CLASS_NAME, "payment-forms-layout_iframe"`
+   - Wait for iframe presence, then switch context
+   - Fill card fields with explicit waits inside iframe
+   - Switch back to main DOM before filling billing fields
+   - All context switches properly logged for debugging
+
+**File:** `pages/nuxqa/payment_page.py` (lines 97-352)
 
 ### Case 3: Flight Search & Network Capture ✅
 - **Environment:** UAT1 (nuxqa.avtest.ink)

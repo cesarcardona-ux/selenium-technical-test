@@ -515,7 +515,7 @@ pytest tests/nuxqa/test_login_network_Case3.py --browser=all --origin=BOG --dest
 -------------------------------
 
 ### Caso 1: Booking One-way
-**Estado:** ⏳ Pendiente
+**Estado:** 🚧 En Desarrollo (Framework completo + Payment iframe handling implementado)
 **Objetivo:** Realizar booking de solo ida completo
 **Páginas:**
 - Home: Idioma, POS, origen, destino, 1 pasajero de cada tipo
@@ -524,6 +524,125 @@ pytest tests/nuxqa/test_login_network_Case3.py --browser=all --origin=BOG --dest
 - Services: No seleccionar ninguno
 - Seatmap: Asiento economy
 - Payments: Pago con tarjeta fake (puede ser rechazado)
+
+**Archivos implementados:**
+- `pages/nuxqa/passengers_page.py` - Page Object para información de pasajeros
+- `pages/nuxqa/services_page.py` - Page Object para servicios adicionales
+- `pages/nuxqa/seatmap_page.py` - Page Object para selección de asientos
+- `pages/nuxqa/payment_page.py` - Page Object con iframe handling crítico
+- `tests/nuxqa/test_oneway_booking_Case1.py` - Test end-to-end completo
+
+**🔧 Critical Implementation: Payment Page Iframe Handling**
+
+Durante la implementación del Case 1, se identificaron y resolvieron dos problemas críticos en la página de Payment:
+
+**Problema 1: Cookie Consent Modal Blocking Forms**
+- **Síntoma:** Modal de OneTrust bloqueaba interacción con formularios de pago
+- **Causa:** Modal de cookies aparecía como overlay con fondo oscuro
+- **Ubicación:** Modal podía estar en iframe separado o en DOM principal
+- **Solución implementada:**
+  - Estrategia dual de detección:
+    - **Estrategia 1:** Buscar botón `#onetrust-accept-btn-handler` en DOM principal
+    - **Estrategia 2:** Si no se encuentra, buscar en iframe de OneTrust
+  - Context switching: Main DOM → Cookie Iframe → Click → Return to Main DOM
+  - Modal desaparece completamente antes de continuar
+
+**Problema 2: Payment Form Fields Not Found (CRÍTICO)**
+- **Síntoma:** Después de aceptar cookies, campos de tarjeta (Holder, Card Number, CVV, Expiration) no se encontraban
+- **Causa ROOT:** Campos NO están en el DOM principal de Payment page
+- **Descubrimiento crítico:**
+  - Campos están en iframe externo de payment gateway: `api-pay.avtest.ink`
+  - Clase del iframe: `payment-forms-layout_iframe`
+  - Implementado por razones de PCI compliance (seguridad de datos de tarjeta)
+- **Campos afectados (dentro de iframe):**
+  - Card Holder Name (`#Holder`)
+  - Card Number (`#Data`)
+  - CVV (`#CVV`)
+  - Expiration Month (`#month`)
+  - Expiration Year (`#year`)
+- **Campos en DOM principal:**
+  - Email (`#Email`)
+  - Address (`#Direccion`)
+  - City (`#Ciudad`)
+  - Country dropdown (`#Pais`)
+  - Terms checkbox
+
+**Solución implementada - Context Switching Strategy:**
+```
+Main DOM → Accept Cookies (if present) → Return to Main DOM →
+Wait 15s for Angular to inject iframe →
+Switch to Payment Iframe → Fill Card Fields → Return to Main DOM →
+Fill Billing Fields (email, address, city, country)
+```
+
+**Código implementado en `payment_page.py` (lines 97-352):**
+
+1. **Angular Wait (lines 97-100):**
+   - Espera de 15 segundos para que Angular inyecte el iframe dinámicamente
+   - Critical: Payment page usa Angular que inyecta el formulario en el DOM
+
+2. **Dual-Strategy Cookie Detection (lines 102-196):**
+   - Búsqueda en DOM principal con `WebDriverWait(10)`
+   - Si falla, búsqueda en iframe de OneTrust con múltiples selectores
+   - Context switching con `switch_to.frame()` y `switch_to.default_content()`
+
+3. **Payment Iframe Detection (lines 214-257):**
+   ```python
+   payment_iframe = WebDriverWait(self.driver, 30).until(
+       EC.presence_of_element_located((By.CLASS_NAME, "payment-forms-layout_iframe"))
+   )
+   self.driver.switch_to.frame(payment_iframe)
+   ```
+
+4. **Card Fields Fill (lines 248-334):**
+   - Fill all card fields INSIDE iframe context
+   - Explicit waits for each field
+   - Switch back to main DOM after completion: `switch_to.default_content()`
+
+5. **Billing Fields Fill (lines 336-352):**
+   - Fill billing fields in MAIN DOM (not iframe)
+   - Email, address, city, country all in main context
+
+**Validaciones implementadas:**
+- ✅ Cookie modal detectado y clickeado en ambos contextos (main DOM + iframe)
+- ✅ Payment iframe correctamente detectado y context switched
+- ✅ Card fields llenados exitosamente dentro del iframe
+- ✅ Billing fields llenados exitosamente en main DOM
+- ✅ Context switching manejado correctamente (no quedar atrapado en iframe)
+- ✅ Logs comprehensivos para debugging de cada paso
+
+**Características técnicas:**
+- Explicit waits con `WebDriverWait` para elementos dinámicos
+- Context switching robusto con verificación de iframe presence
+- Manejo de errores con try-except para detectar múltiples ubicaciones
+- Logging detallado de cada paso para debugging
+
+**Testing Status:**
+- ✅ Test ejecuta end-to-end: Home → Select Flight → Passengers → Seatmap → Payment (form filled)
+- ✅ Cookie modal handling verificado
+- ✅ Payment iframe detection verificado
+- ✅ Card fields fill verificado
+- ⏳ Payment submission pendiente (test completo end-to-end)
+
+**Key Learnings:**
+- Payment gateways comúnmente usan iframes por PCI compliance
+- Cookie consent frameworks (OneTrust) pueden estar en iframe separado
+- Angular applications inyectan iframes dinámicamente (requieren wait time)
+- Context switching debe ser manejado cuidadosamente (switch to → action → switch back)
+- Usar `find_element()` directamente NO funciona con elementos en iframe
+- Explicit waits son críticos para elementos dentro de iframes
+
+**Comandos de ejecución:**
+```bash
+# Ejecución básica Case 1
+pytest tests/nuxqa/test_oneway_booking_Case1.py --browser=chrome --language=Español --env=qa4 -v -s
+
+# Con video y screenshots para debugging
+pytest tests/nuxqa/test_oneway_booking_Case1.py --browser=chrome --language=Español --env=qa4 --video=enabled --screenshots=all --alluredir=reports/allure
+```
+
+**Archivos modificados con iframe handling:**
+- `pages/nuxqa/payment_page.py` (lines 97-352) - Implementación completa del iframe handling
 
 -------------------------------
 
@@ -586,6 +705,13 @@ Durante el desarrollo, Chrome se actualizó a la versión 141. Las herramientas 
   - ✅ Case 5: POS Change Validation (18 tests)
   - ✅ Case 6: Header Redirections (18 tests)
   - ✅ Case 7: Footer Redirections (24 tests)
+- **Casos en desarrollo:** 1/7 (Case 1)
+  - 🚧 Case 1: One-way Booking
+    - ✅ Framework completo (6 páginas: Home, Select Flight, Passengers, Services, Seatmap, Payment)
+    - ✅ Payment page iframe handling (cookies + payment gateway)
+    - ✅ Dual-strategy cookie modal detection (OneTrust framework)
+    - ✅ Payment gateway iframe context switching (api-pay.avtest.ink)
+    - ⏳ Validación end-to-end pendiente
 - **Total Tests:** 86 combinaciones (2 + 24 + 18 + 18 + 24)
 - **Database:** ✅ SQLite con 30 campos comprehensivos (extendida de 23)
 - **Video Evidence:** ✅ Implementado
@@ -596,9 +722,13 @@ Durante el desarrollo, Chrome se actualizó a la versión 141. Las herramientas 
   - Captura en tiempo real
   - Extracción de JSON complejo
   - Compatible con Chrome y Edge
+- **Iframe Handling:** ✅ Implementado para Payment page
+  - Cookie consent modal (OneTrust) - dual strategy detection
+  - Payment gateway iframe (api-pay.avtest.ink) - context switching
+  - Angular dynamic iframe injection handling
 - **CLI Parameters:** 12 opciones configurables
 - **Próximos pasos:**
-  - Implementar Caso 1 (One-way Booking - complejo)
+  - Completar validación end-to-end de Caso 1 (One-way Booking)
   - Implementar Caso 2 (Round-trip Booking - complejo)
 
 -------------------------------

@@ -225,8 +225,13 @@ allure serve reports/allure
 - **Allure Reports:** Totalmente implementado
 - **Selenium Manager:** Configurado (sin webdriver-manager)
 
-### ⏳ Pendiente
+### 🚧 En Desarrollo
 - **Case 1:** One-way Booking (complejo - flujo completo)
+  - ✅ Framework completo (6 páginas)
+  - ✅ Payment page iframe handling (cookies + payment gateway)
+  - ⏳ Validación end-to-end pendiente
+
+### ⏳ Pendiente
 - **Case 2:** Round-trip Booking (complejo - flujo completo)
 
 ### 📊 Estadísticas Actuales
@@ -238,4 +243,4 @@ allure serve reports/allure
 
 ----------------------------------------------------------
 
-*Última actualización: Case 3 completado (2025-10-31). 5 de 7 casos implementados y funcionando.*
+*Última actualización: Case 1 iframe handling implementado (2025-11-03). 5 de 7 casos completos, Case 1 en desarrollo.*

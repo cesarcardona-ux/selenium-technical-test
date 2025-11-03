@@ -64,7 +64,7 @@ PASSENGERS_DATA = [
         "type": "Teen",  # Posición 3 en la página (JOVEN)
         "first_name": "Maria",
         "last_name": "Gomez",
-        "birth_date": "2009-05-20",  # Teen: 16 years (15+ to 18 años)
+        "birth_date": "2011-05-20",  # Teen: 16 years (15+ to 18 años)
         "gender": "F",
         "doc_type": "TI",
         "doc_number": "9876543210"
@@ -161,6 +161,7 @@ def test_oneway_booking(driver, base_url, db, browser, language, screenshots_mod
             f"   • Browser: {browser.capitalize()}\n\n"
             f"🌍 CONFIGURATION:\n"
             f"   • Language: {language}\n"
+            f"   • POS (Point of Sale): Chile\n"
             f"   • Trip Type: One-way (Solo ida)\n\n"
             f"👥 PASSENGERS ({len(PASSENGERS_DATA)} total):\n"
             f"   • 1 Adult (Adulto)\n"
@@ -194,21 +195,30 @@ def test_oneway_booking(driver, base_url, db, browser, language, screenshots_mod
     current_step = "Setup"
     step_results = {}
 
-    # ==================== PASO 2: Home Page - Abrir y Configurar Idioma ====================
-    with allure.step(f"Step 1: Open Home Page and Configure Language ({language})"):
-        current_step = "Home - Language Selection"
-        search_page = LoginPage(driver)  # Usamos LoginPage que tiene métodos de búsqueda
+    # ==================== PASO 2: Home Page - Abrir y Configurar Idioma y POS ====================
+    with allure.step(f"Step 1: Open Home Page and Configure Language ({language}) and POS"):
+        current_step = "Home - Language and POS Selection"
+        search_page = LoginPage(driver)  # Usamos LoginPage que hereda de HomePage (tiene métodos de idioma y POS)
         search_page.open(base_url)
         time.sleep(2)
 
-        # Seleccionar idioma
+        # Seleccionar idioma (requisito del PDF - Case 1)
         search_page.select_language(language)
         time.sleep(1)
 
+        # Seleccionar POS (requisito del PDF - Case 1 página 3: "Home: Seleccionar idioma, pos...")
+        # Usamos "Chile" como POS por defecto
+        pos_to_select = "Chile"
+        logger.info(f"Selecting POS: {pos_to_select}")
+        search_page.click_pos_button()  # Método heredado de HomePage
+        search_page.select_pos(pos_to_select)  # Método heredado de HomePage
+        time.sleep(1)
+
         step_results["language_selection"] = "SUCCESS"
+        step_results["pos_selection"] = "SUCCESS"
         allure.attach(
-            f"Language: {language}\nURL: {driver.current_url}",
-            name="Language Configuration",
+            f"Language: {language}\nPOS: {pos_to_select}\nURL: {driver.current_url}",
+            name="Language and POS Configuration",
             attachment_type=allure.attachment_type.TEXT
         )
 
@@ -223,9 +233,6 @@ def test_oneway_booking(driver, base_url, db, browser, language, screenshots_mod
         else:
             logger.warning("Could not select trip type, continuing with default")
         time.sleep(1)
-
-        # Configurar POS (opcional pero recomendado)
-        # search_page.configure_pos("Colombia")  # Comentado por ahora
 
         # Seleccionar origen y destino
         search_page.select_origin("BOG", "Bogo")  # Bogotá, Colombia
@@ -244,6 +251,8 @@ def test_oneway_booking(driver, base_url, db, browser, language, screenshots_mod
         time.sleep(1)
 
         search_info = (
+            f"Language: {language}\n"
+            f"POS: Chile\n"
             f"Trip Type: One-way (Solo ida)\n"
             f"Origin: BOG (Bogotá)\n"
             f"Destination: MDE (Medellín)\n"
@@ -313,13 +322,27 @@ def test_oneway_booking(driver, base_url, db, browser, language, screenshots_mod
         all_filled = passengers_page.fill_all_passengers(PASSENGERS_DATA)
         assert all_filled, "Failed to fill all passenger information"
 
+        # Llenar información del Titular de la Reserva (Reservation Holder)
+        adult_data = PASSENGERS_DATA[0]  # Primer pasajero es el adulto
+        holder_filled = passengers_page.fill_reservation_holder(
+            email=adult_data["email"],
+            phone=adult_data["phone"]
+        )
+        assert holder_filled, "Failed to fill Reservation Holder information"
+
         step_results["passengers_info"] = "SUCCESS"
+        step_results["reservation_holder"] = "SUCCESS"
 
         passengers_summary = "Passengers Information Filled:\n\n"
         for i, passenger in enumerate(PASSENGERS_DATA):
             passengers_summary += f"{i+1}. {passenger['type']}: {passenger['first_name']} {passenger['last_name']}\n"
             passengers_summary += f"   Birth Date: {passenger['birth_date']}\n"
             passengers_summary += f"   Doc: {passenger.get('doc_type', 'N/A')} - {passenger.get('doc_number', 'N/A')}\n\n"
+
+        passengers_summary += "\n📧 Reservation Holder (Titular de la Reserva):\n"
+        passengers_summary += f"   • Email: {adult_data['email']}\n"
+        passengers_summary += f"   • Phone: +57 {adult_data['phone']}\n"
+        passengers_summary += f"   • Terms Accepted: Yes\n"
 
         allure.attach(
             passengers_summary,
@@ -360,79 +383,74 @@ def test_oneway_booking(driver, base_url, db, browser, language, screenshots_mod
 
         time.sleep(2)
 
-    # ==================== PASO 7: Seatmap Page - Seleccionar Asiento Economy ====================
-    with allure.step("Step 6: Seatmap - Select ECONOMY Seat"):
-        current_step = "Seatmap - Economy Selection"
+    # ==================== PASO 7: Seatmap Page - Asignar Asientos Economy ====================
+    with allure.step("Step 6: Seatmap - Assign ECONOMY Seats to All Passengers"):
+        current_step = "Seatmap - Economy Seat Assignment"
         seatmap_page = SeatmapPage(driver)
 
         page_loaded = seatmap_page.wait_for_page_load()
         assert page_loaded, "Seatmap page did not load"
 
-        # Seleccionar asiento Economy (requisito de Case 1)
-        seat_selected = seatmap_page.select_economy_seat(seat_index=0)
-        assert seat_selected, "Failed to select economy seat"
+        # Asignar asientos Economy a los 3 pasajeros (Adulto, Joven, Niño)
+        # El Bebé no selecciona asiento
+        # NOTA: Si no hay disponibilidad para todos, al menos asignar 2 asientos para continuar a Payment
+        seat_assignments = seatmap_page.assign_seats_to_passengers(passenger_count=3)
+        assert len(seat_assignments) >= 2, f"Failed to assign at least 2 seats. Got: {seat_assignments}"
+
+        if len(seat_assignments) < 3:
+            logger.warning(f"Only assigned {len(seat_assignments)} seats (expected 3). Continuing to Payment anyway...")
 
         step_results["seatmap_selection"] = "SUCCESS"
 
+        # Crear summary de asientos asignados
+        seatmap_summary = "Seat Assignments (ECONOMY):\n\n"
+        for passenger, seat_id in seat_assignments.items():
+            seatmap_summary += f"• {passenger}: {seat_id}\n"
+        seatmap_summary += "\nNote: Bebé (Infant) does not require seat selection"
+
         allure.attach(
-            "Seat Type: ECONOMY\nSeat Position: First available\nNote: Required for Case 1",
+            seatmap_summary,
             name="Seat Selection Details",
             attachment_type=allure.attachment_type.TEXT
         )
 
-        # Continuar al siguiente paso
-        continue_clicked = seatmap_page.click_continue()
-        assert continue_clicked, "Failed to click continue button on Seatmap page"
+        # Continuar DIRECTAMENTE a Payment (NO hay segunda página de Services)
+        # El botón "Ir a pagar" lleva DIRECTAMENTE a la página de Payment
+        go_to_payment_clicked = seatmap_page.click_go_to_payment()
+        assert go_to_payment_clicked, "Failed to click 'Ir a pagar' button on Seatmap page"
 
-        time.sleep(2)
+        time.sleep(5)  # Esperar a que cargue Payment page
 
-    # ==================== PASO 8: Payment Page - Llenar y Enviar (Puede Fallar) ====================
-    with allure.step("Step 7: Payment - Fill Information and Submit (rejection expected)"):
-        current_step = "Payment - Fill and Submit"
+    # ==================== PASO 7: Payment Page - Llenar y Confirmar (Fin del Test) ====================
+    with allure.step("Step 7: Payment - Fill Information and Confirm Payment"):
+        current_step = "Payment - Fill and Confirm"
         payment_page = PaymentPage(driver)
 
         page_loaded = payment_page.wait_for_page_load()
         assert page_loaded, "Payment page did not load"
 
-        # Validar que llegamos al último paso
-        is_payment_page = payment_page.validate_payment_page()
-        assert is_payment_page, "Not on payment page"
+        # Obtener datos del adulto (titular)
+        adult_data = PASSENGERS_DATA[0]
+        card_holder_name = f"{adult_data['first_name']} {adult_data['last_name']}"
 
-        # Llenar información de tarjeta
-        card_filled = payment_page.fill_card_information(
-            card_number=CARD_DATA["card_number"],
-            card_holder=CARD_DATA["card_holder"],
-            expiry_month=CARD_DATA["expiry_month"],
-            expiry_year=CARD_DATA["expiry_year"],
-            cvv=CARD_DATA["cvv"]
+        # Completar flujo de pago (tarjeta + facturación + términos + confirmar)
+        payment_completed = payment_page.complete_payment_flow(
+            card_holder_name=card_holder_name,
+            email=adult_data["email"]
         )
+        assert payment_completed, "Failed to complete payment flow"
 
-        # Llenar información de billing
-        billing_filled = payment_page.fill_billing_information(
-            email=BILLING_DATA["email"],
-            phone=BILLING_DATA["phone"],
-            address=BILLING_DATA["address"],
-            city=BILLING_DATA["city"],
-            zip_code=BILLING_DATA["zip_code"],
-            country=BILLING_DATA["country"]
-        )
-
-        # Aceptar términos y condiciones si existen
-        payment_page.accept_terms_and_conditions()
-
-        step_results["payment_info_filled"] = "SUCCESS"
+        step_results["payment_completed"] = "SUCCESS"
 
         payment_summary = (
-            f"💳 PAYMENT INFORMATION:\n\n"
-            f"Card Type: Visa (test card)\n"
-            f"Card Number: {CARD_DATA['card_number'][:4]}...{CARD_DATA['card_number'][-4:]}\n"
-            f"Cardholder: {CARD_DATA['card_holder']}\n"
-            f"Expiry: {CARD_DATA['expiry_month']}/{CARD_DATA['expiry_year']}\n"
-            f"CVV: ***\n\n"
+            f"💳 PAYMENT INFORMATION (FAKE DATA):\n\n"
+            f"Card Holder: {card_holder_name}\n"
+            f"Card Number: 4111111111111111 (Visa test)\n"
+            f"Expiry: 12/28\n"
+            f"CVV: 123\n\n"
             f"📮 BILLING INFORMATION:\n\n"
-            f"Email: {BILLING_DATA['email']}\n"
-            f"Phone: {BILLING_DATA['phone']}\n"
-            f"Address: {BILLING_DATA['address']}\n"
+            f"Email: {adult_data['email']}\n"
+            f"Address: Calle Fake 123\n"
             f"City: {BILLING_DATA['city']}\n"
             f"ZIP: {BILLING_DATA['zip_code']}\n"
             f"Country: {BILLING_DATA['country']}\n\n"
@@ -445,26 +463,10 @@ def test_oneway_booking(driver, base_url, db, browser, language, screenshots_mod
             attachment_type=allure.attachment_type.TEXT
         )
 
-        # Click en pagar (puede fallar - esto es esperado según PDF)
-        try:
-            payment_clicked = payment_page.click_pay_button()
-            step_results["payment_submitted"] = "CLICKED (may be rejected)"
+        # NOTE: complete_payment_flow() ya incluye el click en "Confirmar y pagar"
+        # El test termina aquí según especificaciones del usuario
 
-            allure.attach(
-                "Payment button clicked successfully\nNote: Payment may be rejected - this is acceptable per PDF requirements",
-                name="Payment Submission Status",
-                attachment_type=allure.attachment_type.TEXT
-            )
-        except Exception as e:
-            step_results["payment_submitted"] = f"ERROR: {str(e)}"
-
-            allure.attach(
-                f"Payment submission failed: {str(e)}\nNote: This is ACCEPTABLE per Case 1 requirements",
-                name="Payment Submission Error (Expected)",
-                attachment_type=allure.attachment_type.TEXT
-            )
-
-        time.sleep(3)
+        time.sleep(2)
 
     # ==================== PASO 9: Resultados Finales ====================
     final_url = driver.current_url

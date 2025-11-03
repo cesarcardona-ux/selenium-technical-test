@@ -4,6 +4,103 @@ All notable changes and milestones for this automation project will be documente
 
 ---
 
+## [v1.2.1-dev] - 2025-11-03
+
+### 🐛 Critical Fix: Payment Page Iframe Handling
+
+This release implements **critical iframe handling** for the Payment page in Case 1, resolving cookie modal and payment gateway iframe issues.
+
+### 🔧 Payment Page Iframe Implementation
+
+#### Problem Discovery
+During Case 1 testing, two critical issues were identified on the Payment page:
+
+1. **Cookie Consent Modal Blocking Forms**:
+   - OneTrust cookie consent modal appeared as overlay with dark background
+   - Modal prevented interaction with payment form fields
+   - Button `#onetrust-accept-btn-handler` was in separate iframe or main DOM
+
+2. **Payment Form Fields Not Found**:
+   - After accepting cookies, card form fields (Holder, Card Number, CVV, Expiration) were not detectable
+   - Critical discovery: Fields are NOT in main Payment page DOM
+   - Fields hosted in external payment gateway iframe: `api-pay.avtest.ink`
+   - Iframe class: `payment-forms-layout_iframe`
+   - Implemented for PCI compliance (secure credit card data handling)
+
+#### Solution Implemented
+
+**1. Dual-Strategy Cookie Modal Detection**:
+- **Strategy 1**: Search for button in main DOM
+- **Strategy 2**: If not found, search in OneTrust iframe and switch context
+- Proper context switching: Main DOM → Cookie Iframe → Click → Return to Main DOM
+- Modal completely disappears before proceeding
+
+**2. Payment Gateway Iframe Context Switching**:
+```
+Main DOM → Accept Cookies → Return to Main DOM →
+Wait 15s for Angular to inject iframe →
+Switch to Payment Iframe → Fill Card Fields →
+Return to Main DOM → Fill Billing Fields
+```
+
+**3. Implementation Details**:
+- Added 15-second wait for Angular to inject payment iframe into DOM
+- Detect iframe using `By.CLASS_NAME, "payment-forms-layout_iframe"`
+- Wait for iframe presence with `WebDriverWait(30)`
+- Switch to iframe context with `driver.switch_to.frame(payment_iframe)`
+- Fill card fields with explicit waits inside iframe
+- Switch back to main DOM with `driver.switch_to.default_content()`
+- Fill billing fields (email, address, city, country) in main DOM
+- All context switches properly logged for debugging
+
+#### Files Modified
+
+**pages/nuxqa/payment_page.py** (lines 97-352):
+- Added 15s Angular wait before iframe detection
+- Implemented dual-strategy cookie modal detection (lines 102-196)
+- Added payment iframe detection and context switching (lines 214-257)
+- Modified `fill_credit_card_info()` to work inside iframe (lines 248-334)
+- Updated `fill_billing_info()` documentation for main DOM (lines 336-352)
+
+**README.md**:
+- Updated Case 1 section with "Critical Payment Page Implementation"
+- Documented cookie modal handling strategy
+- Documented payment gateway iframe discovery
+- Added context switching flow diagram
+- Explained why iframe handling is necessary
+
+#### Technical Achievements
+
+- ✅ Cookie modal successfully detected and clicked in both contexts
+- ✅ Payment iframe correctly identified and context switched
+- ✅ Card fields successfully filled inside iframe
+- ✅ Billing fields successfully filled in main DOM
+- ✅ Complete test flow executes end-to-end
+- ✅ Comprehensive logging for debugging iframe issues
+
+#### Testing Status
+
+- **First successful execution**: Test completed with exit code 0
+- **Full flow verified**: Home → Select Flight → Passengers → Seatmap → Payment (form filled)
+- **Pending**: Full end-to-end validation with payment submission
+
+### 📝 Key Learnings
+
+**Why This Was Critical**:
+- Using `driver.find_element()` directly on Payment page will NOT find card fields
+- Must explicitly detect and switch to payment gateway iframe
+- Cookie modals may be in separate iframe (OneTrust framework)
+- Context switching must be properly managed (switch to iframe → action → switch back)
+- Angular applications may inject iframes dynamically (require wait time)
+
+**For Future Implementations**:
+- Always check if elements are inside iframes when not found in main DOM
+- Payment gateways commonly use iframes for PCI compliance
+- Cookie consent frameworks (OneTrust, CookieBot) often use separate iframes
+- Use dual-strategy detection for elements that may be in multiple contexts
+
+---
+
 ## [v1.2.0-dev] - 2025-10-31
 
 ### 🎯 Case 1 Framework Implementation - One-way Booking
