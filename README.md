@@ -1,367 +1,367 @@
-# Selenium Technical Test - FLYR Inc
+# Prueba Técnica Selenium - FLYR Inc
 
-Automated testing suite for nuxqa web application using Selenium WebDriver, Python, and pytest.
+Suite de pruebas automatizadas para la aplicación web nuxqa utilizando Selenium WebDriver, Python y pytest.
 
-## Quick Start
+## Inicio Rápido
 
-### Prerequisites
+### Prerrequisitos
 - Python 3.9+
-- Chrome, Edge, and Firefox browsers
+- Navegadores Chrome, Edge y Firefox
 - Git
 
-### Setup
+### Configuración
 
 ```bash
-# Clone repository
+# Clonar repositorio
 git clone https://github.com/cesarcardona-ux/selenium-technical-test.git
 cd selenium-technical-test
 
-# Create virtual environment
+# Crear entorno virtual
 python -m venv venv
 source venv/bin/activate  # MacOS/Linux
 venv\Scripts\activate     # Windows
 
-# Install dependencies
+# Instalar dependencias
 pip install -r requirements.txt
 ```
 
-### Driver Management
+### Gestión de Drivers
 
-This project uses **Selenium Manager** (included in Selenium 4.6+) to automatically download and manage browser drivers.
+Este proyecto utiliza **Selenium Manager** (incluido en Selenium 4.6+) para descargar y gestionar automáticamente los drivers de navegadores.
 
-**What does this mean?**
-- No manual driver installation needed
-- Works with any Chrome/Edge/Firefox version
-- Automatically downloads the correct driver when you run tests
+**¿Qué significa esto?**
+- No se necesita instalación manual de drivers
+- Funciona con cualquier versión de Chrome/Edge/Firefox
+- Descarga automáticamente el driver correcto cuando ejecutas los tests
 
-**Why Selenium Manager?**
-During development, we found that Chrome updated to version 141, but external tools could only download drivers up to version 114. Selenium Manager solves this by always getting the correct driver version directly from the browser vendors.
+**¿Por qué Selenium Manager?**
+Durante el desarrollo, encontramos que Chrome se actualizó a la versión 141, pero las herramientas externas solo podían descargar drivers hasta la versión 114. Selenium Manager resuelve esto obteniendo siempre la versión correcta del driver directamente de los proveedores del navegador.
 
-**For evaluators:** You don't need to download or configure drivers manually. Just install the requirements and run the tests.
+**Para evaluadores:** No necesitas descargar o configurar drivers manualmente. Solo instala los requisitos y ejecuta los tests.
 
-## Running Tests
+## Ejecutar Tests
 
-### Basic Execution
+### Ejecución Básica
 
 ```bash
-# Run all implemented tests
+# Ejecutar todos los tests implementados
 pytest tests/
 
-# Run specific case with all combinations
+# Ejecutar caso específico con todas las combinaciones
 pytest tests/nuxqa/test_language_change_Case4.py
 
-# Generate Allure report
+# Generar reporte Allure
 pytest tests/
 allure serve reports/allure
 ```
 
-### CLI Options
+### Opciones CLI
 
-| Option            | Values                                                  | Description                                   |
-|-------------------|---------------------------------------------------------|-----------------------------------------------|
-| `--browser`       | chrome, edge, firefox, all                              | Browser selection (default: all)              |
-| `--language`      | Español, English, Français, Português, all              | Language selection (default varies by case)   |
-| `--pos`           | Chile, España, Otros países, all                        | POS selection (default: all)                  |
-| `--header-link`   | ofertas-vuelos, credits, equipaje, all                  | Header link selection (default: all)          |
-| `--footer-link`   | vuelos, noticias, aviancadirect, contactanos, all       | Footer link selection (default: all)          |
-| `--env`           | qa4, qa5, uat1, all                                     | Environment selection (default: all)          |
-| `--origin`        | BOG, MDE, CLO, MAD, etc. (IATA codes)                   | Origin airport (Case 3, default: BOG)         |
-| `--destination`   | BOG, MDE, CLO, MAD, etc. (IATA codes)                   | Destination airport (Case 3, default: MDE)    |
-| `--departure-days`| Integer (days from today)                               | Departure date offset (Case 3, default: 4)    |
-| `--return-days`   | Integer (days from today)                               | Return date offset (Case 3, default: 5)       |
-| `--screenshots`   | none, on-failure, all                                   | Screenshot capture mode (default: on-failure) |
-| `--video`         | none, enabled                                           | Video recording (default: none)               |
+| Opción            | Valores                                                 | Descripción                                        |
+|-------------------|---------------------------------------------------------|----------------------------------------------------|
+| `--browser`       | chrome, edge, firefox, all                              | Selección de navegador (por defecto: all)          |
+| `--language`      | Español, English, Français, Português, all              | Selección de idioma (varía por caso)               |
+| `--pos`           | Chile, España, Otros países, all                        | Selección de POS (por defecto: all)                |
+| `--header-link`   | ofertas-vuelos, credits, equipaje, all                  | Selección de link de header (por defecto: all)     |
+| `--footer-link`   | vuelos, noticias, aviancadirect, contactanos, all       | Selección de link de footer (por defecto: all)     |
+| `--env`           | qa4, qa5, uat1, all                                     | Selección de ambiente (por defecto: all)           |
+| `--origin`        | BOG, MDE, CLO, MAD, etc. (códigos IATA)                 | Aeropuerto de origen (Caso 3, por defecto: BOG)    |
+| `--destination`   | BOG, MDE, CLO, MAD, etc. (códigos IATA)                 | Aeropuerto de destino (Caso 3, por defecto: MDE)   |
+| `--departure-days`| Entero (días desde hoy)                                 | Offset de fecha de ida (Caso 3, por defecto: 4)    |
+| `--return-days`   | Entero (días desde hoy)                                 | Offset de fecha de vuelta (Caso 3, por defecto: 5) |
+| `--screenshots`   | none, on-failure, all                                   | Modo de captura de screenshots (por defecto: on-failure) |
+| `--video`         | none, enabled                                           | Grabación de video (por defecto: none)             |
 
-**Note on `--language` parameter:**
-- **Case 4**: Default is `all` (tests all 4 languages)
-- **Cases 6 & 7**: Default is random language selection per test
-  - Omit `--language` for random selection
-  - Use `--language=English` (or other language) for specific language
-  - Use `--language=all` to test all 4 languages
+**Nota sobre el parámetro `--language`:**
+- **Caso 4**: Por defecto es `all` (prueba los 4 idiomas)
+- **Casos 6 y 7**: Por defecto es selección aleatoria de idioma por test
+  - Omitir `--language` para selección aleatoria
+  - Usar `--language=English` (u otro idioma) para idioma específico
+  - Usar `--language=all` para probar los 4 idiomas
 
-**Examples with options:**
+**Ejemplos con opciones:**
 ```bash
-# Case 4: Language change
+# Caso 4: Cambio de idioma
 pytest tests/nuxqa/test_language_change_Case4.py --browser=chrome --language=English --env=qa5 --video=enabled --screenshots=all
 
-# Case 5: POS change
+# Caso 5: Cambio de POS
 pytest tests/nuxqa/test_pos_change_Case5.py --browser=chrome --pos=Chile --env=qa5 --video=enabled --screenshots=all
 
-# Case 6: Header redirections (random language)
+# Caso 6: Redirecciones de header (idioma aleatorio)
 pytest tests/nuxqa/test_header_redirections_Case6.py --browser=chrome --header-link=ofertas-vuelos --env=qa5 -v
 
-# Case 6: Header redirections (specific language)
+# Caso 6: Redirecciones de header (idioma específico)
 pytest tests/nuxqa/test_header_redirections_Case6.py --browser=chrome --header-link=ofertas-vuelos --env=qa5 --language=Français -v
 
-# Case 6: Header redirections (all languages - generates 4 tests)
+# Caso 6: Redirecciones de header (todos los idiomas - genera 4 tests)
 pytest tests/nuxqa/test_header_redirections_Case6.py --browser=chrome --header-link=ofertas-vuelos --env=qa5 --language=all -v
 
-# Case 7: Footer redirections (random language)
+# Caso 7: Redirecciones de footer (idioma aleatorio)
 pytest tests/nuxqa/test_footer_redirections_Case7.py --browser=chrome --footer-link=noticias --env=qa5 -v
 
-# Case 7: Footer redirections (specific language)
+# Caso 7: Redirecciones de footer (idioma específico)
 pytest tests/nuxqa/test_footer_redirections_Case7.py --browser=chrome --footer-link=noticias --env=qa5 --language=English -v
 
-# Case 3: Flight search and network capture (dynamic dates and cities)
+# Caso 3: Búsqueda de vuelos y captura de red (fechas y ciudades dinámicas)
 pytest tests/nuxqa/test_login_network_Case3.py --browser=chrome --origin=BOG --destination=MDE --departure-days=4 --return-days=5 --env=uat1 -v
 
-# Case 3: With video and Allure report
+# Caso 3: Con video y reporte Allure
 pytest tests/nuxqa/test_login_network_Case3.py --browser=chrome --origin=BOG --destination=MAD --departure-days=7 --return-days=10 --env=uat1 --video=enabled --screenshots=all --alluredir=reports/allure
 ```
 
-**Parallel execution:**
+**Ejecución paralela:**
 ```bash
 pytest tests/ -n auto
 ```
 
-## Test Cases Status
+## Estado de Casos de Prueba
 
-| Case   | Status       | Description                        | Tests |
-|--------|--------------|-----------------------------------|-------|
-| Case 1 | 🚧 In Dev   | One-way Booking (Complete Flow)    |  TBD |
-| Case 2 | ⏳ Pending  | Round-trip Booking                 |  -   |
-| Case 3 | ✅ Complete | Flight Search & Network Capture    |   2  |
-| Case 4 | ✅ Complete | Language Change Validation         |  24  |
-| Case 5 | ✅ Complete | POS Change Validation              |  18  |
-| Case 6 | ✅ Complete | Header Redirections                |  18  |
-| Case 7 | ✅ Complete | Footer Redirections                |  24  |
+| Caso   | Estado       | Descripción                           | Tests |
+|--------|--------------|---------------------------------------|-------|
+| Caso 1 | 🚧 En Desar. | Reserva Solo Ida (Flujo Completo)     |  PTE  |
+| Caso 2 | ⏳ Pendiente | Reserva Ida y Vuelta                  |  -    |
+| Caso 3 | ✅ Completo  | Búsqueda de Vuelos y Captura de Red   |   2   |
+| Caso 4 | ✅ Completo  | Validación de Cambio de Idioma        |  24   |
+| Caso 5 | ✅ Completo  | Validación de Cambio de POS           |  18   |
+| Caso 6 | ✅ Completo  | Redirecciones de Header               |  18   |
+| Caso 7 | ✅ Completo  | Redirecciones de Footer               |  24   |
 
-### Case 1: One-way Booking 🚧
-- **Flow:** Complete booking flow (6 pages)
-- **Pages:** Home → Select Flight → Passengers → Services → Seatmap → Payment
-- **Configuration:** Language, POS, 4 passengers (1 Adult, 1 Teen, 1 Child, 1 Infant)
-- **Flight Type:** One-way (Solo ida)
-- **Fare:** Basic
-- **Services:** None selected (skip all)
-- **Seats:** Economy
-- **Payment:** Fake credit card data (rejection acceptable)
-- **Browsers:** Chrome, Edge, Firefox
-- **Environments:** QA4, QA5
-- **Total tests:** TBD (depends on parametrization)
-- **File:** `tests/nuxqa/test_oneway_booking_Case1.py`
-- **Status:** Framework completed, iframe handling implemented, testing in progress
+### Caso 1: Reserva Solo Ida 🚧
+- **Flujo:** Flujo de reserva completo (6 páginas)
+- **Páginas:** Home → Seleccionar Vuelo → Pasajeros → Servicios → Mapa de Asientos → Pago
+- **Configuración:** Idioma, POS, 4 pasajeros (1 Adulto, 1 Adolescente, 1 Niño, 1 Infante)
+- **Tipo de Vuelo:** Solo ida
+- **Tarifa:** Basic
+- **Servicios:** Ninguno seleccionado (omitir todos)
+- **Asientos:** Economy
+- **Pago:** Datos de tarjeta de crédito de prueba (rechazo aceptable)
+- **Navegadores:** Chrome, Edge, Firefox
+- **Ambientes:** QA4, QA5
+- **Total de tests:** PTE (depende de la parametrización)
+- **Archivo:** `tests/nuxqa/test_oneway_booking_Case1.py`
+- **Estado:** Framework completado, manejo de iframes implementado, pruebas en progreso
 
-**Page Objects Created:**
-- `pages/nuxqa/passengers_page.py` - Passenger information forms
-- `pages/nuxqa/services_page.py` - Additional services selection
-- `pages/nuxqa/seatmap_page.py` - Seat selection
-- `pages/nuxqa/payment_page.py` - Payment information with iframe handling
+**Page Objects Creados:**
+- `pages/nuxqa/passengers_page.py` - Formularios de información de pasajeros
+- `pages/nuxqa/services_page.py` - Selección de servicios adicionales
+- `pages/nuxqa/seatmap_page.py` - Selección de asientos
+- `pages/nuxqa/payment_page.py` - Información de pago con manejo de iframes
 
-**Technical Highlights:**
-- Complete 6-page booking flow automation
-- Dynamic passenger data handling (4 different passenger types)
-- Service skipping mechanism
-- Economy seat selection
-- Payment form filling with test data
-- Comprehensive Allure reporting for each step
-- Database tracking with case-specific fields
+**Aspectos Técnicos Destacados:**
+- Automatización completa del flujo de reserva de 6 páginas
+- Manejo dinámico de datos de pasajeros (4 tipos diferentes de pasajeros)
+- Mecanismo de omisión de servicios
+- Selección de asientos Economy
+- Llenado de formulario de pago con datos de prueba
+- Reportes Allure comprehensivos para cada paso
+- Seguimiento en base de datos con campos específicos del caso
 
-**Critical Payment Page Implementation:**
+**Implementación Crítica de la Página de Pago:**
 
-The Payment page presents unique challenges that required advanced iframe handling:
+La página de Pago presenta desafíos únicos que requirieron manejo avanzado de iframes:
 
-1. **Cookie Consent Modal (OneTrust Framework):**
-   - Modal appears as overlay on Payment page with dark background
-   - Implemented dual-strategy detection:
-     - **Strategy 1:** Search for button `#onetrust-accept-btn-handler` in main DOM
-     - **Strategy 2:** If not found, search in OneTrust iframe and switch context
-   - After clicking "Aceptar", returns to main DOM context
-   - Modal completely disappears before proceeding with form filling
+1. **Modal de Consentimiento de Cookies (Framework OneTrust):**
+   - El modal aparece como overlay en la página de Pago con fondo oscuro
+   - Se implementó detección de doble estrategia:
+     - **Estrategia 1:** Buscar botón `#onetrust-accept-btn-handler` en el DOM principal
+     - **Estrategia 2:** Si no se encuentra, buscar en iframe de OneTrust y cambiar contexto
+   - Después de hacer clic en "Aceptar", retorna al contexto del DOM principal
+   - El modal desaparece completamente antes de proceder con el llenado del formulario
 
-2. **Payment Gateway External Iframe:**
-   - **Critical Discovery:** Card form fields (Holder, Card Number, CVV, Expiration) are NOT in main Payment page DOM
-   - Fields are hosted in external payment gateway iframe: `api-pay.avtest.ink`
-   - Iframe class: `payment-forms-layout_iframe`
-   - Implemented for PCI compliance (secure credit card data handling)
+2. **Iframe Externo de Pasarela de Pago:**
+   - **Descubrimiento Crítico:** Los campos del formulario de tarjeta (Titular, Número de Tarjeta, CVV, Expiración) NO están en el DOM principal de la página de Pago
+   - Los campos están alojados en un iframe externo de pasarela de pago: `api-pay.avtest.ink`
+   - Clase del iframe: `payment-forms-layout_iframe`
+   - Implementado por cumplimiento PCI (manejo seguro de datos de tarjeta de crédito)
 
-3. **Context Switching Strategy:**
+3. **Estrategia de Cambio de Contexto:**
    ```
-   Main DOM → Accept Cookies (if present) → Return to Main DOM →
-   Switch to Payment Iframe → Fill Card Fields → Return to Main DOM →
-   Fill Billing Fields (email, address, city, country)
+   DOM Principal → Aceptar Cookies (si está presente) → Retornar al DOM Principal →
+   Cambiar a Iframe de Pago → Llenar Campos de Tarjeta → Retornar al DOM Principal →
+   Llenar Campos de Facturación (email, dirección, ciudad, país)
    ```
 
-4. **Why This Matters:**
-   - Using `driver.find_element()` directly on Payment page will NOT find card fields
-   - Must explicitly switch to iframe context: `driver.switch_to.frame(payment_iframe)`
-   - After filling card fields, must return to main DOM: `driver.switch_to.default_content()`
-   - Billing fields (email, address, city, country, terms) remain in main DOM
+4. **Por Qué Es Importante:**
+   - Usar `driver.find_element()` directamente en la página de Pago NO encontrará los campos de tarjeta
+   - Debe cambiar explícitamente al contexto del iframe: `driver.switch_to.frame(payment_iframe)`
+   - Después de llenar los campos de tarjeta, debe retornar al DOM principal: `driver.switch_to.default_content()`
+   - Los campos de facturación (email, dirección, ciudad, país, términos) permanecen en el DOM principal
 
-5. **Implementation Details:**
-   - Added 15-second wait for Angular to inject payment iframe into DOM
-   - Detect iframe using `By.CLASS_NAME, "payment-forms-layout_iframe"`
-   - Wait for iframe presence, then switch context
-   - Fill card fields with explicit waits inside iframe
-   - Switch back to main DOM before filling billing fields
-   - All context switches properly logged for debugging
+5. **Detalles de Implementación:**
+   - Espera de 15 segundos agregada para que Angular inyecte el iframe de pago en el DOM
+   - Detectar iframe usando `By.CLASS_NAME, "payment-forms-layout_iframe"`
+   - Esperar presencia del iframe, luego cambiar contexto
+   - Llenar campos de tarjeta con esperas explícitas dentro del iframe
+   - Cambiar de vuelta al DOM principal antes de llenar campos de facturación
+   - Todos los cambios de contexto correctamente registrados para debugging
 
-**File:** `pages/nuxqa/payment_page.py` (lines 97-352)
+**Archivo:** `pages/nuxqa/payment_page.py` (líneas 97-352)
 
-### Case 3: Flight Search & Network Capture ✅
-- **Environment:** UAT1 (nuxqa.avtest.ink)
-- **Language/POS:** French, France
-- **Flight Search:** Dynamic dates (TODAY + N days), parametrizable cities (IATA codes)
-- **Flight Selection:** 4 clicks - Outbound FLEX, Return FLEX
-- **Passengers:** 9 (3 adults + 3 teens + 3 children)
-- **Network Capture:** Chrome DevTools Protocol (CDP) for Session JSON extraction
-- **Extracted Fields:** origin, destination, std, productClass (4 fields from PDF requirements)
-- **Browsers:** Chrome ✅, Edge ✅ (Chromium-based only - CDP limitation)
-- **Total tests:** 2 (Chrome + Edge)
-- **File:** `tests/nuxqa/test_login_network_Case3.py`
-- **CLI Parameters:** `--origin`, `--destination`, `--departure-days`, `--return-days`
+### Caso 3: Búsqueda de Vuelos y Captura de Red ✅
+- **Ambiente:** UAT1 (nuxqa.avtest.ink)
+- **Idioma/POS:** Francés, Francia
+- **Búsqueda de Vuelos:** Fechas dinámicas (HOY + N días), ciudades parametrizables (códigos IATA)
+- **Selección de Vuelos:** 4 clics - FLEX Ida, FLEX Vuelta
+- **Pasajeros:** 9 (3 adultos + 3 adolescentes + 3 niños)
+- **Captura de Red:** Chrome DevTools Protocol (CDP) para extracción de JSON de sesión
+- **Campos Extraídos:** origin, destination, std, productClass (4 campos de requisitos del PDF)
+- **Navegadores:** Chrome ✅, Edge ✅ (Solo basados en Chromium - limitación CDP)
+- **Total de tests:** 2 (Chrome + Edge)
+- **Archivo:** `tests/nuxqa/test_login_network_Case3.py`
+- **Parámetros CLI:** `--origin`, `--destination`, `--departure-days`, `--return-days`
 
-**Technical Highlights:**
-- Real-time network capture using CDP (captures response bodies immediately)
-- Dynamic date calculation to prevent test failures on future dates
-- Complex flight selection with 25-30 second page loader handling
-- Text-based filtering for return flights ("Choisir le tarif")
-- Session JSON parsing from nested structure: `response.result.data.journeys[]`
-- Dedicated Allure attachment for PDF-required fields
-- 7 additional database fields for Case 3 tracking
+**Aspectos Técnicos Destacados:**
+- Captura de red en tiempo real usando CDP (captura cuerpos de respuesta inmediatamente)
+- Cálculo dinámico de fechas para prevenir fallos de tests en fechas futuras
+- Selección compleja de vuelos con manejo de cargador de página de 25-30 segundos
+- Filtrado basado en texto para vuelos de vuelta ("Choisir le tarif")
+- Análisis de JSON de sesión desde estructura anidada: `response.result.data.journeys[]`
+- Adjunto dedicado de Allure para campos requeridos del PDF
+- 7 campos adicionales de base de datos para seguimiento del Caso 3
 
-**Browser Compatibility:**
-- ✅ Chrome: Fully functional with CDP
-- ✅ Edge: Fully functional with CDP
-- ❌ Firefox: Not supported (CDP is Chromium-only)
+**Compatibilidad de Navegadores:**
+- ✅ Chrome: Totalmente funcional con CDP
+- ✅ Edge: Totalmente funcional con CDP
+- ❌ Firefox: No soportado (CDP es solo para Chromium)
 
-### Case 4: Language Change Validation ✅
-- **Languages:** Spanish, English, French, Portuguese
-- **Browsers:** Chrome, Edge, Firefox
-- **Environments:** QA4, QA5
-- **Total combinations:** 24 tests
-- **File:** `tests/nuxqa/test_language_change_Case4.py`
+### Caso 4: Validación de Cambio de Idioma ✅
+- **Idiomas:** Español, Inglés, Francés, Portugués
+- **Navegadores:** Chrome, Edge, Firefox
+- **Ambientes:** QA4, QA5
+- **Combinaciones totales:** 24 tests
+- **Archivo:** `tests/nuxqa/test_language_change_Case4.py`
 
-### Case 5: POS Change Validation ✅
+### Caso 5: Validación de Cambio de POS ✅
 - **POS:** Chile, España, Otros países
-- **Browsers:** Chrome, Edge, Firefox
-- **Environments:** QA4, QA5
-- **Total combinations:** 18 tests
-- **File:** `tests/nuxqa/test_pos_change_Case5.py`
+- **Navegadores:** Chrome, Edge, Firefox
+- **Ambientes:** QA4, QA5
+- **Combinaciones totales:** 18 tests
+- **Archivo:** `tests/nuxqa/test_pos_change_Case5.py`
 
-### Case 6: Header Redirections with Language Validation ✅
-- **Header Links:** Ofertas de vuelos, Avianca Credits, Equipaje
-- **Language Validation:** Random selection (Español, English, Français, Português) with URL code verification
-- **Browsers:** Chrome, Edge, Firefox
-- **Environments:** QA4, QA5
-- **Total combinations:** 18 tests (3 links × 3 browsers × 2 envs)
-- **File:** `tests/nuxqa/test_header_redirections_Case6.py`
+### Caso 6: Redirecciones de Header con Validación de Idioma ✅
+- **Links de Header:** Ofertas de vuelos, Avianca Credits, Equipaje
+- **Validación de Idioma:** Selección aleatoria (Español, English, Français, Português) con verificación de código de URL
+- **Navegadores:** Chrome, Edge, Firefox
+- **Ambientes:** QA4, QA5
+- **Combinaciones totales:** 18 tests (3 links × 3 navegadores × 2 ambientes)
+- **Archivo:** `tests/nuxqa/test_header_redirections_Case6.py`
 
-### Case 7: Footer Redirections with Language Validation ✅
-- **Footer Links:** Vuelos baratos, Noticias corporativas, aviancadirect, Contáctanos
-- **Language Validation:** Random selection (Español, English, Français, Português) with URL code verification
-- **Browsers:** Chrome, Edge, Firefox
-- **Environments:** QA4, QA5
-- **Total combinations:** 24 tests (4 links × 3 browsers × 2 envs)
-- **File:** `tests/nuxqa/test_footer_redirections_Case7.py`
+### Caso 7: Redirecciones de Footer con Validación de Idioma ✅
+- **Links de Footer:** Vuelos baratos, Noticias corporativas, aviancadirect, Contáctanos
+- **Validación de Idioma:** Selección aleatoria (Español, English, Français, Português) con verificación de código de URL
+- **Navegadores:** Chrome, Edge, Firefox
+- **Ambientes:** QA4, QA5
+- **Combinaciones totales:** 24 tests (4 links × 3 navegadores × 2 ambientes)
+- **Archivo:** `tests/nuxqa/test_footer_redirections_Case7.py`
 
-## Technical Implementation
+## Implementación Técnica
 
-### Features
+### Características
 - ✅ Page Object Model (POM)
-- ✅ Multi-browser support (Chrome, Edge, Firefox)
-- ✅ Parametrized tests with pytest
-- ✅ Allure reporting with rich visualizations
-- ✅ Video recording (MP4 with OpenCV)
-- ✅ Screenshot capture (configurable modes)
-- ✅ SQLite database for results tracking
-- ✅ Detailed logging
-- ✅ Parallel execution (pytest-xdist)
+- ✅ Soporte multi-navegador (Chrome, Edge, Firefox)
+- ✅ Tests parametrizados con pytest
+- ✅ Reportes Allure con visualizaciones ricas
+- ✅ Grabación de video (MP4 con OpenCV)
+- ✅ Captura de screenshots (modos configurables)
+- ✅ Base de datos SQLite para seguimiento de resultados
+- ✅ Registro detallado
+- ✅ Ejecución paralela (pytest-xdist)
 
-### Project Structure
+### Estructura del Proyecto
 ```
 ├── pages/                  # Page Objects
-├── tests/                  # Test cases
-├── utils/                  # Database and utilities
-├── Docs/                   # Additional documentation
-├── conftest.py             # Pytest configuration
-└── requirements.txt        # Dependencies
+├── tests/                  # Casos de prueba
+├── utils/                  # Base de datos y utilidades
+├── Docs/                   # Documentación adicional
+├── conftest.py             # Configuración de Pytest
+└── requirements.txt        # Dependencias
 ```
 
-### Test Results
+### Resultados de Tests
 
-**Allure Report:**
+**Reporte Allure:**
 ```bash
 allure serve reports/allure
 ```
 
-**Database:** Test results are saved to `test_results.db`
+**Base de Datos:** Los resultados de tests se guardan en `test_results.db`
 
-### Database Schema
+### Esquema de Base de Datos
 
-Test results are stored in SQLite with **30 comprehensive fields** for detailed tracking and analysis:
+Los resultados de tests se almacenan en SQLite con **30 campos comprehensivos** para seguimiento y análisis detallado:
 
-**General Fields (10):**
-- `id`: Primary key
-- `case_number`: Test case number (3, 4, 5, 6, 7) - positioned as 2nd column for easy filtering
-- `test_name`: Unique test identifier
-- `status`: Test result (PASSED, FAILED, SKIPPED)
-- `execution_time`: Duration in seconds
-- `error_message`: Error details if failed
-- `timestamp`: Execution date/time
-- `browser`: Browser used (chrome, edge, firefox)
-- `url`: Final URL after test action
-- `language`: Language used in test
+**Campos Generales (10):**
+- `id`: Clave primaria
+- `case_number`: Número de caso de prueba (3, 4, 5, 6, 7) - posicionado como 2da columna para filtrado fácil
+- `test_name`: Identificador único de test
+- `status`: Resultado del test (PASSED, FAILED, SKIPPED)
+- `execution_time`: Duración en segundos
+- `error_message`: Detalles del error si falló
+- `timestamp`: Fecha/hora de ejecución
+- `browser`: Navegador usado (chrome, edge, firefox)
+- `url`: URL final después de la acción del test
+- `language`: Idioma usado en el test
 
-**Tracking Fields (7):**
-- `environment`: Test environment (qa4, qa5, uat1)
-- `screenshots_mode`: Screenshot configuration (none, on-failure, all)
-- `video_enabled`: Video recording status (enabled, none)
-- `expected_value`: Expected validation value
-- `actual_value`: Actual value retrieved
-- `validation_result`: Validation outcome (PASSED, FAILED)
-- `initial_url`: URL before test action
+**Campos de Seguimiento (7):**
+- `environment`: Ambiente de prueba (qa4, qa5, uat1)
+- `screenshots_mode`: Configuración de screenshots (none, on-failure, all)
+- `video_enabled`: Estado de grabación de video (enabled, none)
+- `expected_value`: Valor de validación esperado
+- `actual_value`: Valor real obtenido
+- `validation_result`: Resultado de validación (PASSED, FAILED)
+- `initial_url`: URL antes de la acción del test
 
-**Cases 4, 5, 6, 7 Specific Fields (6):**
-- `pos`: Case 5 - POS selected (Chile, España, Otros países)
-- `header_link`: Case 6 - Header link tested
-- `footer_link`: Case 7 - Footer link tested
-- `link_name`: Cases 6&7 - Descriptive link name
-- `language_mode`: Cases 6&7 - Language selection mode (Random, Specific, All Languages)
-- `validation_message`: Detailed validation message
+**Campos Específicos de Casos 4, 5, 6, 7 (6):**
+- `pos`: Caso 5 - POS seleccionado (Chile, España, Otros países)
+- `header_link`: Caso 6 - Link de header probado
+- `footer_link`: Caso 7 - Link de footer probado
+- `link_name`: Casos 6 y 7 - Nombre descriptivo del link
+- `language_mode`: Casos 6 y 7 - Modo de selección de idioma (Random, Specific, All Languages)
+- `validation_message`: Mensaje de validación detallado
 
-**Case 3 Specific Fields (7):**
-- `origin_city`: Origin airport IATA code (BOG, MDE, etc.)
-- `destination_city`: Destination airport IATA code
-- `departure_date`: Calculated departure date (TODAY + N days)
-- `return_date`: Calculated return date (TODAY + N days)
-- `passenger_count`: Total passengers (adults + teens + children)
-- `session_journey_count`: Number of journeys extracted from Session JSON (should be 2)
-- `session_data_json`: Complete Session JSON data with all extracted fields
+**Campos Específicos del Caso 3 (7):**
+- `origin_city`: Código IATA de aeropuerto de origen (BOG, MDE, etc.)
+- `destination_city`: Código IATA de aeropuerto de destino
+- `departure_date`: Fecha de salida calculada (HOY + N días)
+- `return_date`: Fecha de retorno calculada (HOY + N días)
+- `passenger_count`: Total de pasajeros (adultos + adolescentes + niños)
+- `session_journey_count`: Número de viajes extraídos del JSON de sesión (debe ser 2)
+- `session_data_json`: Datos completos de JSON de sesión con todos los campos extraídos
 
-**Benefits:**
-- Advanced SQL queries for analysis
-- Complete test traceability
-- Easy debugging with expected vs actual values
-- Configuration tracking per test
-- Case-specific data properly structured
+**Beneficios:**
+- Consultas SQL avanzadas para análisis
+- Trazabilidad completa de tests
+- Debugging fácil con valores esperados vs reales
+- Seguimiento de configuración por test
+- Datos específicos del caso correctamente estructurados
 
-**Example queries:**
+**Consultas de ejemplo:**
 ```sql
--- Filter by environment
+-- Filtrar por ambiente
 SELECT * FROM test_executions WHERE environment = 'qa5';
 
--- Filter by case number
+-- Filtrar por número de caso
 SELECT * FROM test_executions WHERE case_number = 3;
 
--- Filter by POS (Case 5)
+-- Filtrar por POS (Caso 5)
 SELECT * FROM test_executions WHERE pos = 'Chile';
 
--- Filter by language mode (Cases 6&7)
+-- Filtrar por modo de idioma (Casos 6 y 7)
 SELECT * FROM test_executions WHERE language_mode = 'Random';
 
--- Filter by origin/destination (Case 3)
+-- Filtrar por origen/destino (Caso 3)
 SELECT * FROM test_executions WHERE origin_city = 'BOG' AND destination_city = 'MDE';
 
--- View Case 3 session data
+-- Ver datos de sesión del Caso 3
 SELECT test_name, session_journey_count, session_data_json FROM test_executions WHERE case_number = 3;
 ```
 
-**Logs:** Detailed execution logs in `reports/test_execution.log`
+**Registros:** Logs de ejecución detallados en `reports/test_execution.log`
 
-## Repository
+## Repositorio
 
 https://github.com/cesarcardona-ux/selenium-technical-test
 
 ---
 
-🤖 *Generated with Claude Code*
+🤖 *Generado con Claude Code*
