@@ -48,7 +48,8 @@ class HomePage:
     # Links de submenú (independientes del idioma - buscar por href parcial que no cambia)
     # Cada submenú tiene URLs con patrones únicos, buscar el elemento <a> directamente
     SUBMENU_FLIGHT_OFFERS = (By.XPATH, "//a[contains(@href, 'ofertas-de') or contains(@href, 'offres-de') or contains(@href, 'flight-offers') or contains(@href, 'voos-promocionais')]")
-    SUBMENU_AVIANCA_CREDITS = (By.XPATH, "//a[contains(@href, 'avianca-credits')]")
+    SUBMENU_AVIANCA_CREDITS = (By.XPATH, "//a[contains(@href, 'credit')]")
+    SUBMENU_CHANGEMENTS_REMBOURSEMENTS = (By.XPATH, "//a[contains(@href, 'changements-et-remboursements')]")  # Caso especial para Français
     SUBMENU_LUGGAGE = (By.XPATH, "//a[contains(@href, 'equipaje') or contains(@href, 'baggage') or contains(@href, 'bagages') or contains(@href, 'bagagem')]")
 
     # Footer Navigation selectors (Case 7)
@@ -246,6 +247,17 @@ class HomePage:
             logger.info(f"Changing language to: {selected_language}")
             self.select_language(selected_language)
             time.sleep(2)  # Esperar a que se aplique el cambio de idioma
+
+            # CASO ESPECIAL: Para Français, el link "Avianca Credits" no existe
+            # En su lugar, debemos usar "Changements et remboursements"
+            if selected_language == "Français" and header_link_name == "credits":
+                logger.info("Special case detected: Français language with credits link")
+                logger.info("Using 'Changements et remboursements' link instead of 'Avianca Credits'")
+                nav_data = {
+                    "navbar": self.NAVBAR_YOUR_RESERVATION,
+                    "submenu": self.SUBMENU_CHANGEMENTS_REMBOURSEMENTS,
+                    "expected_url_parts": ["changements-et-remboursements"]  # URL en francés
+                }
 
             # Guardar URL inicial
             initial_url = self.driver.current_url

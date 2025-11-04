@@ -116,6 +116,10 @@ proyecto/
 ├── pages/          # Page Objects (POM)
 ├── tests/          # Casos de prueba
 ├── utils/          # database.py
+├── ide_test/       # GUI Pytest Command Generator
+│   ├── gui/        # Interfaz gráfica (CustomTkinter)
+│   ├── core/       # ConfigManager, CaseMapper, CommandBuilder
+│   └── config/     # JSON: testdata, parameter_options, case_mappings
 ├── reports/        # Reportes Allure
 ├── conftest.py     # Fixtures de pytest
 ├── pytest.ini      # Config pytest
@@ -215,9 +219,11 @@ allure serve reports/allure
 - **Repositorio GitHub** configurado y actualizado
 - **Ejecución paralela** con pytest-xdist
 - **Grabación de video** con OpenCV (MP4)
+- **GUI Pytest Command Generator** v1.0.0 - Herramienta gráfica para generar comandos
+- **100% Parametrización** - Zero hardcoded values en todos los casos
 - **Casos implementados:** 6/7 (Cases 1, 3, 4, 5, 6, 7)
-  - ✅ Case 1: One-way Booking (6 tests - flujo completo con optimizaciones)
-  - ✅ Case 3: Flight Search & Network Capture (2 tests - UAT1)
+  - ✅ Case 1: One-way Booking (6 tests - flujo completo, 10/10 parametrización)
+  - ✅ Case 3: Flight Search & Network Capture (2 tests - UAT1, 10/10 parametrización)
   - ✅ Case 4: Language Change Validation (24 tests)
   - ✅ Case 5: POS Change Validation (18 tests)
   - ✅ Case 6: Header Redirections (18 tests)
@@ -226,6 +232,7 @@ allure serve reports/allure
 - **Allure Reports:** Totalmente implementado
 - **Selenium Manager:** Configurado (sin webdriver-manager)
 - **Performance Optimizations:** Aplicadas en Case 1 (23% más rápido)
+- **ConfigManager:** Sistema centralizado de configuración JSON
 
 ### ⏳ Pendiente
 - **Case 2:** Round-trip Booking (complejo - flujo completo)
@@ -237,7 +244,9 @@ allure serve reports/allure
 - **Ambientes:** QA4, QA5, UAT1
 - **CLI Parameters:** 12 opciones configurables
 - **Performance:** Case 1 optimizado (23% más rápido - ~84s ahorrados)
+- **Parametrización:** 10/10 en todos los casos ✅
+- **POS disponibles:** Chile, España, Francia, Peru, Otros países
 
 ----------------------------------------------------------
 
-*Última actualización: Case 1 COMPLETADO con optimizaciones de tiempo (2025-11-03). 6 de 7 casos completos (85.7%), solo Case 2 pendiente.*
+*Última actualización: v1.4.0 - GUI Tool + 100% Parametrización completada (2025-11-04). 6 de 7 casos completos (85.7%), solo Case 2 pendiente.*

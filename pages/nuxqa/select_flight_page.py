@@ -228,8 +228,8 @@ class SelectFlightPage:
             # Se muestra un avión en movimiento (page-loader) mientras carga los vuelos de VUELTA
             logger.info("Waiting for page to reload with return flights (this takes ~25-30 seconds)...")
 
-            # Esperar unos segundos a que aparezca el loader
-            time.sleep(3)
+            # OPTIMIZADO: Esperar a que aparezca el loader (3s → 2s)
+            time.sleep(2)  # Reducido para mejorar performance (ahorro: 1s)
 
             # Esperar a que el loader (avión en movimiento) DESAPAREZCA
             # Aumentamos el timeout a 40 segundos para cubrir los 25-30 segundos de carga
@@ -241,22 +241,34 @@ class SelectFlightPage:
             except:
                 logger.info("No page loader found or already disappeared")
 
-            # Esperar un poco más para que los elementos se estabilicen
-            time.sleep(2)
+            # OPTIMIZADO: Esperar a que los elementos se estabilicen (2s → 1s)
+            time.sleep(1)  # Reducido para mejorar performance (ahorro: 1s)
 
             # Hacer scroll hacia abajo para ver los vuelos de VUELTA (más abajo que el calendario)
             logger.info("Scrolling down to see return flights list (below the calendar)...")
             # Scroll a 80% de la página para ver los vuelos que están debajo del calendario
             self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight * 0.8);")
 
-            # IMPORTANTE: Esperar a que los vuelos de vuelta terminen de cargar completamente
-            # Los botones existen en el DOM pero no están listos para interacción
-            logger.info("Waiting for return flights to fully render (10 seconds)...")
-            time.sleep(10)  # Esperar más tiempo a que los vuelos se rendericen completamente
+            # OPTIMIZADO: Esperar a que aparezcan al menos 30 vuelos (return flights)
+            # Cambiado de sleep(10) fijo a WebDriverWait inteligente con fallback de 4s
+            logger.info("Waiting for return flights to fully render (smart wait)...")
+            try:
+                # Esperar a que haya al menos 30 botones de vuelo visibles (cantidad típica de vuelos de vuelta)
+                wait_return = WebDriverWait(self.driver, 15)  # Max 15s
+                wait_return.until(lambda d: len(d.find_elements(By.CSS_SELECTOR, "button.journey_price_button")) >= 30)
+                logger.info("✓ Return flights loaded (30+ buttons detected)")
+                time.sleep(1)  # Pequeña espera adicional para estabilidad
+            except:
+                logger.warning("Timeout waiting for 30 buttons, proceeding with fallback wait...")
+                time.sleep(4)  # OPTIMIZADO: 10s → 4s fallback (ahorro: 6s)
 
             # PASO 1: Seleccionar primer vuelo de VUELTA
-            # IMPORTANTE: Los botones correctos tienen el texto "Choisir le tarif" (Elegir la tarifa)
-            logger.info("Looking for return journey buttons with text 'Choisir le tarif'...")
+            # IMPORTANTE: Los botones correctos tienen texto variable según idioma:
+            # - Español: "Seleccionar tarifa" / "Seleccionar de tarifa"
+            # - English: "Choose fare" / "Select fare"
+            # - Français: "Choisir le tarif"
+            # - Português: "Selecionar tarifa"
+            logger.info("Looking for return journey buttons (language-agnostic approach)...")
 
             # Buscar TODOS los botones (incluye IDA + VUELTA)
             all_journey_buttons = self.wait.until(
@@ -264,32 +276,49 @@ class SelectFlightPage:
             )
             logger.info(f"Found {len(all_journey_buttons)} total journey buttons in DOM")
 
-            # FILTRAR solo los botones que contengan "Choisir le tarif"
+            # FILTRAR solo los botones visibles (los de retorno son los que están visibles AHORA)
+            # Los de IDA ya no están visibles porque ya se seleccionaron
+            # Textos comunes en diferentes idiomas: "tarif", "tarifa", "fare"
             return_flight_buttons = []
+            keywords = ["tarif", "tarifa", "fare", "Selec", "Chois", "Choose"]  # Palabras clave multi-idioma
             for btn in all_journey_buttons:
                 try:
-                    if btn.is_displayed() and "Choisir le tarif" in btn.text:
-                        return_flight_buttons.append(btn)
+                    if btn.is_displayed():
+                        btn_text = btn.text.lower()
+                        # Si contiene alguna palabra clave relacionada con selección de tarifa
+                        if any(keyword.lower() in btn_text for keyword in keywords):
+                            return_flight_buttons.append(btn)
                 except:
                     continue
 
-            logger.info(f"Found {len(return_flight_buttons)} buttons with 'Choisir le tarif' (return flights)")
+            logger.info(f"Found {len(return_flight_buttons)} buttons with fare selection text (return flights)")
 
             if not return_flight_buttons:
-                logger.error("No return flight buttons found with text 'Choisir le tarif'")
+                logger.error("No return flight buttons found")
                 return False
 
             # Click en el PRIMERO (primer vuelo de vuelta)
             first_journey = return_flight_buttons[0]
             self.driver.execute_script("arguments[0].scrollIntoView(true);", first_journey)
-            time.sleep(1)
+            time.sleep(0.5)  # OPTIMIZADO: 1s → 0.5s (ahorro: 0.5s)
             self.driver.execute_script("arguments[0].click();", first_journey)  # JavaScript click
-            logger.info("✓ Return flight selected (first one with 'Choisir le tarif')")
+            logger.info("✓ Return flight selected (first one available)")
 
-            time.sleep(5)  # Esperar a que aparezcan los planes
+            # OPTIMIZADO: Esperar inteligentemente a que aparezcan los 3 planes de tarifa
+            # Cambiado de sleep(5) fijo a WebDriverWait inteligente con fallback de 2s
+            logger.info("Waiting for fare plans to appear for return flight (smart wait)...")
+            try:
+                # Esperar a que aparezcan exactamente 3 botones de tarifa (Basic, Classic, Flex)
+                wait_fares = WebDriverWait(self.driver, 10)  # Max 10s
+                wait_fares.until(lambda d: len(d.find_elements(By.CSS_SELECTOR, "button.fare_button")) >= 3)
+                logger.info("✓ Fare buttons loaded (3 detected)")
+                time.sleep(0.5)  # Pequeña espera para estabilidad
+            except:
+                logger.warning("Timeout waiting for fare buttons, proceeding with fallback wait...")
+                time.sleep(2)  # OPTIMIZADO: 5s → 2s fallback (ahorro: 3s)
 
             # PASO 2: Seleccionar plan FLEX (tercer botón fare_button)
-            logger.info("Waiting for fare plans to appear for return flight...")
+            logger.info("Locating fare plan buttons...")
 
             # Usar un wait más largo porque puede tardar en cargar
             wait_longer = WebDriverWait(self.driver, 25)

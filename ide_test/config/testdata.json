@@ -1,13 +1,16 @@
 {
   "current_session": {
     "case_id": "case_1",
+    "appearance_mode": "Light"
+  },
+  "case_1": {
     "parameters": {
       "browser": "Google Chrome",
       "language": "Español",
       "pos": "Chile",
       "env": "QA4",
       "origin": "Bogotá (BOG)",
-      "destination": "Bogotá (BOG)",
+      "destination": "Medellín (MDE)",
       "departure-days": "4",
       "video": "Enabled",
       "screenshots": "All Steps"
@@ -18,57 +21,256 @@
       "stop_on_first_failure": false,
       "allure_report": false,
       "parallel_execution": false
+    },
+    "passengers": {
+      "adult": {
+        "first_name": "Juan",
+        "last_name": "Pérez",
+        "gender": "Male",
+        "birth_date": "1990-01-15",
+        "nationality": "Colombia",
+        "document_type": "CC",
+        "document_number": "1234567890"
+      },
+      "teen": {
+        "first_name": "María",
+        "last_name": "García",
+        "gender": "Female",
+        "birth_date": "2012-05-20",
+        "nationality": "Colombia",
+        "document_type": "TI",
+        "document_number": "9876543210"
+      },
+      "child": {
+        "first_name": "Pedro",
+        "last_name": "López",
+        "gender": "Male",
+        "birth_date": "2018-08-10",
+        "nationality": "Colombia",
+        "document_type": "RC",
+        "document_number": "5555555555"
+      },
+      "infant": {
+        "first_name": "Ana",
+        "last_name": "Martínez",
+        "gender": "Female",
+        "birth_date": "2024-05-10",
+        "nationality": "Colombia",
+        "document_type": "RC",
+        "document_number": "1111111111"
+      }
+    },
+    "payment": {
+      "card_holder": "JUAN PEREZ",
+      "card_number": "4111111111111111",
+      "cvv": "123",
+      "expiration_month": "12",
+      "expiration_year": "2025"
+    },
+    "billing": {
+      "email": "test@test.com",
+      "address": "Calle 123 #45-67",
+      "city": "Bogota",
+      "country": "Colombia"
     }
   },
-  "passengers": {
-    "adult": {
-      "first_name": "Juan",
-      "last_name": "Pérez",
-      "gender": "Male",
-      "birth_date": "1990-01-15",
-      "nationality": "Colombia",
-      "document_type": "CC",
-      "document_number": "1234567890"
+  "case_2": {
+    "parameters": {
+      "browser": "Google Chrome",
+      "language": "English",
+      "pos": "Peru",
+      "env": "QA5",
+      "origin": "Bogotá (BOG)",
+      "destination": "Cali (CLO)",
+      "departure-days": "7",
+      "return-days": "14",
+      "video": "Enabled",
+      "screenshots": "On Failure"
     },
-    "teen": {
-      "first_name": "María",
-      "last_name": "García",
-      "gender": "Female",
-      "birth_date": "2010-05-20",
-      "nationality": "Colombia",
-      "document_type": "TI",
-      "document_number": "9876543210"
+    "pytest_flags": {
+      "verbose": true,
+      "show_prints": false,
+      "stop_on_first_failure": false,
+      "allure_report": false,
+      "parallel_execution": false
     },
-    "child": {
-      "first_name": "Pedro",
-      "last_name": "López",
-      "gender": "Male",
-      "birth_date": "2018-08-10",
-      "nationality": "Colombia",
-      "document_type": "RC",
-      "document_number": "5555555555"
+    "passengers": {
+      "adult": {
+        "first_name": "Carlos",
+        "last_name": "Rodriguez",
+        "gender": "Male",
+        "birth_date": "1990-01-15",
+        "nationality": "Peru",
+        "document_type": "DNI",
+        "document_number": "4567891230"
+      },
+      "teen": {
+        "first_name": "Sofia",
+        "last_name": "Gonzalez",
+        "gender": "Female",
+        "birth_date": "2012-05-20",
+        "nationality": "Peru",
+        "document_type": "DNI",
+        "document_number": "7891234560"
+      },
+      "child": {
+        "first_name": "Diego",
+        "last_name": "Fernandez",
+        "gender": "Male",
+        "birth_date": "2018-08-10",
+        "nationality": "Peru",
+        "document_type": "DNI",
+        "document_number": "3216549870"
+      },
+      "infant": {
+        "first_name": "Lucia",
+        "last_name": "Torres",
+        "gender": "Female",
+        "birth_date": "2024-05-10",
+        "nationality": "Peru",
+        "document_type": "DNI",
+        "document_number": "9998887776"
+      }
     },
-    "infant": {
-      "first_name": "Ana",
-      "last_name": "Martínez",
-      "gender": "Female",
-      "birth_date": "2023-12-01",
-      "nationality": "Colombia",
-      "document_type": "RC",
-      "document_number": "1111111111"
+    "payment": {
+      "card_holder": "CARLOS RODRIGUEZ",
+      "card_number": "5555555555554444",
+      "cvv": "456",
+      "expiration_month": "06",
+      "expiration_year": "2026"
+    },
+    "billing": {
+      "email": "carlos.rodriguez@test.com",
+      "address": "Av. Arequipa 1234",
+      "city": "Lima",
+      "country": "Peru"
     }
   },
-  "payment": {
-    "card_holder": "JUAN PEREZ",
-    "card_number": "4111111111111111",
-    "cvv": "123",
-    "expiration_month": "12",
-    "expiration_year": "2025"
+  "case_3": {
+    "parameters": {
+      "browser": "Google Chrome",
+      "language": "Français",
+      "pos": "Francia",
+      "env": "QA5",
+      "origin": "Bogotá (BOG)",
+      "destination": "Medellín (MDE)",
+      "departure-days": "3",
+      "return-days": "6",
+      "video": "Disabled",
+      "screenshots": "None"
+    },
+    "pytest_flags": {
+      "verbose": true,
+      "show_prints": false,
+      "stop_on_first_failure": false,
+      "allure_report": false,
+      "parallel_execution": false
+    },
+    "passengers": {
+      "adult": {},
+      "teen": {},
+      "child": {},
+      "infant": {}
+    },
+    "payment": {},
+    "billing": {}
   },
-  "billing": {
-    "email": "test@avianca.com",
-    "address": "Calle 123 #45-67",
-    "city": "Bogotá",
-    "country": "Colombia"
+  "case_4": {
+    "parameters": {
+      "browser": "Google Chrome",
+      "language": "English",
+      "env": "QA5",
+      "video": "Disabled",
+      "screenshots": "None"
+    },
+    "pytest_flags": {
+      "verbose": true,
+      "show_prints": false,
+      "stop_on_first_failure": false,
+      "allure_report": false,
+      "parallel_execution": false
+    },
+    "passengers": {
+      "adult": {},
+      "teen": {},
+      "child": {},
+      "infant": {}
+    },
+    "payment": {},
+    "billing": {}
+  },
+  "case_5": {
+    "parameters": {
+      "browser": "Google Chrome",
+      "pos": "Chile",
+      "env": "QA5",
+      "video": "Disabled",
+      "screenshots": "None"
+    },
+    "pytest_flags": {
+      "verbose": true,
+      "show_prints": false,
+      "stop_on_first_failure": false,
+      "allure_report": false,
+      "parallel_execution": false
+    },
+    "passengers": {
+      "adult": {},
+      "teen": {},
+      "child": {},
+      "infant": {}
+    },
+    "payment": {},
+    "billing": {}
+  },
+  "case_6": {
+    "parameters": {
+      "browser": "Google Chrome",
+      "language": "Español",
+      "header-link": "vuelos",
+      "env": "QA5",
+      "video": "Disabled",
+      "screenshots": "All Steps"
+    },
+    "pytest_flags": {
+      "verbose": true,
+      "show_prints": false,
+      "stop_on_first_failure": false,
+      "allure_report": false,
+      "parallel_execution": false
+    },
+    "passengers": {
+      "adult": {},
+      "teen": {},
+      "child": {},
+      "infant": {}
+    },
+    "payment": {},
+    "billing": {}
+  },
+  "case_7": {
+    "parameters": {
+      "browser": "Google Chrome",
+      "language": "Español",
+      "footer-link": "vuelos",
+      "env": "QA5",
+      "video": "Disabled",
+      "screenshots": "All Steps"
+    },
+    "pytest_flags": {
+      "verbose": true,
+      "show_prints": false,
+      "stop_on_first_failure": false,
+      "allure_report": false,
+      "parallel_execution": false
+    },
+    "passengers": {
+      "adult": {},
+      "teen": {},
+      "child": {},
+      "infant": {}
+    },
+    "payment": {},
+    "billing": {}
   }
 }

@@ -15,18 +15,10 @@ from datetime import datetime
 # ==================== LOGGER ====================
 logger = logging.getLogger(__name__)
 
-# ==================== CONSTANTES ====================
-# Diccionario con nombres descriptivos de cada header link
-HEADER_LINK_NAMES = {
-    "ofertas-vuelos": "Ofertas de vuelos",
-    "credits": "Avianca Credits",
-    "equipaje": "Equipaje"
-}
-
 # ==================== TESTS ====================
 @allure.feature("Header Redirections")
 @allure.severity(allure.severity_level.NORMAL)
-def test_header_redirections(driver, base_url, db, header_link, browser, screenshots_mode, language, request):
+def test_header_redirections(driver, base_url, db, header_link, browser, screenshots_mode, language, request, test_config):
     """
     Test Case 6: Verificar redirecciones del header (navbar).
 
@@ -55,7 +47,10 @@ def test_header_redirections(driver, base_url, db, header_link, browser, screens
     # PASO 0: Configurar metadata de Allure para organización visual
     env = base_url.split('//')[1].split('.')[0].upper()  # Extrae "NUXQA4" o "NUXQA5"
     case_number = "6"  # Número del caso de prueba
-    link_name = HEADER_LINK_NAMES[header_link]
+
+    # Obtener display_name del header link desde JSON
+    header_options = test_config.get_parameter_options("header-link")
+    link_name = header_options.get(header_link, {}).get("display_name", header_link)
 
     # Título descriptivo para el reporte (el idioma se agregará después)
     # El idioma se establece dinámicamente después de la navegación

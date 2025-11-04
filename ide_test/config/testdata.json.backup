@@ -1,0 +1,33 @@
+{
+  "current_session": {
+    "case_id": "case_3",
+    "parameters": {
+      "browser": "Google Chrome",
+      "language": "Español",
+      "pos": "Chile",
+      "env": "QA5",
+      "origin": "Bogotá (BOG)",
+      "destination": "Medellín (MDE)",
+      "departure-days": "4",
+      "return-days": "5",
+      "video": "Disabled",
+      "screenshots": "None"
+    },
+    "pytest_flags": {
+      "verbose": true,
+      "show_prints": false,
+      "stop_on_first_failure": false,
+      "allure_report": false,
+      "parallel_execution": false
+    },
+    "appearance_mode": "Light"
+  },
+  "passengers": {
+    "adult": {},
+    "teen": {},
+    "child": {},
+    "infant": {}
+  },
+  "payment": {},
+  "billing": {}
+}

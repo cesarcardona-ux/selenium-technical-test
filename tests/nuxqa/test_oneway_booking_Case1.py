@@ -34,77 +34,12 @@ from datetime import datetime, timedelta
 # ==================== LOGGER ====================
 logger = logging.getLogger(__name__)
 
-# ==================== CONFIGURACIÓN ====================
-# Datos de pasajeros (1 de cada tipo según PDF)
-# Datos fake permitidos según PDF
-PASSENGERS_DATA = [
-    # IMPORTANTE: El orden debe coincidir con el orden de los contenedores en la página
-    # Orden en la página: 1=Adulto, 2=Bebé, 3=Joven, 4=Niño
-    {
-        "type": "Adult",  # Posición 1 en la página
-        "first_name": "Juan",
-        "last_name": "Perez",
-        "birth_date": "1990-01-15",  # Adult: 35 years (18+ años)
-        "gender": "M",
-        "doc_type": "CC",
-        "doc_number": "1234567890",
-        "email": "juan.perez@test.com",
-        "phone": "3001234567"
-    },
-    {
-        "type": "Infant",  # Posición 2 en la página (BEBÉ)
-        "first_name": "Sofia",
-        "last_name": "Martinez",
-        "birth_date": "2024-06-25",  # Infant: 1 año (0-2 años)
-        "gender": "F",
-        "doc_type": "RC",
-        "doc_number": "5556667778"
-    },
-    {
-        "type": "Teen",  # Posición 3 en la página (JOVEN)
-        "first_name": "Maria",
-        "last_name": "Gomez",
-        "birth_date": "2011-05-20",  # Teen: 16 years (15+ to 18 años)
-        "gender": "F",
-        "doc_type": "TI",
-        "doc_number": "9876543210"
-    },
-    {
-        "type": "Child",  # Posición 4 en la página (NIÑO)
-        "first_name": "Pedro",
-        "last_name": "Rodriguez",
-        "birth_date": "2015-08-10",  # Child: 10 años (2-15 años)
-        "gender": "M",
-        "doc_type": "RC",
-        "doc_number": "1112223334"
-    }
-]
-
-# Datos de tarjeta fake (según PDF: datos fake permitidos, pago puede ser rechazado)
-CARD_DATA = {
-    "card_number": "4111111111111111",  # Tarjeta de prueba Visa
-    "card_holder": "JUAN PEREZ TEST",
-    "expiry_month": "12",
-    "expiry_year": "2026",
-    "cvv": "123"
-}
-
-# Datos de billing
-BILLING_DATA = {
-    "email": "test@example.com",
-    "phone": "3001234567",
-    "address": "Calle 123 #45-67",
-    "city": "Bogota",
-    "zip_code": "110111",
-    "country": "CO"
-}
-
 # ==================== TEST ====================
 @allure.feature("Case 1: One-way Booking")
 @allure.story("Complete One-way Flight Booking Flow")
 @allure.severity(allure.severity_level.CRITICAL)
 @pytest.mark.case1
-def test_oneway_booking(driver, base_url, db, browser, language, screenshots_mode, request):
+def test_oneway_booking(driver, base_url, db, browser, language, screenshots_mode, request, test_config):
     """
     Caso 1: One-way Booking - Flujo completo de reserva de ida.
 
@@ -128,6 +63,47 @@ def test_oneway_booking(driver, base_url, db, browser, language, screenshots_mod
     test_name = request.node.name
     video_mode = request.config.getoption("--video")
 
+    # Obtener parámetros CLI al inicio para usarlos en el test summary
+    pos_param = request.config.getoption("--pos")
+    origin_param = request.config.getoption("--origin")
+    destination_param = request.config.getoption("--destination")
+    departure_days_param = int(request.config.getoption("--departure-days"))
+
+    # Obtener información de ciudades desde JSON
+    cities_info = test_config.get_parameter_options("cities")
+    origin_city_name = cities_info[origin_param]["city_name"]
+    dest_city_name = cities_info[destination_param]["city_name"]
+
+    # ==================== CARGAR DATOS DESDE JSON ====================
+    # Cargar datos de pasajeros desde testdata.json
+    # IMPORTANTE: El orden debe coincidir con el orden de los contenedores en la página
+    # Orden en la página: 1=Adulto, 2=Bebé, 3=Joven, 4=Niño
+
+    # Cargar datos de facturación para obtener email y teléfono del adulto
+    billing_data_temp = test_config.get_billing_data()
+
+    adult_data = test_config.get_passenger_data("adult")
+    adult_data["type"] = "Adult"
+    adult_data["email"] = billing_data_temp.get("email", "test@example.com")
+    adult_data["phone"] = billing_data_temp.get("phone", "3001234567")  # Nuevo campo agregado
+
+    infant_data = test_config.get_passenger_data("infant")
+    infant_data["type"] = "Infant"
+
+    teen_data = test_config.get_passenger_data("teen")
+    teen_data["type"] = "Teen"
+
+    child_data = test_config.get_passenger_data("child")
+    child_data["type"] = "Child"
+
+    PASSENGERS_DATA = [adult_data, infant_data, teen_data, child_data]
+
+    # Cargar datos de pago y facturación desde testdata.json
+    CARD_DATA = test_config.get_payment_data()
+    BILLING_DATA = billing_data_temp
+
+    logger.info(f"✅ Datos cargados desde JSON: {len(PASSENGERS_DATA)} pasajeros, tarjeta, facturación")
+
     # Obtener environment del base_url
     if "nuxqa4" in base_url:
         env = "qa4"
@@ -150,7 +126,7 @@ def test_oneway_booking(driver, base_url, db, browser, language, screenshots_mod
 
     # ==================== PASO 1: Configuración y Resumen ====================
     with allure.step("Initialize Test Configuration"):
-        test_config = (
+        test_summary = (
             f"═══════════════════════════════════════════════════\n"
             f"        CASE 1 - ONE-WAY BOOKING TEST\n"
             f"═══════════════════════════════════════════════════\n\n"
@@ -161,7 +137,10 @@ def test_oneway_booking(driver, base_url, db, browser, language, screenshots_mod
             f"   • Browser: {browser.capitalize()}\n\n"
             f"🌍 CONFIGURATION:\n"
             f"   • Language: {language}\n"
-            f"   • POS (Point of Sale): Chile\n"
+            f"   • POS (Point of Sale): {pos_param}\n"
+            f"   • Origin: {origin_param} ({origin_city_name})\n"
+            f"   • Destination: {destination_param} ({dest_city_name})\n"
+            f"   • Departure: TODAY + {departure_days_param} days\n"
             f"   • Trip Type: One-way (Solo ida)\n\n"
             f"👥 PASSENGERS ({len(PASSENGERS_DATA)} total):\n"
             f"   • 1 Adult (Adulto)\n"
@@ -185,7 +164,7 @@ def test_oneway_booking(driver, base_url, db, browser, language, screenshots_mod
         )
 
         allure.attach(
-            test_config,
+            test_summary,
             name="📋 Test Configuration Summary",
             attachment_type=allure.attachment_type.TEXT
         )
@@ -207,17 +186,16 @@ def test_oneway_booking(driver, base_url, db, browser, language, screenshots_mod
         time.sleep(1)
 
         # Seleccionar POS (requisito del PDF - Case 1 página 3: "Home: Seleccionar idioma, pos...")
-        # Usamos "Chile" como POS por defecto
-        pos_to_select = "Chile"
-        logger.info(f"Selecting POS: {pos_to_select}")
+        # Usar POS desde parámetro CLI (ya obtenido al inicio)
+        logger.info(f"Selecting POS: {pos_param}")
         search_page.click_pos_button()  # Método heredado de HomePage
-        search_page.select_pos(pos_to_select)  # Método heredado de HomePage
+        search_page.select_pos(pos_param)  # Método heredado de HomePage
         time.sleep(1)
 
         step_results["language_selection"] = "SUCCESS"
         step_results["pos_selection"] = "SUCCESS"
         allure.attach(
-            f"Language: {language}\nPOS: {pos_to_select}\nURL: {driver.current_url}",
+            f"Language: {language}\nPOS: {pos_param}\nURL: {driver.current_url}",
             name="Language and POS Configuration",
             attachment_type=allure.attachment_type.TEXT
         )
@@ -234,15 +212,23 @@ def test_oneway_booking(driver, base_url, db, browser, language, screenshots_mod
             logger.warning("Could not select trip type, continuing with default")
         time.sleep(1)
 
-        # Seleccionar origen y destino
-        search_page.select_origin("BOG", "Bogo")  # Bogotá, Colombia
+        # Obtener search strings desde parameter_options.json (usando variables del inicio)
+        origin_search = cities_info[origin_param]["search_string"]
+        dest_search = cities_info[destination_param]["search_string"]
+
+        logger.info(f"Origin: {origin_param} (search: '{origin_search}')")
+        logger.info(f"Destination: {destination_param} (search: '{dest_search}')")
+        logger.info(f"Departure days from today: {departure_days_param}")
+
+        # Seleccionar origen y destino usando parámetros desde JSON
+        search_page.select_origin(origin_param, origin_search)
         time.sleep(1)
 
-        search_page.select_destination("MDE", "Mede")  # Medellín, Colombia
+        search_page.select_destination(destination_param, dest_search)
         time.sleep(1)
 
         # Seleccionar fecha (solo ida - sin fecha de regreso para One-way)
-        search_page.select_dates(departure_days_from_today=6, return_days_from_today=None)
+        search_page.select_dates(departure_days_from_today=departure_days_param, return_days_from_today=None)
         time.sleep(2)
 
         # Configurar pasajeros: 1 de cada tipo
@@ -250,13 +236,14 @@ def test_oneway_booking(driver, base_url, db, browser, language, screenshots_mod
         search_page.select_passengers(adults=1, teens=1, children=1, infants=1)
         time.sleep(1)
 
+        # Crear summary de búsqueda usando variables ya definidas al inicio
         search_info = (
             f"Language: {language}\n"
-            f"POS: Chile\n"
+            f"POS: {pos_param}\n"
             f"Trip Type: One-way (Solo ida)\n"
-            f"Origin: BOG (Bogotá)\n"
-            f"Destination: MDE (Medellín)\n"
-            f"Departure: TODAY + 7 days\n"
+            f"Origin: {origin_param} ({origin_city_name})\n"
+            f"Destination: {destination_param} ({dest_city_name})\n"
+            f"Departure: TODAY + {departure_days_param} days\n"
             f"Passengers: 4 total (1 Adult, 1 Teen, 1 Child, 1 Infant)"
         )
 

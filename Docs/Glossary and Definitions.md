@@ -1114,4 +1114,220 @@ pip install -r requirements.txt
 
 ------------------------------------------
 
-*Última actualización: Agregados conceptos detallados de POM (Page Object Model), LOCATORS, CSS SELECTOR y XPATH con comparaciones y ejemplos prácticos*
+## CONFIGMANAGER
+
+**Qué es:** Clase personalizada para gestionar la configuración del proyecto
+
+**Ubicación:** `ide_test/core/config_manager.py`
+
+**Para qué sirve:**
+- Cargar y guardar configuraciones desde/hacia archivos JSON
+- Centralizar acceso a parámetros de prueba
+- Gestionar datos de sesión actual
+- Aislar datos por caso de prueba
+
+**Métodos principales:**
+```python
+test_config = ConfigManager()
+test_config.get_testdata()              # Cargar testdata.json
+test_config.save_testdata(data)         # Guardar configuración
+test_config.get_parameter_options()     # Obtener definiciones de parámetros
+test_config.get_case_mappings()         # Obtener configuraciones de casos
+```
+
+**Archivos JSON gestionados:**
+- `testdata.json` - Datos de prueba y sesión actual
+- `parameter_options.json` - Definiciones de parámetros (378 líneas)
+- `case_mappings.json` - Relaciones caso-parámetro
+
+**Beneficio:** Elimina valores hardcodeados, facilita mantenimiento y escalabilidad
+
+------------------------------------------
+
+## CUSTOMTKINTER
+
+**Qué es:** Biblioteca de Python para crear interfaces gráficas modernas
+
+**Instalación:**
+```bash
+pip install customtkinter
+```
+
+**Para qué se usa en este proyecto:** Crear la aplicación GUI "Pytest Command Generator"
+
+**Ventajas sobre Tkinter estándar:**
+- Aspecto moderno y profesional
+- Temas claro/oscuro integrados
+- Widgets personalizables (botones, dropdowns, entradas)
+- Mejor experiencia de usuario
+
+**En el proyecto:**
+- Ventana principal: `ide_test/gui/main_window.py` (755 líneas)
+- 3 paneles: Test Parameters, Pytest Flags, Test Data
+- Botones para copiar/ejecutar comandos
+
+------------------------------------------
+
+## GUI (Graphical User Interface)
+
+**Qué es:** Interfaz Gráfica de Usuario
+
+**Aplicación en el proyecto:** "Pytest Command Generator"
+
+**Ubicación:** `ide_test/` directory
+
+**Para qué sirve:**
+- Generar comandos pytest sin escribirlos manualmente
+- Configurar parámetros de test visualmente
+- Guardar/cargar configuraciones
+- Ejecutar tests con un clic
+
+**Características:**
+- Selección de caso de prueba (1-7)
+- Configuración de parámetros (browser, language, POS, env, etc.)
+- Editor de datos de prueba (pasajeros, pago, facturación)
+- Flags de pytest (verbose, parallel, allure)
+- Tema claro/oscuro
+
+**Cómo iniciar:**
+```bash
+cd ide_test
+python main.py
+```
+
+------------------------------------------
+
+## PARAMETRIZACIÓN (Test Parametrization)
+
+**Qué es:** Técnica de diseño de tests que usa valores configurables en lugar de valores fijos
+
+**Problema que resuelve:**
+- **Sin parametrización (hardcoded):**
+  ```python
+  origin = "BOG"  # Fijo, requiere cambio de código
+  ```
+- **Con parametrización:**
+  ```python
+  origin = request.config.getoption("--origin")  # Configurable vía CLI
+  ```
+
+**Niveles de parametrización en el proyecto:**
+- **CLI Parameters:** Valores pasados al ejecutar pytest (`--browser=chrome`)
+- **JSON Configuration:** Valores almacenados en archivos JSON
+- **Pytest Parametrize:** Generación de múltiples tests desde un solo test
+
+**Beneficios:**
+- **Flexibilidad:** Cambiar configuración sin tocar código
+- **Reutilización:** Mismo test con diferentes datos
+- **Mantenibilidad:** Actualizaciones centralizadas
+- **Escalabilidad:** Agregar parámetros sin modificar lógica
+
+**Score de parametrización del proyecto:**
+- Casos 1-7: **10/10** - Zero hardcoded values ✅
+
+------------------------------------------
+
+## JSON (JavaScript Object Notation)
+
+**Qué es:** Formato de intercambio de datos legible por humanos y máquinas
+
+**Para qué se usa en este proyecto:** Almacenar configuraciones y datos de prueba
+
+**Formato básico:**
+```json
+{
+  "case_1": {
+    "parameters": {
+      "browser": "chrome",
+      "language": "Español"
+    }
+  }
+}
+```
+
+**Archivos JSON en el proyecto:**
+- `ide_test/config/testdata.json` - Datos de prueba por caso
+- `ide_test/config/parameter_options.json` - Definiciones de parámetros
+- `ide_test/config/case_mappings.json` - Configuraciones de casos
+
+**Ventajas:**
+- Fácil de leer y editar
+- Estructura jerárquica (objetos anidados)
+- Compatible con Python, JavaScript, y otros lenguajes
+- No requiere recompilar código al modificar
+
+**Cargar JSON en Python:**
+```python
+import json
+with open('config.json', 'r') as f:
+    data = json.load(f)
+```
+
+------------------------------------------
+
+## LANGUAGE_POS_MAPPING
+
+**Qué es:** Configuración JSON que mapea idiomas a POS por defecto
+
+**Ubicación:** `ide_test/config/parameter_options.json` (líneas 360-377)
+
+**Para qué sirve:** Determinar automáticamente el POS basado en el idioma seleccionado
+
+**Estructura:**
+```json
+"language_pos_mapping": {
+  "Español": {"default_pos": "Chile"},
+  "English": {"default_pos": "Chile"},
+  "Français": {"default_pos": "Francia"},
+  "Português": {"default_pos": "Chile"}
+}
+```
+
+**Uso en tests:**
+```python
+# Case 3: Load mapping from JSON instead of hardcoded dictionary
+language_mapping = test_config.get_parameter_options("language_pos_mapping")
+POS = language_mapping.get(language, {}).get("default_pos", "Otros países")
+```
+
+**Beneficio:** Cambiar relaciones idioma→POS sin modificar código de tests
+
+------------------------------------------
+
+## IATA CODE (Código IATA)
+
+**Qué es:** Código de 3 letras que identifica aeropuertos internacionalmente
+
+**Ejemplos:**
+- **BOG** = Bogotá, Colombia
+- **MDE** = Medellín, Colombia
+- **CLO** = Cali, Colombia
+- **MAD** = Madrid, España
+- **SCL** = Santiago, Chile
+- **LIM** = Lima, Perú
+
+**Para qué se usa en el proyecto:**
+- Parámetros `--origin` y `--destination` en CLI
+- Configuración de ciudades en `parameter_options.json`
+- Búsqueda dinámica de vuelos en tests
+
+**Información almacenada por código IATA:**
+```json
+"BOG": {
+  "iata_code": "BOG",
+  "city_name": "Bogotá",
+  "search_string": "Bogo",
+  "country": "Colombia",
+  "timezone": "America/Bogota"
+}
+```
+
+**Comando de ejemplo:**
+```bash
+pytest tests/nuxqa/test_oneway_booking_Case1.py \
+  --origin=BOG --destination=MDE -v
+```
+
+------------------------------------------
+
+*Última actualización: Agregados conceptos de ConfigManager, CustomTkinter, GUI, Parametrización, JSON, Language_POS_Mapping, y códigos IATA relacionados con v1.4.0*

@@ -31,41 +31,10 @@ from utils.network_capture import NetworkCapture
 import json
 
 # ==================== CONFIGURACIÓN ====================
-# Configuración fija para Case 3 (sin login)
-LANGUAGE = "Français"
-POS = "France"
+# Configuración para Case 3 - Ahora parametrizado por idioma
 PASSENGERS_EACH_TYPE = 3  # 3 pasajeros de cada tipo según PDF
 
-# Mapeo de códigos IATA a textos de búsqueda
-AIRPORT_SEARCH_MAPPING = {
-    # Colombia
-    "BOG": "Bogo",      # Bogotá
-    "MDE": "Mede",      # Medellín
-    "CLO": "Cali",      # Cali
-    "CTG": "Cart",      # Cartagena
-    "BAQ": "Barr",      # Barranquilla
-    "SMR": "Sant",      # Santa Marta
-    "BGA": "Buca",      # Bucaramanga
-
-    # Ecuador
-    "UIO": "Quit",      # Quito
-    "GYE": "Guay",      # Guayaquil
-
-    # España
-    "MAD": "Madr",      # Madrid
-    "BCN": "Barc",      # Barcelona
-
-    # Perú
-    "LIM": "Lima",      # Lima
-
-    # México
-    "MEX": "Mexi",      # Ciudad de México
-
-    # USA
-    "MIA": "Miam",      # Miami
-    "JFK": "New",       # Nueva York JFK
-}
-
+# NOTA: Todos los mapeos (idioma→POS, aeropuertos) ahora se cargan desde parameter_options.json
 # NOTA: Las fechas y ciudades se pasan por parámetros CLI:
 # --origin, --destination, --departure-days, --return-days
 
@@ -74,15 +43,25 @@ AIRPORT_SEARCH_MAPPING = {
 @allure.story("Search Flights with Session Event Capture")
 @allure.severity(allure.severity_level.CRITICAL)
 @pytest.mark.case3
-def test_flight_search_and_network_capture(driver, base_url, db, browser, screenshots_mode, request):
+def test_flight_search_and_network_capture(driver, base_url, db, browser, language, screenshots_mode, request):
     """
     Caso 3: Búsqueda de vuelos y captura del evento Session del Network.
+
+    Parametrización dinámica basada en opciones CLI:
+    - language: Controlado por --language (default: all)
+    - browser: Controlado por --browser (default: all)
+    - base_url: Fijo a UAT1 (nuxqa.avtest.ink)
+    - screenshots_mode: Controlado por --screenshots (default: on-failure)
+
+    Total de ejecuciones:
+    - Por defecto: 4 idiomas × 1 env (UAT1) × 1 navegador (chrome) = 4 tests
+    - Ejemplo: --browser=chrome --language=Español --env=uat1 → 1 test
 
     Flujo del test (según PDF página 4):
     1. Habilitar captura de red (CDP)
     2. Navegar a UAT1
-    3. Configurar idioma Francés
-    4. Configurar POS France
+    3. Configurar idioma (parametrizado: Español, English, Français, Português)
+    4. Configurar POS según idioma (mapeo automático)
     5. Llenar formulario de búsqueda (origen, destino, fechas, 3 pasajeros de cada tipo)
     6. Hacer click en "Buscar"
     7. Validar que cargue página Select Flight
@@ -95,6 +74,15 @@ def test_flight_search_and_network_capture(driver, base_url, db, browser, screen
     - Logs detallados
     - Almacenamiento en SQLite
     - Reporte Allure con attachments
+
+    Args:
+        driver: Fixture del navegador
+        base_url: URL de UAT1 (fija)
+        db: Fixture de base de datos
+        browser: Navegador (viene de pytest_generate_tests)
+        language: Idioma parametrizado (Español, English, Français, Português)
+        screenshots_mode: Modo de captura de screenshots
+        request: Objeto request de pytest
     """
 
     # ==================== SETUP ====================
@@ -103,26 +91,31 @@ def test_flight_search_and_network_capture(driver, base_url, db, browser, screen
     env = "uat1"  # UAT1 environment
     video_mode = request.config.getoption("--video")
 
+    # Cargar mapeo idioma→POS desde JSON
+    language_pos_mapping = test_config.get_parameter_options("language_pos_mapping")
+    POS = language_pos_mapping.get(language, {}).get("default_pos", "Otros países")
+
     # Obtener parámetros CLI para Case 3
     ORIGIN_CODE = request.config.getoption("--origin")
     DESTINATION_CODE = request.config.getoption("--destination")
     DEPARTURE_DAYS_FROM_TODAY = request.config.getoption("--departure-days")
     RETURN_DAYS_FROM_TODAY = request.config.getoption("--return-days")
 
-    # Obtener textos de búsqueda del diccionario
-    ORIGIN_SEARCH = AIRPORT_SEARCH_MAPPING.get(ORIGIN_CODE, ORIGIN_CODE[:4].capitalize())
-    DESTINATION_SEARCH = AIRPORT_SEARCH_MAPPING.get(DESTINATION_CODE, DESTINATION_CODE[:4].capitalize())
+    # Cargar información de ciudades desde JSON
+    cities_info = test_config.get_parameter_options("cities")
+    ORIGIN_SEARCH = cities_info[ORIGIN_CODE]["search_string"]
+    DESTINATION_SEARCH = cities_info[DESTINATION_CODE]["search_string"]
 
     # Agregar tags dinámicos a Allure
     allure.dynamic.tag(f"browser-{browser}")
     allure.dynamic.tag(f"env-{env}")
-    allure.dynamic.tag(f"language-{LANGUAGE.lower()}")
+    allure.dynamic.tag(f"language-{language.lower()}")
     allure.dynamic.tag(f"pos-{POS.lower()}")
     allure.dynamic.tag("flight-search")
     allure.dynamic.tag("network-capture")
 
     # Título dinámico
-    allure.dynamic.title(f"Flight Search & Network Capture [{browser}] [UAT1] [French-France]")
+    allure.dynamic.title(f"Flight Search & Network Capture [{browser}] [UAT1] [{language}-{POS}]")
 
     # ==================== PASO 1: Inicializar Page Objects y Network Capture ====================
     with allure.step("Initialize Page Objects and Network Capture"):
@@ -148,8 +141,8 @@ def test_flight_search_and_network_capture(driver, base_url, db, browser, screen
             f"   • Environment: {env.upper()} (https://nuxqa.avtest.ink/)\n"
             f"   • Browser: {browser.capitalize()}\n\n"
             f"🌍 LOCALIZATION:\n"
-            f"   • Language: {LANGUAGE}\n"
-            f"   • POS (Point of Sale): {POS}\n\n"
+            f"   • Language: {language}\n"
+            f"   • POS (Point of Sale): {POS} (mapped from language)\n\n"
             f"✈️  FLIGHT SEARCH PARAMETERS:\n"
             f"   • Origin: {ORIGIN_CODE} ({ORIGIN_SEARCH})\n"
             f"   • Destination: {DESTINATION_CODE} ({DESTINATION_SEARCH})\n"
@@ -186,15 +179,15 @@ def test_flight_search_and_network_capture(driver, base_url, db, browser, screen
     # ==================== PASO 2: Navegar a UAT1 ====================
     with allure.step(f"Open UAT1 URL: {base_url}"):
         search_page.open(base_url)
-        time.sleep(2)  # Espera inicial para carga completa
+        time.sleep(1)  # OPTIMIZADO: 2s → 1s (ahorro: 1s) - Espera inicial para carga completa
 
     # ==================== PASO 3: Configurar Idioma ====================
-    with allure.step(f"Configure Language: {LANGUAGE}"):
-        search_page.select_language(LANGUAGE)
-        time.sleep(1)
+    with allure.step(f"Configure Language: {language}"):
+        search_page.select_language(language)
+        time.sleep(0.5)  # OPTIMIZADO: 1s → 0.5s (ahorro: 0.5s)
 
         allure.attach(
-            f"Selected Language: {LANGUAGE}",
+            f"Selected Language: {language}",
             name="Language Configuration",
             attachment_type=allure.attachment_type.TEXT
         )
@@ -202,7 +195,7 @@ def test_flight_search_and_network_capture(driver, base_url, db, browser, screen
     # ==================== PASO 4: Configurar POS ====================
     with allure.step(f"Configure POS: {POS}"):
         search_page.configure_pos(POS)
-        time.sleep(1)
+        time.sleep(0.5)  # OPTIMIZADO: 1s → 0.5s (ahorro: 0.5s)
 
         allure.attach(
             f"Selected POS: {POS}",
@@ -213,7 +206,7 @@ def test_flight_search_and_network_capture(driver, base_url, db, browser, screen
     # ==================== PASO 5: Seleccionar Origen ====================
     with allure.step(f"Select Origin: {ORIGIN_CODE} (search: '{ORIGIN_SEARCH}')"):
         search_page.select_origin(ORIGIN_CODE, ORIGIN_SEARCH)
-        time.sleep(1)
+        time.sleep(0.5)  # OPTIMIZADO: 1s → 0.5s (ahorro: 0.5s)
 
         allure.attach(
             f"Origin Code: {ORIGIN_CODE}\nSearch Text: {ORIGIN_SEARCH}",
@@ -224,7 +217,7 @@ def test_flight_search_and_network_capture(driver, base_url, db, browser, screen
     # ==================== PASO 6: Seleccionar Destino ====================
     with allure.step(f"Select Destination: {DESTINATION_CODE} (search: '{DESTINATION_SEARCH}')"):
         search_page.select_destination(DESTINATION_CODE, DESTINATION_SEARCH)
-        time.sleep(1)
+        time.sleep(0.5)  # OPTIMIZADO: 1s → 0.5s (ahorro: 0.5s)
 
         allure.attach(
             f"Destination Code: {DESTINATION_CODE}\nSearch Text: {DESTINATION_SEARCH}",
@@ -243,7 +236,7 @@ def test_flight_search_and_network_capture(driver, base_url, db, browser, screen
             departure_days_from_today=DEPARTURE_DAYS_FROM_TODAY,
             return_days_from_today=RETURN_DAYS_FROM_TODAY
         )
-        time.sleep(1)
+        time.sleep(0.5)  # OPTIMIZADO: 1s → 0.5s (ahorro: 0.5s)
 
         allure.attach(
             f"Today: {today.strftime('%Y-%m-%d')}\n"
@@ -264,7 +257,7 @@ def test_flight_search_and_network_capture(driver, base_url, db, browser, screen
             children=3,
             infants=0  # Sin bebés para mantener total en 9
         )
-        time.sleep(1)
+        time.sleep(0.5)  # OPTIMIZADO: 1s → 0.5s (ahorro: 0.5s)
 
         total_passengers = 9  # 3 Adultos + 3 Jóvenes + 3 Niños
         allure.attach(
@@ -280,7 +273,7 @@ def test_flight_search_and_network_capture(driver, base_url, db, browser, screen
 
         # Click en buscar
         search_page.click_search_button()
-        time.sleep(5)  # Espera a que cargue la página de Select Flight
+        time.sleep(2)  # OPTIMIZADO: 5s → 2s (ahorro: 3s) - Ya tiene wait_for_page_load() después
 
         allure.attach(
             "Search button clicked\nWaiting for Select Flight page to load...",
@@ -387,8 +380,8 @@ def test_flight_search_and_network_capture(driver, base_url, db, browser, screen
                 attachment_type=allure.attachment_type.PNG
             )
 
-        # Esperar un momento para que se cargue completamente el resumen
-        time.sleep(2)
+        # OPTIMIZADO: Esperar a que se cargue el resumen (2s → 1s)
+        time.sleep(1)  # Ahorro: 1s
 
     # ==================== PASO 11: Capturar Network Events ====================
     with allure.step("Capture Session event from Network"):
@@ -546,7 +539,7 @@ def test_flight_search_and_network_capture(driver, base_url, db, browser, screen
             execution_time=0,  # pytest calculará esto automáticamente
             browser=browser,
             url=final_url,
-            language=LANGUAGE,
+            language=language,
             case_number=case_number,
             environment=env,
             screenshots_mode=screenshots_mode,

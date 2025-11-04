@@ -71,7 +71,11 @@ class CommandBuilder:
                 command_value = self._get_command_value(param_name, selected_value)
 
                 if command_value:
-                    command_parts.append(f"--{param_name}={command_value}")
+                    # Escapar valores con espacios entre comillas dobles
+                    if " " in command_value:
+                        command_parts.append(f'--{param_name}="{command_value}"')
+                    else:
+                        command_parts.append(f"--{param_name}={command_value}")
 
         # Agregar flags de pytest
         if pytest_flags:
@@ -117,7 +121,11 @@ class CommandBuilder:
                 command_value = self._get_command_value(param_name, selected_value)
 
                 if command_value:
-                    param_lines.append(f"  --{param_name}={command_value}")
+                    # Escapar valores con espacios entre comillas dobles
+                    if " " in command_value:
+                        param_lines.append(f'  --{param_name}="{command_value}"')
+                    else:
+                        param_lines.append(f"  --{param_name}={command_value}")
 
         # Agregar flags de pytest
         if pytest_flags:

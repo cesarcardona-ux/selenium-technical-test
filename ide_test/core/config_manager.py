@@ -167,16 +167,39 @@ class ConfigManager:
 
     # ==================== TEST DATA ====================
 
-    def load_testdata(self) -> Dict[str, Any]:
+    def load_testdata(self, case_id: Optional[str] = None) -> Dict[str, Any]:
         """
-        Carga datos de prueba (pasajeros, pago, facturación)
+        Carga datos de prueba (pasajeros, pago, facturación) de un caso específico
+
+        Args:
+            case_id: ID del caso (ej: "case_1", "case_3"). Si es None, carga current_session
 
         Returns:
-            Diccionario con datos de prueba
+            Diccionario con datos de prueba del caso
         """
         if self._testdata is None:
             self._testdata = self._load_json(self.testdata_file)
-        return self._testdata
+
+        # Si no se especifica case_id, intentar obtenerlo de current_session
+        if case_id is None:
+            current_session = self._testdata.get("current_session", {})
+            case_id = current_session.get("case_id")
+
+        # Si hay un case_id, devolver datos específicos del caso
+        if case_id and case_id in self._testdata:
+            case_data = self._testdata[case_id]
+            return {
+                "passengers": case_data.get("passengers", {}),
+                "payment": case_data.get("payment", {}),
+                "billing": case_data.get("billing", {})
+            }
+
+        # Fallback: devolver estructura vacía
+        return {
+            "passengers": {"adult": {}, "teen": {}, "child": {}, "infant": {}},
+            "payment": {},
+            "billing": {}
+        }
 
     def save_testdata(self, testdata: Dict[str, Any]) -> None:
         """
@@ -205,7 +228,7 @@ class ConfigManager:
                            pytest_flags: Dict[str, bool], testdata: Dict[str, Any],
                            appearance_mode: str = "Dark") -> None:
         """
-        Guarda TODO el estado de la aplicación en testdata.json
+        Guarda el estado del caso actual en testdata.json sin borrar otros casos
 
         Args:
             case_id: ID del caso seleccionado
@@ -214,31 +237,60 @@ class ConfigManager:
             testdata: Datos de prueba (passengers, payment, billing)
             appearance_mode: Tema de la aplicación (Light o Dark)
         """
-        complete_data = {
-            "current_session": {
-                "case_id": case_id,
-                "parameters": parameters,
-                "pytest_flags": pytest_flags,
-                "appearance_mode": appearance_mode
-            },
+        # Cargar datos actuales completos del archivo
+        try:
+            complete_data = self._load_json(self.testdata_file)
+        except:
+            complete_data = {}
+
+        # Actualizar current_session (sin parameters ni pytest_flags)
+        complete_data["current_session"] = {
+            "case_id": case_id,
+            "appearance_mode": appearance_mode
+        }
+
+        # Actualizar SOLO la sección del caso actual
+        complete_data[case_id] = {
+            "parameters": parameters,
+            "pytest_flags": pytest_flags,
             "passengers": testdata.get("passengers", {}),
             "payment": testdata.get("payment", {}),
             "billing": testdata.get("billing", {})
         }
 
+        # Guardar todo de nuevo (preservando otros casos)
         self._save_json(complete_data, self.testdata_file)
         self._testdata = complete_data  # Actualizar cache
 
     def load_current_session(self) -> Optional[Dict[str, Any]]:
         """
-        Carga la sesión actual desde testdata.json
+        Carga la sesión actual desde testdata.json y combina con datos del caso
 
         Returns:
-            Diccionario con case_id, parameters, pytest_flags o None
+            Diccionario con case_id, parameters, pytest_flags, appearance_mode o None
         """
         try:
-            data = self.load_testdata()
-            return data.get("current_session")
+            # Cargar JSON completo
+            if self._testdata is None:
+                self._testdata = self._load_json(self.testdata_file)
+
+            # Obtener current_session (solo tiene case_id y appearance_mode)
+            current_session = self._testdata.get("current_session", {})
+            case_id = current_session.get("case_id")
+
+            if not case_id or case_id not in self._testdata:
+                return None
+
+            # Obtener datos específicos del caso
+            case_data = self._testdata.get(case_id, {})
+
+            # Combinar current_session con datos del caso
+            return {
+                "case_id": case_id,
+                "parameters": case_data.get("parameters", {}),
+                "pytest_flags": case_data.get("pytest_flags", {}),
+                "appearance_mode": current_session.get("appearance_mode", "Dark")
+            }
         except:
             return None
 
@@ -264,4 +316,46 @@ class ConfigManager:
         """Obtiene datos de facturación"""
         testdata = self.load_testdata()
         return testdata.get("billing", {})
+
+    def update_current_case(self, case_id: str) -> None:
+        """
+        Actualiza solo el case_id en current_session sin modificar otros datos
+
+        Args:
+            case_id: ID del caso a establecer como actual
+        """
+        try:
+            # Cargar datos actuales
+            complete_data = self._load_json(self.testdata_file)
+
+            # Actualizar solo case_id en current_session
+            if "current_session" not in complete_data:
+                complete_data["current_session"] = {}
+
+            complete_data["current_session"]["case_id"] = case_id
+
+            # Guardar
+            self._save_json(complete_data, self.testdata_file)
+            self._testdata = complete_data  # Actualizar cache
+        except Exception as e:
+            # Si falla, no hacer nada (no es crítico)
+            pass
+
+    def get_case_config(self, case_id: str) -> Optional[Dict[str, Any]]:
+        """
+        Obtiene la configuración completa de un caso específico
+
+        Args:
+            case_id: ID del caso
+
+        Returns:
+            Diccionario con parameters, pytest_flags, passengers, payment, billing
+        """
+        try:
+            if self._testdata is None:
+                self._testdata = self._load_json(self.testdata_file)
+
+            return self._testdata.get(case_id)
+        except:
+            return None
 

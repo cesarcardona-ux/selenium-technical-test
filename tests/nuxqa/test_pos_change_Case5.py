@@ -15,19 +15,10 @@ from datetime import datetime
 # ==================== LOGGER ====================
 logger = logging.getLogger(__name__)
 
-# ==================== CONSTANTES ====================
-# Diccionario con textos esperados según POS
-# El texto que debe aparecer en el botón de POS después de seleccionar
-EXPECTED_POS_TEXTS = {
-    "Chile": "Chile",
-    "España": "España",
-    "Otros países": "Otros países"
-}
-
 # ==================== TESTS ====================
 @allure.feature("POS Change")
 @allure.severity(allure.severity_level.NORMAL)
-def test_pos_change(driver, base_url, db, pos, browser, screenshots_mode, request):
+def test_pos_change(driver, base_url, db, pos, browser, screenshots_mode, request, test_config):
     """
     Test Case 5: Verificar cambio de POS (Point of Sale).
 
@@ -106,11 +97,25 @@ def test_pos_change(driver, base_url, db, pos, browser, screenshots_mode, reques
         if screenshots_mode == "all":
             allure.attach(driver.get_screenshot_as_png(), name=f"03_POS_{pos}_Selected", attachment_type=allure.attachment_type.PNG)
 
-    # PASO 6: Obtener texto de validación
+    # PASO 6: Obtener texto esperado desde JSON
     with allure.step(f"Verify POS change to {pos}"):
+        # Cargar todas las opciones de POS desde parameter_options.json
+        pos_options = test_config.get_parameter_options("pos")
+
+        # Buscar el POS actual y obtener su button_text
+        expected_text = None
+        for pos_key, pos_data in pos_options.items():
+            if pos_data.get("command_value") == pos:
+                expected_text = pos_data.get("button_text")
+                break
+
+        # Si no se encuentra, lanzar error descriptivo
+        if expected_text is None:
+            raise ValueError(f"No se encontró button_text para el POS '{pos}' en parameter_options.json")
+
+        # Obtener texto actual de la página
         actual_text = home.get_pos_text()
-        expected_text = EXPECTED_POS_TEXTS[pos]
-        logger.info(f"Expected text: '{expected_text}' | Actual text: '{actual_text}'")
+        logger.info(f"Expected text (from JSON): '{expected_text}' | Actual text: '{actual_text}'")
 
         # Adjuntar información detallada al reporte de Allure
         allure.attach(

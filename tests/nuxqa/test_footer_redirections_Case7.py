@@ -15,19 +15,10 @@ from datetime import datetime
 # ==================== LOGGER ====================
 logger = logging.getLogger(__name__)
 
-# ==================== CONSTANTES ====================
-# Diccionario con nombres descriptivos de cada footer link
-FOOTER_LINK_NAMES = {
-    "vuelos": "Vuelos baratos",
-    "noticias": "Noticias corporativas",
-    "aviancadirect": "aviancadirect",
-    "contactanos": "Contáctanos"
-}
-
 # ==================== TESTS ====================
 @allure.feature("Footer Redirections")
 @allure.severity(allure.severity_level.NORMAL)
-def test_footer_redirections(driver, base_url, db, footer_link, browser, screenshots_mode, language, request):
+def test_footer_redirections(driver, base_url, db, footer_link, browser, screenshots_mode, language, request, test_config):
     """
     Test Case 7: Verificar redirecciones del footer.
 
@@ -56,7 +47,10 @@ def test_footer_redirections(driver, base_url, db, footer_link, browser, screens
     # PASO 0: Configurar metadata de Allure para organización visual
     env = base_url.split('//')[1].split('.')[0].upper()  # Extrae "NUXQA4" o "NUXQA5"
     case_number = "7"  # Número del caso de prueba
-    link_name = FOOTER_LINK_NAMES[footer_link]
+
+    # Obtener display_name del footer link desde JSON
+    footer_options = test_config.get_parameter_options("footer-link")
+    link_name = footer_options.get(footer_link, {}).get("display_name", footer_link)
 
     # Título descriptivo para el reporte
     allure.dynamic.title(f"Footer Link: {link_name} | Browser: {browser.capitalize()} | Env: {env}")

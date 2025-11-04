@@ -16,6 +16,7 @@ import subprocess
 import sys
 from pathlib import Path
 from typing import Dict, Any, Optional
+from PIL import Image
 
 # Agregar carpeta padre al path para imports
 current_dir = Path(__file__).parent.parent
@@ -39,9 +40,6 @@ class MainWindow(ctk.CTk):
 
         # Hacer la ventana maximizable y con scroll
         self.resizable(True, True)
-
-        # Maximizar la ventana al iniciar
-        self.state('zoomed')
 
         # Inicializar componentes core
         self.config_manager = ConfigManager()
@@ -70,6 +68,9 @@ class MainWindow(ctk.CTk):
 
         # Cargar primer caso por defecto
         self._load_first_case()
+
+        # Maximizar la ventana después de que todo esté creado
+        self.after(10, lambda: self.state('zoomed'))
 
     def _create_ui(self):
         """Crea la interfaz de usuario completa"""
@@ -102,7 +103,7 @@ class MainWindow(ctk.CTk):
         header_frame = ctk.CTkFrame(self, height=160)
         header_frame.pack(fill="x", padx=20, pady=15)
 
-        # ========== COLUMNA DERECHA - BOTONES ==========
+        # ========== COLUMNA DERECHA - BOTONES (se empaca primero desde la derecha) ==========
         right_section = ctk.CTkFrame(header_frame)
         right_section.pack(side="right", fill="y", padx=(10, 10))
 
@@ -156,7 +157,7 @@ class MainWindow(ctk.CTk):
         )
         self.theme_button.pack(pady=(5, 5))
 
-        # ========== COLUMNA PYTEST FLAGS (DERECHA, ANTES DE ACTIONS) ==========
+        # ========== COLUMNA PYTEST FLAGS (se empaca segundo desde la derecha) ==========
         flags_section = ctk.CTkFrame(header_frame, width=220)
         flags_section.pack(side="right", fill="y", expand=False, padx=(10, 5))
 
@@ -170,13 +171,13 @@ class MainWindow(ctk.CTk):
         # Crear checkboxes de flags
         self._create_pytest_flags(flags_section)
 
-        # ========== COLUMNA IZQUIERDA (SE EXPANDE) ==========
-        left_section = ctk.CTkFrame(header_frame)
-        left_section.pack(side="left", fill="both", expand=True, padx=(10, 10))
+        # ========== COLUMNA CENTRO - PYTEST COMMAND GENERATOR (se expande en el centro) ==========
+        center_section = ctk.CTkFrame(header_frame)
+        center_section.pack(side="right", fill="both", expand=True, padx=(10, 10))
 
         # Título
         title_label = ctk.CTkLabel(
-            left_section,
+            center_section,
             text="🧪 Pytest Command Generator",
             font=ctk.CTkFont(size=20, weight="bold")
         )
@@ -184,7 +185,7 @@ class MainWindow(ctk.CTk):
 
         # Subtítulo
         subtitle_label = ctk.CTkLabel(
-            left_section,
+            center_section,
             text="Configure test parameters and generate pytest commands",
             font=ctk.CTkFont(size=11),
             text_color="gray"
@@ -192,7 +193,7 @@ class MainWindow(ctk.CTk):
         subtitle_label.pack(anchor="w", pady=(0, 10))
 
         # Selector de caso
-        case_frame = ctk.CTkFrame(left_section, fg_color="transparent")
+        case_frame = ctk.CTkFrame(center_section, fg_color="transparent")
         case_frame.pack(anchor="w", pady=5)
 
         ctk.CTkLabel(
@@ -213,6 +214,35 @@ class MainWindow(ctk.CTk):
             font=ctk.CTkFont(size=13)
         )
         self.case_selector.pack(side="left")
+
+        # ========== COLUMNA IZQUIERDA - LOGO FLYR ==========
+        left_section = ctk.CTkFrame(header_frame)
+        left_section.pack(side="left", padx=(10, 10))
+
+        # Cargar y mostrar logo
+        try:
+            logo_path = Path(__file__).parent.parent / "img" / "Logo FLYR.png"
+            logo_image = Image.open(logo_path)
+            # Redimensionar logo a altura de 120px manteniendo aspecto
+            aspect_ratio = logo_image.width / logo_image.height
+            logo_ctk = ctk.CTkImage(
+                light_image=logo_image,
+                dark_image=logo_image,
+                size=(int(120 * aspect_ratio), 120)
+            )
+            logo_label = ctk.CTkLabel(
+                left_section,
+                image=logo_ctk,
+                text=""
+            )
+            logo_label.pack(pady=0)
+        except Exception as e:
+            # Si falla la carga del logo, mostrar texto
+            ctk.CTkLabel(
+                left_section,
+                text="FLYR",
+                font=ctk.CTkFont(size=24, weight="bold")
+            ).pack(pady=20)
 
     def _create_parameters_panel(self, parent):
         """Crea el panel de parámetros"""
@@ -317,8 +347,27 @@ class MainWindow(ctk.CTk):
 
         self.current_case_id = case_id
 
-        # Actualizar parámetros
-        self._update_parameters_panel()
+        # Actualizar current_session en el JSON
+        self.config_manager.update_current_case(case_id)
+
+        # Cargar configuración guardada del caso (si existe)
+        case_config = self.config_manager.get_case_config(case_id)
+        if case_config:
+            # Cargar parámetros guardados
+            saved_parameters = case_config.get("parameters", {})
+            saved_flags = case_config.get("pytest_flags", {})
+        else:
+            saved_parameters = {}
+            saved_flags = {}
+
+        # Actualizar parámetros (pasando los valores guardados)
+        self._update_parameters_panel(saved_parameters)
+
+        # Actualizar flags (si existen valores guardados)
+        if saved_flags:
+            for flag_name, value in saved_flags.items():
+                if flag_name in self.pytest_flag_vars:
+                    self.pytest_flag_vars[flag_name].set(value)
 
         # Actualizar test data
         self._update_testdata_panel()
@@ -326,8 +375,13 @@ class MainWindow(ctk.CTk):
         # Actualizar comando
         self._update_command()
 
-    def _update_parameters_panel(self):
-        """Actualiza el panel de parámetros según el caso seleccionado"""
+    def _update_parameters_panel(self, saved_parameters: Dict[str, str] = None):
+        """
+        Actualiza el panel de parámetros según el caso seleccionado
+
+        Args:
+            saved_parameters: Diccionario opcional con parámetros guardados para restaurar
+        """
         # Limpiar widgets existentes
         for widget in self.params_scroll.winfo_children():
             widget.destroy()
@@ -335,6 +389,10 @@ class MainWindow(ctk.CTk):
 
         if not self.current_case_id:
             return
+
+        # Si no se proporcionan parámetros guardados, usar dict vacío
+        if saved_parameters is None:
+            saved_parameters = {}
 
         # Obtener parámetros aplicables
         applicable_params = self.case_mapper.get_applicable_parameters(self.current_case_id)
@@ -351,7 +409,7 @@ class MainWindow(ctk.CTk):
                 text=label_text,
                 font=ctk.CTkFont(size=13, weight="bold")
             )
-            label.grid(row=row, column=0, sticky="w", padx=10, pady=10)
+            label.grid(row=row, column=0, sticky="w", padx=10, pady=5)
 
             # Widget según tipo
             if param_type == "dropdown":
@@ -366,6 +424,23 @@ class MainWindow(ctk.CTk):
                         width=300
                     )
                     widget.set(city_names[0] if city_names else "")
+                elif param_name == "env":
+                    # Dropdown de environment (filtrado por caso)
+                    env_option_ids = self.case_mapper.get_env_options(self.current_case_id)
+                    all_env_options = self.config_manager.get_parameter_options("env")
+                    # Filtrar solo las opciones aplicables a este caso
+                    filtered_options = [
+                        all_env_options[env_id]["display_name"]
+                        for env_id in env_option_ids
+                        if env_id in all_env_options
+                    ]
+                    widget = ctk.CTkComboBox(
+                        self.params_scroll,
+                        values=filtered_options,
+                        command=lambda _: self._update_command(),
+                        width=300
+                    )
+                    widget.set(filtered_options[0] if filtered_options else "")
                 else:
                     # Dropdown normal
                     options = self.config_manager.get_parameter_display_values(param_name)
@@ -396,10 +471,21 @@ class MainWindow(ctk.CTk):
                 )
                 widget.bind("<KeyRelease>", lambda e: self._update_command())
 
-            widget.grid(row=row, column=1, sticky="w", padx=10, pady=10)
+            widget.grid(row=row, column=1, sticky="w", padx=10, pady=5)
             self.parameter_widgets[param_name] = widget
 
             row += 1
+
+        # Restaurar valores guardados si existen
+        for param_name, saved_value in saved_parameters.items():
+            if param_name in self.parameter_widgets:
+                widget = self.parameter_widgets[param_name]
+                # Para ComboBox usar .set(), para Entry usar delete + insert
+                if isinstance(widget, ctk.CTkComboBox):
+                    widget.set(saved_value)
+                elif isinstance(widget, ctk.CTkEntry):
+                    widget.delete(0, "end")
+                    widget.insert(0, saved_value)
 
     def _update_testdata_panel(self):
         """Actualiza el panel de datos de prueba"""
@@ -422,8 +508,8 @@ class MainWindow(ctk.CTk):
             no_data_label.pack(pady=20)
             return
 
-        # Cargar test data
-        testdata = self.config_manager.load_testdata()
+        # Cargar test data del caso actual
+        testdata = self.config_manager.load_testdata(self.current_case_id)
 
         # Secciones a mostrar
         sections = self.case_mapper.get_testdata_sections(self.current_case_id)

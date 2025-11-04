@@ -4,6 +4,167 @@ All notable changes and milestones for this automation project will be documente
 
 ---
 
+## [v1.4.0] - 2025-11-04
+
+### 🎯 Complete Parametrization - Zero Hardcoded Values
+
+This release achieves **100% parametrization** across all test cases, eliminating all hardcoded values and introducing a modern GUI tool for test configuration.
+
+### 🆕 GUI Pytest Command Generator v1.0.0
+
+**New Application**: Modern GUI application for generating and executing pytest commands without manual CLI editing.
+
+**Features**:
+- Modern interface built with CustomTkinter
+- 3 main panels: Test Parameters, Pytest Flags, Test Data
+- 7 configurable test cases
+- Auto-load configuration on startup
+- Single-button save to `testdata.json`
+- Copy/Execute commands with one click
+- Light/Dark theme support
+- Complete documentation in `ide_test/README.md`
+
+**File Structure**:
+```
+ide_test/
+├── main.py                    # Application entry point
+├── gui/main_window.py         # Main GUI window (755 lines)
+├── core/
+│   ├── config_manager.py      # JSON configuration management
+│   ├── case_mapper.py         # Case-to-parameter mapping
+│   └── command_builder.py     # Pytest command builder
+└── config/
+    ├── testdata.json          # Test data + current session
+    ├── parameter_options.json # Parameter definitions
+    └── case_mappings.json     # Case configurations
+```
+
+**Tag**: `v1.0.0-pytest-generator`
+**Restoration**: See `RESTORE_PYTEST_GENERATOR.md` for recovery instructions
+
+### ✨ Case 1: Complete Parametrization
+
+**Previous State**: 7/10 score - Had hardcoded values for POS, origin, destination, and departure days
+
+**Changes Made**:
+- ✅ Added `--origin`, `--destination`, `--departure-days` CLI parameters
+- ✅ Load city information dynamically from `parameter_options.json`
+- ✅ Test summaries now use dynamic values
+- ✅ All hardcoded values replaced with CLI parameters
+- ✅ **NEW SCORE**: 10/10 - Zero hardcoded values
+
+**Updated Files**:
+- `tests/nuxqa/test_oneway_booking_Case1.py` - Lines 66-234
+  - Added CLI parameter loading
+  - Replaced hardcoded "Chile" with `pos_param`
+  - Replaced hardcoded cities with dynamic IATA codes
+  - Replaced hardcoded departure days with CLI parameter
+
+**New CLI Usage**:
+```bash
+pytest tests/nuxqa/test_oneway_booking_Case1.py \
+  --browser=chrome \
+  --language=Español \
+  --pos=Chile \
+  --env=qa4 \
+  --origin=BOG \
+  --destination=MDE \
+  --departure-days=4 \
+  -v
+```
+
+### ✨ Case 3: Complete Parametrization
+
+**Previous State**: 8/10 score - Had hardcoded language→POS and airport search mappings
+
+**Changes Made**:
+- ✅ Removed hardcoded `LANGUAGE_TO_POS_MAPPING` dictionary
+- ✅ Removed hardcoded `AIRPORT_SEARCH_MAPPING` dictionary
+- ✅ Load language→POS mapping from `parameter_options.json`
+- ✅ Load airport information from `parameter_options.json`
+- ✅ **NEW SCORE**: 10/10 - Zero hardcoded values
+
+**Updated Files**:
+- `tests/nuxqa/test_login_network_Case3.py` - Lines 37-107
+  - Removed hardcoded dictionaries
+  - Added dynamic loading from JSON
+  - All mappings now configurable
+
+### 🌍 New POS Options Added
+
+**Francia (France)**:
+- Display name: "Francia"
+- Command value: "Francia"
+- Country code: FR
+- Button text: "France"
+- Added to `parameter_options.json`
+
+**Peru**:
+- Display name: "Peru"
+- Command value: "Peru"
+- Country code: PE
+- Button text: "Perú"
+- Added to `parameter_options.json`
+
+**Updated POS Options**: Chile, España, Francia, Peru, Otros países, all
+
+### 🗂️ ConfigManager & JSON System
+
+**New Architecture**:
+- `ConfigManager` class for centralized config management
+- `parameter_options.json` - All parameter definitions (378 lines)
+- `testdata.json` - Per-case data isolation
+- `case_mappings.json` - Case-to-parameter relationships
+
+**New Feature**: `language_pos_mapping` (Lines 360-377 in parameter_options.json)
+```json
+"language_pos_mapping": {
+  "Español": {"default_pos": "Chile"},
+  "English": {"default_pos": "Chile"},
+  "Français": {"default_pos": "Francia"},
+  "Português": {"default_pos": "Chile"}
+}
+```
+
+### 📋 Updated CLI Parameters Table
+
+| Parameter | Cases | Values |
+|-----------|-------|--------|
+| `--origin` | 1, 3 | BOG, MDE, CLO, MAD, etc. (IATA codes) |
+| `--destination` | 1, 3 | BOG, MDE, CLO, MAD, etc. (IATA codes) |
+| `--departure-days` | 1, 3 | Integer (days from today) |
+| `--pos` | 1, 5 | Chile, España, Francia, Peru, Otros países, all |
+
+### 🎯 Key Benefits
+
+1. **Zero Maintenance**: No hardcoded values to update when requirements change
+2. **Full Flexibility**: All test parameters configurable via CLI or JSON
+3. **Easy Configuration**: GUI tool eliminates need to memorize CLI syntax
+4. **Data Isolation**: Each case has independent configuration in JSON
+5. **Scalability**: Adding new parameters/cases doesn't require code changes
+
+### 📊 Parametrization Scores
+
+- **Case 1**: 7/10 → **10/10** ✅
+- **Case 3**: 8/10 → **10/10** ✅
+- **Cases 4-7**: Already 10/10 ✅
+
+**Overall**: 100% parametrization achieved across all cases
+
+### 🛠️ Technical Details
+
+**ConfigManager Methods**:
+- `get_testdata()` - Load test data from testdata.json
+- `save_testdata()` - Save configuration to testdata.json
+- `get_parameter_options()` - Get parameter definitions
+- `get_case_mappings()` - Get case configurations
+
+**Error Fixed**:
+- AttributeError with nested config_manager access
+- Changed `test_config.config_manager.get_parameter_options()` to `test_config.get_parameter_options()`
+
+---
+
 ## [v1.3.0] - 2025-11-03
 
 ### ✅ Case 1 COMPLETE - One-way Booking with Performance Optimizations

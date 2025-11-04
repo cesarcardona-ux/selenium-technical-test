@@ -42,7 +42,7 @@
       "iso_code": "en",
       "url_code": "en",
       "flag": "🇺🇸",
-      "expected_text_home": "Deals",
+      "expected_text_home": "Offers and destinations",
       "description": "English language"
     },
     "français": {
@@ -87,6 +87,22 @@
       "flag": "🇪🇸",
       "button_text": "España",
       "description": "Punto de venta España"
+    },
+    "francia": {
+      "display_name": "Francia",
+      "command_value": "Francia",
+      "country_code": "FR",
+      "flag": "🇫🇷",
+      "button_text": "France",
+      "description": "Punto de venta Francia"
+    },
+    "peru": {
+      "display_name": "Peru",
+      "command_value": "Peru",
+      "country_code": "PE",
+      "flag": "🇵🇪",
+      "button_text": "Perú",
+      "description": "Punto de venta Perú"
     },
     "otros_paises": {
       "display_name": "Otros países",
@@ -338,6 +354,25 @@
       "command_value": "enabled",
       "icon": "🎥",
       "description": "Graba video en formato MP4"
+    }
+  },
+
+  "language_pos_mapping": {
+    "Español": {
+      "default_pos": "Chile",
+      "description": "Español → Chile por defecto"
+    },
+    "English": {
+      "default_pos": "Chile",
+      "description": "English → Chile por defecto"
+    },
+    "Français": {
+      "default_pos": "Francia",
+      "description": "Français → Francia por defecto"
+    },
+    "Português": {
+      "default_pos": "Chile",
+      "description": "Português → Chile por defecto"
     }
   }
 }

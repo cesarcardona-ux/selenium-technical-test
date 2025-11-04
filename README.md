@@ -39,6 +39,40 @@ Durante el desarrollo, encontramos que Chrome se actualizó a la versión 141, p
 
 **Para evaluadores:** No necesitas descargar o configurar drivers manualmente. Solo instala los requisitos y ejecuta los tests.
 
+## GUI Pytest Command Generator
+
+Este proyecto incluye una aplicación GUI moderna para generar y ejecutar comandos pytest sin necesidad de escribir comandos manualmente.
+
+### Características del GUI
+
+- **Interfaz moderna** con CustomTkinter
+- **3 paneles principales:**
+  - Test Parameters: Configuración de parámetros CLI (browser, language, POS, env, etc.)
+  - Pytest Flags: Opciones de ejecución (verbose, parallel, allure, etc.)
+  - Test Data: Editor de datos de prueba (pasajeros, pago, facturación)
+- **7 casos de prueba** configurables con parámetros específicos
+- **Auto-carga de configuración** al iniciar la aplicación
+- **Guardado simplificado** - 1 botón guarda toda la configuración en `testdata.json`
+- **Copiar/Ejecutar comandos** con un solo clic
+- **Tema claro/oscuro**
+
+### Cómo usar el GUI
+
+```bash
+# 1. Ir al directorio
+cd ide_test
+
+# 2. Instalar dependencias (solo primera vez)
+pip install -r requirements.txt
+
+# 3. Ejecutar la aplicación
+python main.py
+```
+
+**Documentación completa:** Ver [ide_test/README.md](ide_test/README.md) para guía detallada de uso.
+
+**Restauración:** Si necesitas restaurar la versión original del GUI, consulta [RESTORE_PYTEST_GENERATOR.md](RESTORE_PYTEST_GENERATOR.md).
+
 ## Ejecutar Tests
 
 ### Ejecución Básica
@@ -61,14 +95,14 @@ allure serve reports/allure
 |-------------------|---------------------------------------------------------|----------------------------------------------------|
 | `--browser`       | chrome, edge, firefox, all                              | Selección de navegador (por defecto: all)          |
 | `--language`      | Español, English, Français, Português, all              | Selección de idioma (varía por caso)               |
-| `--pos`           | Chile, España, Otros países, all                        | Selección de POS (por defecto: all)                |
+| `--pos`           | Chile, España, Francia, Peru, Otros países, all         | Selección de POS (por defecto: all)                |
 | `--header-link`   | ofertas-vuelos, credits, equipaje, all                  | Selección de link de header (por defecto: all)     |
 | `--footer-link`   | vuelos, noticias, aviancadirect, contactanos, all       | Selección de link de footer (por defecto: all)     |
 | `--env`           | qa4, qa5, uat1, all                                     | Selección de ambiente (por defecto: all)           |
-| `--origin`        | BOG, MDE, CLO, MAD, etc. (códigos IATA)                 | Aeropuerto de origen (Caso 3, por defecto: BOG)    |
-| `--destination`   | BOG, MDE, CLO, MAD, etc. (códigos IATA)                 | Aeropuerto de destino (Caso 3, por defecto: MDE)   |
-| `--departure-days`| Entero (días desde hoy)                                 | Offset de fecha de ida (Caso 3, por defecto: 4)    |
-| `--return-days`   | Entero (días desde hoy)                                 | Offset de fecha de vuelta (Caso 3, por defecto: 5) |
+| `--origin`        | BOG, MDE, CLO, MAD, etc. (códigos IATA)                 | Aeropuerto de origen (Casos 1 y 3, por defecto: BOG) |
+| `--destination`   | BOG, MDE, CLO, MAD, etc. (códigos IATA)                 | Aeropuerto de destino (Casos 1 y 3, por defecto: MDE) |
+| `--departure-days`| Entero (días desde hoy)                                 | Offset de fecha de ida (Casos 1 y 3, por defecto: 4) |
+| `--return-days`   | Entero (días desde hoy)                                 | Offset de fecha de vuelta (Caso 2 y 3, por defecto: 5) |
 | `--screenshots`   | none, on-failure, all                                   | Modo de captura de screenshots (por defecto: on-failure) |
 | `--video`         | none, enabled                                           | Grabación de video (por defecto: none)             |
 
@@ -81,14 +115,14 @@ allure serve reports/allure
 
 **Ejemplos con opciones:**
 ```bash
-# Caso 1: Reserva Solo Ida (flujo completo)
-pytest tests/nuxqa/test_oneway_booking_Case1.py --browser=chrome --language=Español --env=qa4 -v
+# Caso 1: Reserva Solo Ida (flujo completo con ciudades y fechas dinámicas)
+pytest tests/nuxqa/test_oneway_booking_Case1.py --browser=chrome --language=Español --pos=Chile --env=qa4 --origin=BOG --destination=MDE --departure-days=4 -v
 
 # Caso 1: Con video y screenshots para debugging
-pytest tests/nuxqa/test_oneway_booking_Case1.py --browser=chrome --language=Español --env=qa5 --video=enabled --screenshots=all --alluredir=reports/allure
+pytest tests/nuxqa/test_oneway_booking_Case1.py --browser=chrome --language=Español --pos=Chile --env=qa5 --origin=BOG --destination=MDE --departure-days=4 --video=enabled --screenshots=all --alluredir=reports/allure
 
 # Caso 1: Ejecutar en todos los navegadores y ambientes
-pytest tests/nuxqa/test_oneway_booking_Case1.py --browser=all --language=Español --env=all -v
+pytest tests/nuxqa/test_oneway_booking_Case1.py --browser=all --language=Español --pos=Chile --env=all --origin=BOG --destination=MDE --departure-days=4 -v
 
 # Caso 4: Cambio de idioma
 pytest tests/nuxqa/test_language_change_Case4.py --browser=chrome --language=English --env=qa5 --video=enabled --screenshots=all
@@ -232,7 +266,9 @@ pkill -9 chrome; pkill -9 chromedriver; pkill -9 msedge; pkill -9 msedgedriver; 
 - **Ambientes:** QA4, QA5
 - **Total de tests:** 6 (3 navegadores × 2 ambientes)
 - **Archivo:** `tests/nuxqa/test_oneway_booking_Case1.py`
-- **Estado:** ✅ Completado - Framework implementado, manejo de iframes, optimizaciones de tiempo, tests funcionales
+- **Parámetros CLI:** `--browser`, `--language`, `--pos`, `--env`, `--origin`, `--destination`, `--departure-days`, `--video`, `--screenshots`
+- **Parametrización:** 100% - Sin valores hardcodeados. Todos los valores (POS, ciudades, fechas) son dinámicos y configurables vía CLI y JSON
+- **Estado:** ✅ Completado - Framework implementado, manejo de iframes, optimizaciones de tiempo, tests funcionales, parametrización completa
 
 **Page Objects Creados:**
 - `pages/nuxqa/passengers_page.py` - Formularios de información de pasajeros
@@ -292,7 +328,7 @@ La página de Pago presenta desafíos únicos que requirieron manejo avanzado de
 
 ### Caso 3: Búsqueda de Vuelos y Captura de Red ✅
 - **Ambiente:** UAT1 (nuxqa.avtest.ink)
-- **Idioma/POS:** Francés, Francia
+- **Idioma/POS:** Mapeo dinámico desde `parameter_options.json` (Español→Chile, English→Chile, Français→Francia, Português→Chile)
 - **Búsqueda de Vuelos:** Fechas dinámicas (HOY + N días), ciudades parametrizables (códigos IATA)
 - **Selección de Vuelos:** 4 clics - FLEX Ida, FLEX Vuelta
 - **Pasajeros:** 9 (3 adultos + 3 adolescentes + 3 niños)
@@ -301,7 +337,8 @@ La página de Pago presenta desafíos únicos que requirieron manejo avanzado de
 - **Navegadores:** Chrome ✅, Edge ✅ (Solo basados en Chromium - limitación CDP)
 - **Total de tests:** 2 (Chrome + Edge)
 - **Archivo:** `tests/nuxqa/test_login_network_Case3.py`
-- **Parámetros CLI:** `--origin`, `--destination`, `--departure-days`, `--return-days`
+- **Parámetros CLI:** `--browser`, `--language`, `--env`, `--origin`, `--destination`, `--departure-days`, `--return-days`, `--video`, `--screenshots`
+- **Parametrización:** 100% - Sin valores hardcodeados. Mapeo idioma→POS cargado dinámicamente desde JSON, ciudades desde JSON
 
 **Aspectos Técnicos Destacados:**
 - Captura de red en tiempo real usando CDP (captura cuerpos de respuesta inmediatamente)
@@ -353,6 +390,9 @@ La página de Pago presenta desafíos únicos que requirieron manejo avanzado de
 - ✅ Page Object Model (POM)
 - ✅ Soporte multi-navegador (Chrome, Edge, Firefox)
 - ✅ Tests parametrizados con pytest
+- ✅ ConfigManager y sistema de configuración JSON centralizado
+- ✅ 100% parametrización - Sin valores hardcodeados
+- ✅ GUI Pytest Command Generator para generar comandos fácilmente
 - ✅ Reportes Allure con visualizaciones ricas
 - ✅ Grabación de video (MP4 con OpenCV)
 - ✅ Captura de screenshots (modos configurables)
@@ -365,6 +405,10 @@ La página de Pago presenta desafíos únicos que requirieron manejo avanzado de
 ├── pages/                  # Page Objects
 ├── tests/                  # Casos de prueba
 ├── utils/                  # Base de datos y utilidades
+├── ide_test/               # GUI Pytest Command Generator
+│   ├── gui/                # Interfaz gráfica (CustomTkinter)
+│   ├── core/               # ConfigManager, CaseMapper, CommandBuilder
+│   └── config/             # JSON: testdata, parameter_options, case_mappings
 ├── Docs/                   # Documentación adicional
 ├── conftest.py             # Configuración de Pytest
 └── requirements.txt        # Dependencias

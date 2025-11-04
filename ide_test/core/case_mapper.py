@@ -238,3 +238,19 @@ class CaseMapper:
 
         # Eliminar categorías vacías
         return {k: v for k, v in categorized.items() if v}
+
+    def get_env_options(self, case_id: str) -> List[str]:
+        """
+        Obtiene las opciones de environment aplicables al caso
+
+        Args:
+            case_id: ID del caso
+
+        Returns:
+            Lista de IDs de env options (ej: ["qa4", "qa5", "all"])
+        """
+        case_info = self.config.get_case_info(case_id)
+        if case_info and "env_options" in case_info:
+            return case_info["env_options"]
+        # Si no está definido, retornar todas las opciones
+        return ["qa4", "qa5", "uat1", "all"]

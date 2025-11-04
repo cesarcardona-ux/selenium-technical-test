@@ -25,6 +25,12 @@ import threading  # Para captura de frames en background
 import time  # Para delays en captura de frames
 import re  # Para sanitizar nombres de archivos
 import traceback  # Para logging detallado de errores
+import sys  # Para manipular el path de Python
+from pathlib import Path  # Para manejo de rutas de archivos
+
+# Agregar la carpeta ide_test al path para importar ConfigManager
+sys.path.append(str(Path(__file__).parent / "ide_test"))
+from core.config_manager import ConfigManager  # Gestor de configuraciones JSON
 
 # ==================== CONSTANTES GLOBALES ====================
 # URLs de los ambientes de prueba (definidas en el PDF de la prueba técnica)
@@ -352,12 +358,52 @@ def pytest_generate_tests(metafunc):
             footer_links = [footer_link_option] if footer_link_option in all_footer_links else all_footer_links
         metafunc.parametrize("footer_link", footer_links, scope="function")
 
-    # Filtrar ambientes según opción
+    # Filtrar ambientes según opción y env_options del caso
     if "base_url" in metafunc.fixturenames:
+        # Detectar qué caso se está ejecutando por el nombre del módulo
+        test_module = metafunc.module.__name__
+        case_id = None
+        if "test_oneway_booking_Case1" in test_module:
+            case_id = "case_1"
+        elif "test_roundtrip_booking_Case2" in test_module:
+            case_id = "case_2"
+        elif "test_login_network_Case3" in test_module:
+            case_id = "case_3"
+        elif "test_language_change_Case4" in test_module:
+            case_id = "case_4"
+        elif "test_pos_change_Case5" in test_module:
+            case_id = "case_5"
+        elif "test_header_redirections_Case6" in test_module:
+            case_id = "case_6"
+        elif "test_footer_redirections_Case7" in test_module:
+            case_id = "case_7"
+
+        # Obtener los env_options permitidos para este caso desde case_mappings.json
+        allowed_env_keys = ["qa4", "qa5", "uat1"]  # Default: todos
+        if case_id:
+            try:
+                from pathlib import Path
+                config_mgr = ConfigManager()
+                case_info = config_mgr.get_case_info(case_id)
+                if case_info and "env_options" in case_info:
+                    # Filtrar "all" de env_options ya que no es un ambiente real
+                    allowed_env_keys = [e for e in case_info["env_options"] if e != "all"]
+            except Exception:
+                # Si falla, usar todos los ambientes
+                allowed_env_keys = ["qa4", "qa5", "uat1"]
+
+        # Filtrar según opción CLI y ambientes permitidos
         if env_option == "all":
-            envs = list(all_envs.values())
+            # Usar solo los ambientes permitidos para este caso
+            envs = [all_envs[key] for key in allowed_env_keys if key in all_envs]
         else:
-            envs = [all_envs[env_option]] if env_option in all_envs else list(all_envs.values())
+            # Verificar que el ambiente solicitado esté permitido
+            if env_option in allowed_env_keys and env_option in all_envs:
+                envs = [all_envs[env_option]]
+            else:
+                # Si no está permitido, usar los permitidos
+                envs = [all_envs[key] for key in allowed_env_keys if key in all_envs]
+
         metafunc.parametrize("base_url", envs, scope="function")
 
 # ==================== FIXTURE: DRIVER DEL NAVEGADOR ====================
@@ -526,6 +572,30 @@ def db():
     database = TestDatabase()  # Crea instancia de la clase de BD
     yield database  # Entrega la conexión a los tests que la soliciten
     database.close()  # Cierra conexión al terminar todos los tests
+
+
+# ==================== FIXTURE: CONFIGURACIONES JSON ====================
+@pytest.fixture(scope="session")
+def test_config():
+    """
+    Fixture de configuraciones: proporciona acceso a los JSON de configuración.
+
+    scope="session":
+    - Se crea UNA SOLA VEZ al inicio de la sesión de tests
+    - TODOS los tests comparten la misma instancia
+    - Los tests pueden usar esta fixture para leer datos desde:
+      * testdata.json: Pasajeros, pago, facturación
+      * parameter_options.json: URLs, ciudades, idiomas, POS, etc.
+      * case_mappings.json: Información de cada caso
+
+    Uso en tests:
+        def test_example(test_config):
+            passengers = test_config.get_passenger_data("adult")
+            payment = test_config.get_payment_data()
+            cities = test_config.get_parameter_options("cities")
+    """
+    config_manager = ConfigManager()  # Crea instancia del gestor de configuraciones
+    return config_manager  # Entrega a los tests que lo soliciten
 
 
 # ==================== FUNCIONES HELPER PARA EVIDENCIAS ====================

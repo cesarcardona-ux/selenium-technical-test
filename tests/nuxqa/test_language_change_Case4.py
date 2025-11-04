@@ -15,19 +15,10 @@ from datetime import datetime
 # ==================== LOGGER ====================
 logger = logging.getLogger(__name__)
 
-# ==================== CONSTANTES ====================
-# Diccionario con textos esperados según idioma
-EXPECTED_TEXTS = {
-    "Español": "Ofertas y destinos",
-    "English": "Offers and destinations",
-    "Français": "Offres et destinations",
-    "Português": "Ofertas e destinos"
-}
-
 # ==================== TESTS ====================
 @allure.feature("Language Change")
 @allure.severity(allure.severity_level.NORMAL)
-def test_language_change(driver, base_url, db, language, browser, screenshots_mode, request):
+def test_language_change(driver, base_url, db, language, browser, screenshots_mode, request, test_config):
     """
     Test Case 4: Verificar cambio de idioma.
 
@@ -98,11 +89,25 @@ def test_language_change(driver, base_url, db, language, browser, screenshots_mo
         if screenshots_mode == "all":
             allure.attach(driver.get_screenshot_as_png(), name=f"02_Language_{language}_Selected", attachment_type=allure.attachment_type.PNG)
 
-    # PASO 5: Obtener texto de validación
+    # PASO 5: Obtener texto esperado desde JSON
     with allure.step(f"Verify language change to {language}"):
+        # Cargar todas las opciones de idiomas desde parameter_options.json
+        language_options = test_config.get_parameter_options("language")
+
+        # Buscar el idioma actual y obtener su expected_text_home
+        expected_text = None
+        for lang_key, lang_data in language_options.items():
+            if lang_data.get("command_value") == language:
+                expected_text = lang_data.get("expected_text_home")
+                break
+
+        # Si no se encuentra, lanzar error descriptivo
+        if expected_text is None:
+            raise ValueError(f"No se encontró expected_text_home para el idioma '{language}' en parameter_options.json")
+
+        # Obtener texto actual de la página
         actual_text = home.get_offers_text()
-        expected_text = EXPECTED_TEXTS[language]
-        logger.info(f"Expected text: '{expected_text}' | Actual text: '{actual_text}'")
+        logger.info(f"Expected text (from JSON): '{expected_text}' | Actual text: '{actual_text}'")
 
         # Adjuntar información detallada al reporte de Allure
         allure.attach(
