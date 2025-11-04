@@ -123,6 +123,42 @@ pytest tests/nuxqa/test_login_network_Case3.py --browser=chrome --origin=BOG --d
 pytest tests/ -n auto
 ```
 
+## Parámetros Útiles de Pytest
+
+```bash
+# -v (verbose): Muestra detalles de cada test
+pytest tests/nuxqa/test_language_change_Case4.py -v
+
+# -s (no capture): Muestra prints en tiempo real (útil para debugging)
+pytest tests/nuxqa/test_oneway_booking_Case1.py --browser=chrome --language=Español --env=qa4 -v -s
+
+# -x: Detiene ejecución al primer fallo
+pytest tests/ -x
+
+# --lf (last failed): Ejecuta solo los tests que fallaron en la última ejecución
+pytest tests/ --lf
+
+# -k: Filtra tests por nombre (ejemplo: solo tests de Chrome)
+pytest tests/ -k "chrome"
+
+# Combinación útil para debugging
+pytest tests/nuxqa/test_oneway_booking_Case1.py -v -s -x
+```
+
+**Ejecución en background (segundo plano):**
+
+```bash
+# Windows - ejecuta tests en background
+start /b pytest tests/ -v
+
+# Linux/Mac - ejecuta tests en background
+pytest tests/ -v &
+
+# Ver procesos en ejecución: usar /bashes en Claude Code
+```
+
+> **⚠️ Nota:** Ejecutar en background libera la terminal pero puede dificultar ver errores en tiempo real.
+
 ## Terminar Procesos en Ejecución
 
 Si necesitas detener todos los procesos de tests y navegadores que puedan estar ejecutándose:
