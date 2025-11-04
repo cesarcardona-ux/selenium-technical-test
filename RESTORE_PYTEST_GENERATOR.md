@@ -67,19 +67,19 @@ git show 1349165
 
 ### Restaurar solo un archivo
 ```bash
-git checkout v1.0.0-pytest-generator -- test_command_generator/main.py
+git checkout v1.0.0-pytest-generator -- ide_test/main.py
 ```
 
 ### Restaurar todo el directorio
 ```bash
-git checkout v1.0.0-pytest-generator -- test_command_generator/
+git checkout v1.0.0-pytest-generator -- ide_test/
 ```
 
 ### Restaurar múltiples archivos
 ```bash
 git checkout v1.0.0-pytest-generator -- \
-  test_command_generator/gui/main_window.py \
-  test_command_generator/core/config_manager.py
+  ide_test/gui/main_window.py \
+  ide_test/core/config_manager.py
 ```
 
 ---
@@ -139,8 +139,8 @@ git diff --stat v1.0.0-pytest-generator
 
 ### Ver contenido de un archivo en este tag (sin modificar tu working tree)
 ```bash
-git show v1.0.0-pytest-generator:test_command_generator/main.py
-git show v1.0.0-pytest-generator:test_command_generator/README.md
+git show v1.0.0-pytest-generator:ide_test/main.py
+git show v1.0.0-pytest-generator:ide_test/README.md
 ```
 
 ---
@@ -148,7 +148,7 @@ git show v1.0.0-pytest-generator:test_command_generator/README.md
 ## 📦 Archivos Incluidos en este Commit
 
 ```
-test_command_generator/
+ide_test/
 ├── main.py                          # Punto de entrada principal
 ├── requirements.txt                 # Dependencias (customtkinter, pyperclip)
 ├── README.md                        # Documentación completa
@@ -182,7 +182,7 @@ test_command_generator/
 
 ```bash
 # 1. Ir al directorio
-cd test_command_generator
+cd ide_test
 
 # 2. Instalar dependencias (solo primera vez)
 pip install -r requirements.txt

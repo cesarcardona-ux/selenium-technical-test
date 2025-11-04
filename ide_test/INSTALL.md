@@ -3,7 +3,7 @@
 ## Paso 1: Instalar Dependencias
 
 ```bash
-cd test_command_generator
+cd ide_test
 pip install -r requirements.txt
 ```
 
@@ -39,7 +39,7 @@ python --version
 
 Abre una terminal y ejecuta:
 ```bash
-cd "c:\Users\CésarCardonaCalderon\OneDrive - FLYR Inc\Automatizacion - Selenium\test_command_generator"
+cd "c:\Users\CésarCardonaCalderon\OneDrive - FLYR Inc\Automatizacion - Selenium\ide_test"
 python main.py
 ```
 

@@ -31,13 +31,13 @@ Aplicación de escritorio que permite configurar y generar comandos pytest de fo
 
 **Opción A: Instalación directa**
 ```bash
-cd test_command_generator
+cd ide_test
 pip install -r requirements.txt
 ```
 
 **Opción B: Con entorno virtual (recomendado)**
 ```bash
-cd test_command_generator
+cd ide_test
 python -m venv venv_generator
 venv_generator\Scripts\activate  # Windows
 source venv_generator/bin/activate  # MacOS/Linux
@@ -52,12 +52,12 @@ pip install -r requirements.txt
 
 **Desde la carpeta raíz:**
 ```bash
-python test_command_generator/main.py
+python ide_test/main.py
 ```
 
 **Desde la carpeta del generador:**
 ```bash
-cd test_command_generator
+cd ide_test
 python main.py
 ```
 
@@ -124,7 +124,7 @@ python main.py
 ## 📂 Estructura del Proyecto
 
 ```
-test_command_generator/
+ide_test/
 ├── main.py                          # Punto de entrada
 ├── requirements.txt                 # Dependencias
 ├── README.md                        # Esta documentación
