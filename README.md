@@ -81,6 +81,15 @@ allure serve reports/allure
 
 **Ejemplos con opciones:**
 ```bash
+# Caso 1: Reserva Solo Ida (flujo completo)
+pytest tests/nuxqa/test_oneway_booking_Case1.py --browser=chrome --language=Español --env=qa4 -v
+
+# Caso 1: Con video y screenshots para debugging
+pytest tests/nuxqa/test_oneway_booking_Case1.py --browser=chrome --language=Español --env=qa5 --video=enabled --screenshots=all --alluredir=reports/allure
+
+# Caso 1: Ejecutar en todos los navegadores y ambientes
+pytest tests/nuxqa/test_oneway_booking_Case1.py --browser=all --language=Español --env=all -v
+
 # Caso 4: Cambio de idioma
 pytest tests/nuxqa/test_language_change_Case4.py --browser=chrome --language=English --env=qa5 --video=enabled --screenshots=all
 
@@ -340,7 +349,7 @@ Los resultados de tests se almacenan en SQLite con **30 campos comprehensivos** 
 
 **Campos Generales (10):**
 - `id`: Clave primaria
-- `case_number`: Número de caso de prueba (3, 4, 5, 6, 7) - posicionado como 2da columna para filtrado fácil
+- `case_number`: Número de caso de prueba (1, 3, 4, 5, 6, 7) - posicionado como 2da columna para filtrado fácil
 - `test_name`: Identificador único de test
 - `status`: Resultado del test (PASSED, FAILED, SKIPPED)
 - `execution_time`: Duración en segundos
@@ -389,7 +398,27 @@ Los resultados de tests se almacenan en SQLite con **30 campos comprehensivos** 
 SELECT * FROM test_executions WHERE environment = 'qa5';
 
 -- Filtrar por número de caso
-SELECT * FROM test_executions WHERE case_number = 3;
+SELECT * FROM test_executions WHERE case_number = 1;
+
+-- Filtrar por Caso 1 y navegador específico
+SELECT * FROM test_executions WHERE case_number = 1 AND browser = 'chrome';
+
+-- Ver tiempo de ejecución promedio del Caso 1
+SELECT browser, environment, AVG(execution_time) as avg_time
+FROM test_executions
+WHERE case_number = 1
+GROUP BY browser, environment;
+
+-- Ver todos los tests del Caso 1 con sus estados
+SELECT test_name, browser, environment, status, execution_time, timestamp
+FROM test_executions
+WHERE case_number = 1
+ORDER BY timestamp DESC;
+
+-- Ver tests fallidos del Caso 1
+SELECT test_name, browser, environment, error_message
+FROM test_executions
+WHERE case_number = 1 AND status = 'FAILED';
 
 -- Filtrar por POS (Caso 5)
 SELECT * FROM test_executions WHERE pos = 'Chile';
