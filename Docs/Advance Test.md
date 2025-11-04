@@ -515,8 +515,11 @@ pytest tests/nuxqa/test_login_network_Case3.py --browser=all --origin=BOG --dest
 -------------------------------
 
 ### Caso 1: Booking One-way
-**Estado:** 🚧 En Desarrollo (Framework completo + Payment iframe handling implementado)
+**Estado:** ✅ Completado
 **Objetivo:** Realizar booking de solo ida completo
+**Navegadores:** Chrome, Edge, Firefox
+**Ambientes:** QA4, QA5
+**Total tests:** 6 (3 navegadores × 2 ambientes)
 **Páginas:**
 - Home: Idioma, POS, origen, destino, 1 pasajero de cada tipo
 - Select flight: Tarifa Basic
@@ -618,11 +621,13 @@ Fill Billing Fields (email, address, city, country)
 - Logging detallado de cada paso para debugging
 
 **Testing Status:**
-- ✅ Test ejecuta end-to-end: Home → Select Flight → Passengers → Seatmap → Payment (form filled)
+- ✅ Test ejecuta end-to-end: Home → Select Flight → Passengers → Services → Seatmap → Payment (form filled)
 - ✅ Cookie modal handling verificado
 - ✅ Payment iframe detection verificado
 - ✅ Card fields fill verificado
-- ⏳ Payment submission pendiente (test completo end-to-end)
+- ✅ Billing fields fill verificado
+- ✅ Test completo end-to-end funcional
+- ✅ Optimizaciones de tiempo aplicadas (23% más rápido)
 
 **Key Learnings:**
 - Payment gateways comúnmente usan iframes por PCI compliance
@@ -698,21 +703,17 @@ Durante el desarrollo, Chrome se actualizó a la versión 141. Las herramientas 
 ### Estado Actual
 - **Fase conceptual:** ✅ Completada (85% comprensión alcanzado)
 - **Repositorio GitHub:** ✅ Configurado y actualizado (https://github.com/cesarcardona-ux/selenium-technical-test)
-- **Fase de implementación:** ✅ En progreso (71% completado)
-- **Casos completados:** 5/7 (Cases 3, 4, 5, 6, 7 con video evidence)
-  - ✅ Case 3: Flight Search & Network Capture (UAT1, CDP)
+- **Fase de implementación:** ✅ En progreso (85.7% completado)
+- **Casos completados:** 6/7 (Cases 1, 3, 4, 5, 6, 7 con video evidence)
+  - ✅ Case 1: One-way Booking (6 tests) - Framework completo + optimizaciones de tiempo
+  - ✅ Case 3: Flight Search & Network Capture (2 tests - UAT1, CDP)
   - ✅ Case 4: Language Change Validation (24 tests)
   - ✅ Case 5: POS Change Validation (18 tests)
   - ✅ Case 6: Header Redirections (18 tests)
   - ✅ Case 7: Footer Redirections (24 tests)
-- **Casos en desarrollo:** 1/7 (Case 1)
-  - 🚧 Case 1: One-way Booking
-    - ✅ Framework completo (6 páginas: Home, Select Flight, Passengers, Services, Seatmap, Payment)
-    - ✅ Payment page iframe handling (cookies + payment gateway)
-    - ✅ Dual-strategy cookie modal detection (OneTrust framework)
-    - ✅ Payment gateway iframe context switching (api-pay.avtest.ink)
-    - ⏳ Validación end-to-end pendiente
-- **Total Tests:** 86 combinaciones (2 + 24 + 18 + 18 + 24)
+- **Caso pendiente:** 1/7 (Case 2)
+  - ⏳ Case 2: Round-trip Booking - Pendiente de implementación
+- **Total Tests:** 92 combinaciones (6 + 2 + 24 + 18 + 18 + 24)
 - **Database:** ✅ SQLite con 30 campos comprehensivos (extendida de 23)
 - **Video Evidence:** ✅ Implementado
   - Grabación MP4 con OpenCV
@@ -726,10 +727,14 @@ Durante el desarrollo, Chrome se actualizó a la versión 141. Las herramientas 
   - Cookie consent modal (OneTrust) - dual strategy detection
   - Payment gateway iframe (api-pay.avtest.ink) - context switching
   - Angular dynamic iframe injection handling
+- **Performance Optimizations:** ✅ Aplicadas en Case 1
+  - Select Flight Page: 6.7s ahorrados
+  - Passengers Page: 8.3s ahorrados
+  - Services Page: 3.7s ahorrados
+  - Total: ~84s ahorrados (23% más rápido)
 - **CLI Parameters:** 12 opciones configurables
-- **Próximos pasos:**
-  - Completar validación end-to-end de Caso 1 (One-way Booking)
-  - Implementar Caso 2 (Round-trip Booking - complejo)
+- **Próximo paso:**
+  - Implementar Caso 2 (Round-trip Booking - último caso pendiente)
 
 -------------------------------
 

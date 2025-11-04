@@ -159,7 +159,7 @@ class LoginPage(HomePage):
                 # Hacer click usando JavaScript para mayor confiabilidad
                 self.driver.execute_script("arguments[0].click();", one_way_radio)
                 logger.info("✓ One-way trip type selected (journeytypeId_1)")
-                time.sleep(1)
+                time.sleep(0.5)  # OPTIMIZADO: 1s → 0.5s (ahorro: 0.5s)
                 return True
 
             elif trip_type.lower() == "round-trip":
@@ -169,7 +169,7 @@ class LoginPage(HomePage):
                 )
                 self.driver.execute_script("arguments[0].click();", round_trip_radio)
                 logger.info("✓ Round-trip trip type selected (journeytypeId_0)")
-                time.sleep(1)
+                time.sleep(0.5)  # OPTIMIZADO: 1s → 0.5s (ahorro: 0.5s)
                 return True
 
             else:
@@ -191,36 +191,36 @@ class LoginPage(HomePage):
         """
         logger.info(f"Selecting origin: {city_code} by searching '{search_text}'")
 
-        # Esperar pequeño delay para que el formulario se cargue completamente después de cambiar POS
-        time.sleep(2)
+        # OPTIMIZADO: 2s → 1s (ahorro: 1s)
+        time.sleep(1)
 
         # Scroll al top
         self.driver.execute_script("window.scrollTo(0, 0);")
-        time.sleep(1)  # Espera después del scroll
+        time.sleep(0.5)  # OPTIMIZADO: 1s → 0.5s (ahorro: 0.5s)
 
         # Encontrar el botón de origen (puede no estar visible pero sí presente)
         origin_btn = self.wait.until(EC.presence_of_element_located(self.ORIGIN_BUTTON))
 
         # Hacer el botón visible y clickeable con JavaScript (bypassing CSS display issues)
         self.driver.execute_script("arguments[0].style.display='block'; arguments[0].style.visibility='visible';", origin_btn)
-        time.sleep(0.5)
+        time.sleep(0.3)  # OPTIMIZADO: 0.5s → 0.3s (ahorro: 0.2s)
 
         # Hacer click con JavaScript (más confiable)
         self.driver.execute_script("arguments[0].click();", origin_btn)
-        time.sleep(1)  # Espera después del click
+        time.sleep(0.5)  # OPTIMIZADO: 1s → 0.5s (ahorro: 0.5s)
 
         # Escribir en el input y esperar opciones
         origin_input = self.wait.until(EC.visibility_of_element_located(self.ORIGIN_INPUT))
         origin_input.clear()
         origin_input.send_keys(search_text)
-        time.sleep(2)  # Espera para que aparezcan las opciones del autocomplete
+        time.sleep(1.5)  # OPTIMIZADO: 2s → 1.5s (ahorro: 0.5s)
 
         # Esperar a que la opción específica esté clickeable
         airport_option = self.wait.until(
             EC.element_to_be_clickable((By.ID, city_code))
         )
         airport_option.click()
-        time.sleep(1)  # Espera después de seleccionar
+        time.sleep(0.5)  # OPTIMIZADO: 1s → 0.5s (ahorro: 0.5s)
 
         logger.info(f"Origin '{city_code}' selected successfully")
 
@@ -238,14 +238,14 @@ class LoginPage(HomePage):
         dest_input = self.wait.until(EC.visibility_of_element_located(self.DESTINATION_INPUT))
         dest_input.clear()
         dest_input.send_keys(search_text)
-        time.sleep(2)  # Espera para que aparezcan las opciones del autocomplete
+        time.sleep(1.5)  # OPTIMIZADO: 2s → 1.5s (ahorro: 0.5s)
 
         # Esperar a que la opción específica esté clickeable
         airport_option = self.wait.until(
             EC.element_to_be_clickable((By.ID, city_code))
         )
         airport_option.click()
-        time.sleep(1)  # Espera después de seleccionar
+        time.sleep(0.5)  # OPTIMIZADO: 1s → 0.5s (ahorro: 0.5s)
 
         logger.info(f"Destination '{city_code}' selected successfully")
 
@@ -276,7 +276,7 @@ class LoginPage(HomePage):
             EC.element_to_be_clickable((By.XPATH, departure_xpath))
         )
         departure_element.click()
-        time.sleep(1)
+        time.sleep(0.5)  # OPTIMIZADO: 1s → 0.5s (ahorro: 0.5s)
         logger.info(f"Departure date selected: {departure_date.strftime('%Y-%m-%d')} (day {departure_day})")
 
         # Seleccionar día de regreso si se proporciona
@@ -291,7 +291,7 @@ class LoginPage(HomePage):
                 EC.element_to_be_clickable((By.XPATH, return_xpath))
             )
             return_element.click()
-            time.sleep(1)
+            time.sleep(0.5)  # OPTIMIZADO: 1s → 0.5s (ahorro: 0.5s)
             logger.info(f"Return date selected: {return_date.strftime('%Y-%m-%d')} (day {return_day})")
 
     def select_passengers(self, adults=3, teens=3, children=3, infants=3):
@@ -319,7 +319,7 @@ class LoginPage(HomePage):
         # IMPORTANTE: El modal de pasajeros se abre AUTOMÁTICAMENTE después de seleccionar fechas
         # NO hacer click en el botón de pasajeros, ya que eso lo CERRARÍA
         logger.info("Waiting for passengers modal to open automatically after date selection...")
-        time.sleep(3)  # Esperar a que se abra automáticamente
+        time.sleep(2)  # OPTIMIZADO: 3s → 2s (ahorro: 1s)
 
         # Esperar a que los botones + estén presentes
         # Selector correcto: <button _ngcontent-gjl-c21="" class="ui-num-ud_button plus"></button>
@@ -334,7 +334,7 @@ class LoginPage(HomePage):
             logger.error("✗ Could not find plus buttons - modal may not have opened")
             raise
 
-        time.sleep(1)  # Extra time for rendering
+        time.sleep(0.5)  # OPTIMIZADO: 1s → 0.5s (ahorro: 0.5s)
 
         # Función para hacer click en el botón + por índice
         def click_plus_by_index(index, times, passenger_type):
@@ -364,11 +364,11 @@ class LoginPage(HomePage):
 
                     # Scroll al botón para visibilidad
                     self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", plus_btn)
-                    time.sleep(0.2)
+                    time.sleep(0.15)  # OPTIMIZADO: 0.2s → 0.15s (ahorro: 0.05s por click)
 
                     # Click con JavaScript
                     self.driver.execute_script("arguments[0].click();", plus_btn)
-                    time.sleep(0.6)  # Tiempo para que se actualice el contador
+                    time.sleep(0.4)  # OPTIMIZADO: 0.6s → 0.4s (ahorro: 0.2s por click)
 
                     logger.info(f"  ✓ {passenger_type} click {i+1}/{times} successful")
 
@@ -391,13 +391,13 @@ class LoginPage(HomePage):
         click_plus_by_index(3, infants, "Infants")
 
         # Esperar un momento antes de confirmar
-        time.sleep(1)
+        time.sleep(0.5)  # OPTIMIZADO: 1s → 0.5s (ahorro: 0.5s)
 
         # Confirmar selección de pasajeros
         logger.info("Confirming passenger selection...")
         confirm_btn = self.wait.until(EC.element_to_be_clickable(self.PASSENGERS_CONFIRM_BUTTON))
         confirm_btn.click()
-        time.sleep(2)  # Espera a que se cierre el modal
+        time.sleep(1.5)  # OPTIMIZADO: 2s → 1.5s (ahorro: 0.5s)
         logger.info("✓ Passengers selection confirmed and modal closed")
         logger.info(f"TOTAL: {adults} adults + {teens} teens + {children} children + {infants} infants = {adults+teens+children} passengers + {infants} infants")
 
@@ -410,8 +410,8 @@ class LoginPage(HomePage):
 
         # Scroll al botón y usar JavaScript click para evitar interceptación
         self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", search_btn)
-        time.sleep(0.5)
+        time.sleep(0.3)  # OPTIMIZADO: 0.5s → 0.3s (ahorro: 0.2s)
         self.driver.execute_script("arguments[0].click();", search_btn)
 
-        time.sleep(3)  # Espera a que cargue la página de selección de vuelos
+        time.sleep(2)  # OPTIMIZADO: 3s → 2s (ahorro: 1s)
         logger.info("Search button clicked, waiting for Select Flight page to load")

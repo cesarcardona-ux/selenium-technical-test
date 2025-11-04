@@ -114,11 +114,59 @@ pytest tests/nuxqa/test_login_network_Case3.py --browser=chrome --origin=BOG --d
 pytest tests/ -n auto
 ```
 
+## Terminar Procesos en Ejecución
+
+Si necesitas detener todos los procesos de tests y navegadores que puedan estar ejecutándose:
+
+### Windows
+```bash
+# Terminar procesos de Chrome y drivers
+taskkill /F /IM chrome.exe /T
+taskkill /F /IM chromedriver.exe /T
+
+# Terminar procesos de Edge y drivers
+taskkill /F /IM msedge.exe /T
+taskkill /F /IM msedgedriver.exe /T
+
+# Terminar procesos de Firefox y drivers
+taskkill /F /IM firefox.exe /T
+taskkill /F /IM geckodriver.exe /T
+
+# Terminar procesos de Python/Pytest
+taskkill /F /IM python.exe /T
+
+# Comando completo para terminar todo
+taskkill /F /IM chrome.exe /T & taskkill /F /IM chromedriver.exe /T & taskkill /F /IM msedge.exe /T & taskkill /F /IM msedgedriver.exe /T & taskkill /F /IM firefox.exe /T & taskkill /F /IM geckodriver.exe /T & taskkill /F /IM python.exe /T
+```
+
+### Linux/Mac
+```bash
+# Terminar procesos de Chrome
+pkill -9 chrome
+pkill -9 chromedriver
+
+# Terminar procesos de Edge
+pkill -9 msedge
+pkill -9 msedgedriver
+
+# Terminar procesos de Firefox
+pkill -9 firefox
+pkill -9 geckodriver
+
+# Terminar procesos de Python
+pkill -9 python
+
+# Comando completo para terminar todo
+pkill -9 chrome; pkill -9 chromedriver; pkill -9 msedge; pkill -9 msedgedriver; pkill -9 firefox; pkill -9 geckodriver; pkill -9 python
+```
+
+**Nota:** Estos comandos terminarán TODOS los procesos de navegadores y Python en tu sistema. Úsalos con precaución si tienes otras sesiones importantes abiertas.
+
 ## Estado de Casos de Prueba
 
 | Caso   | Estado       | Descripción                           | Tests |
 |--------|--------------|---------------------------------------|-------|
-| Caso 1 | 🚧 En Desar. | Reserva Solo Ida (Flujo Completo)     |  PTE  |
+| Caso 1 | ✅ Completo  | Reserva Solo Ida (Flujo Completo)     |   6   |
 | Caso 2 | ⏳ Pendiente | Reserva Ida y Vuelta                  |  -    |
 | Caso 3 | ✅ Completo  | Búsqueda de Vuelos y Captura de Red   |   2   |
 | Caso 4 | ✅ Completo  | Validación de Cambio de Idioma        |  24   |
@@ -126,7 +174,7 @@ pytest tests/ -n auto
 | Caso 6 | ✅ Completo  | Redirecciones de Header               |  18   |
 | Caso 7 | ✅ Completo  | Redirecciones de Footer               |  24   |
 
-### Caso 1: Reserva Solo Ida 🚧
+### Caso 1: Reserva Solo Ida ✅
 - **Flujo:** Flujo de reserva completo (6 páginas)
 - **Páginas:** Home → Seleccionar Vuelo → Pasajeros → Servicios → Mapa de Asientos → Pago
 - **Configuración:** Idioma, POS, 4 pasajeros (1 Adulto, 1 Adolescente, 1 Niño, 1 Infante)
@@ -137,9 +185,9 @@ pytest tests/ -n auto
 - **Pago:** Datos de tarjeta de crédito de prueba (rechazo aceptable)
 - **Navegadores:** Chrome, Edge, Firefox
 - **Ambientes:** QA4, QA5
-- **Total de tests:** PTE (depende de la parametrización)
+- **Total de tests:** 6 (3 navegadores × 2 ambientes)
 - **Archivo:** `tests/nuxqa/test_oneway_booking_Case1.py`
-- **Estado:** Framework completado, manejo de iframes implementado, pruebas en progreso
+- **Estado:** ✅ Completado - Framework implementado, manejo de iframes, optimizaciones de tiempo, tests funcionales
 
 **Page Objects Creados:**
 - `pages/nuxqa/passengers_page.py` - Formularios de información de pasajeros

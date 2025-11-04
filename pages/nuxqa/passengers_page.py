@@ -55,7 +55,7 @@ class PassengersPage:
         logger.info("Waiting for Passengers page to load...")
 
         try:
-            time.sleep(3)
+            time.sleep(2)  # OPTIMIZADO: 3s → 2s (ahorro: 1s)
 
             current_url = self.driver.current_url
             logger.info(f"Current URL: {current_url}")
@@ -116,7 +116,7 @@ class PassengersPage:
 
             first_name_field = first_name_inputs[passenger_index]
             self.driver.execute_script("arguments[0].scrollIntoView(true);", first_name_field)
-            time.sleep(0.2)
+            time.sleep(0.1)  # OPTIMIZADO: 0.2s → 0.1s (ahorro: 0.1s)
             first_name_field.clear()
             first_name_field.send_keys(first_name)
             logger.info(f"  ✓ First name filled: {first_name}")
@@ -137,9 +137,9 @@ class PassengersPage:
                 if len(gender_buttons) > passenger_index:
                     gender_button = gender_buttons[passenger_index]
                     self.driver.execute_script("arguments[0].scrollIntoView(true);", gender_button)
-                    time.sleep(0.2)
+                    time.sleep(0.1)  # OPTIMIZADO: 0.2s → 0.1s (ahorro: 0.1s)
                     self.driver.execute_script("arguments[0].click();", gender_button)
-                    time.sleep(0.3)
+                    time.sleep(0.2)  # OPTIMIZADO: 0.3s → 0.2s (ahorro: 0.1s)
 
                     # Obtener el ID del botón para construir el ID de la opción
                     gender_button_id = gender_button.get_attribute("id")
@@ -155,7 +155,7 @@ class PassengersPage:
                     except:
                         logger.warning(f"  Could not find gender option with ID {gender_option_id}")
 
-                    time.sleep(0.2)
+                    time.sleep(0.15)  # OPTIMIZADO: 0.2s → 0.15s (ahorro: 0.05s)
             except Exception as e:
                 logger.warning(f"  Could not select gender: {e}")
 
@@ -176,9 +176,9 @@ class PassengersPage:
                     year_button_id = year_button.get_attribute("id")
 
                     self.driver.execute_script("arguments[0].scrollIntoView(true);", year_button)
-                    time.sleep(0.2)
+                    time.sleep(0.1)  # OPTIMIZADO: 0.2s → 0.1s (ahorro: 0.1s)
                     self.driver.execute_script("arguments[0].click();", year_button)
-                    time.sleep(0.3)
+                    time.sleep(0.2)  # OPTIMIZADO: 0.3s → 0.2s (ahorro: 0.1s)
 
                     # Buscar año por CSS Selector (prefijo del ID + sufijo calculado)
                     # Intentar calcular sufijo basado en año
@@ -194,7 +194,7 @@ class PassengersPage:
                     except:
                         logger.warning(f"  ✗ Year {year} not found with ID {year_option_id}")
 
-                    time.sleep(0.2)
+                    time.sleep(0.15)  # OPTIMIZADO: 0.2s → 0.15s (ahorro: 0.05s)
 
                 # B) MES
                 logger.info(f"  → Selecting MONTH: {month_names[month-1]}")
@@ -204,9 +204,9 @@ class PassengersPage:
                     month_button_id = month_button.get_attribute("id")
 
                     self.driver.execute_script("arguments[0].scrollIntoView(true);", month_button)
-                    time.sleep(0.2)
+                    time.sleep(0.1)  # OPTIMIZADO: 0.2s → 0.1s (ahorro: 0.1s)
                     self.driver.execute_script("arguments[0].click();", month_button)
-                    time.sleep(0.3)
+                    time.sleep(0.2)  # OPTIMIZADO: 0.3s → 0.2s (ahorro: 0.1s)
 
                     # Calcular sufijo: -(mes - 1), pero forzar formato con guión
                     month_value = month - 1
@@ -219,7 +219,7 @@ class PassengersPage:
                     except:
                         logger.warning(f"  ✗ Month {month_names[month-1]} not found with ID {month_option_id}")
 
-                    time.sleep(0.2)
+                    time.sleep(0.15)  # OPTIMIZADO: 0.2s → 0.15s (ahorro: 0.05s)
 
                 # C) DÍA
                 logger.info(f"  → Selecting DAY: {day}")
@@ -229,9 +229,9 @@ class PassengersPage:
                     day_button_id = day_button.get_attribute("id")
 
                     self.driver.execute_script("arguments[0].scrollIntoView(true);", day_button)
-                    time.sleep(0.2)
+                    time.sleep(0.1)  # OPTIMIZADO: 0.2s → 0.1s (ahorro: 0.1s)
                     self.driver.execute_script("arguments[0].click();", day_button)
-                    time.sleep(0.3)
+                    time.sleep(0.2)  # OPTIMIZADO: 0.3s → 0.2s (ahorro: 0.1s)
 
                     day_suffix = -(day - 1)
                     day_option_id = f"{day_button_id}{day_suffix}"
@@ -243,7 +243,7 @@ class PassengersPage:
                     except:
                         logger.warning(f"  ✗ Day {day} not found with ID {day_option_id}")
 
-                    time.sleep(0.2)
+                    time.sleep(0.15)  # OPTIMIZADO: 0.2s → 0.15s (ahorro: 0.05s)
 
             except Exception as e:
                 logger.warning(f"  Could not fill birth date: {e}")
@@ -259,9 +259,9 @@ class PassengersPage:
                     nationality_button_id = nationality_button.get_attribute("id")
 
                     self.driver.execute_script("arguments[0].scrollIntoView(true);", nationality_button)
-                    time.sleep(0.2)
+                    time.sleep(0.1)  # OPTIMIZADO: 0.2s → 0.1s (ahorro: 0.1s)
                     self.driver.execute_script("arguments[0].click();", nationality_button)
-                    time.sleep(0.3)
+                    time.sleep(0.2)  # OPTIMIZADO: 0.3s → 0.2s (ahorro: 0.1s)
 
                     # Colombia siempre es -0
                     nationality_option_id = f"{nationality_button_id}-0"
@@ -273,7 +273,7 @@ class PassengersPage:
                     except:
                         logger.warning(f"  ✗ Nationality not found with ID {nationality_option_id}")
 
-                    time.sleep(0.2)
+                    time.sleep(0.15)  # OPTIMIZADO: 0.2s → 0.15s (ahorro: 0.05s)
             except Exception as e:
                 logger.warning(f"  Could not select nationality: {e}")
 
@@ -325,9 +325,8 @@ class PassengersPage:
                 logger.warning(f"Failed to fill passenger {index + 1}")
                 all_success = False
 
-            # Esperar más tiempo entre pasajeros para evitar browser crashes
-            # Con 4 pasajeros y tantas operaciones DOM, el browser necesita tiempo para estabilizarse
-            time.sleep(2)
+            # OPTIMIZADO: Reducido de 2s → 1s (ahorro: 1s por pasajero = 3s total)
+            time.sleep(1)
 
         if all_success:
             logger.info("✓ All passengers filled successfully")
@@ -360,7 +359,7 @@ class PassengersPage:
         try:
             # Scroll hacia abajo para ver el contenedor
             self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight * 0.9);")
-            time.sleep(0.5)
+            time.sleep(0.3)  # OPTIMIZADO: 0.5s → 0.3s (ahorro: 0.2s)
 
             # PASO 1: SELECCIONAR PASAJERO (usualmente ya está preseleccionado el adulto)
             logger.info("  1. Checking passenger selection (Adult should be pre-selected)...")
@@ -376,15 +375,15 @@ class PassengersPage:
             try:
                 phone_prefix_button = self.driver.find_element(By.ID, "phone_prefixPhoneId")
                 self.driver.execute_script("arguments[0].scrollIntoView(true);", phone_prefix_button)
-                time.sleep(0.2)
+                time.sleep(0.1)  # OPTIMIZADO: 0.2s → 0.1s (ahorro: 0.1s)
                 self.driver.execute_script("arguments[0].click();", phone_prefix_button)
-                time.sleep(0.3)
+                time.sleep(0.2)  # OPTIMIZADO: 0.3s → 0.2s (ahorro: 0.1s)
 
                 # Seleccionar Colombia (primer item: -0)
                 phone_prefix_option = self.driver.find_element(By.ID, "phone_prefixPhoneId-0")
                 self.driver.execute_script("arguments[0].click();", phone_prefix_option)
                 logger.info("  ✓ Phone prefix selected: Colombia (+57)")
-                time.sleep(0.2)
+                time.sleep(0.15)  # OPTIMIZADO: 0.2s → 0.15s (ahorro: 0.05s)
             except Exception as e:
                 logger.warning(f"  Could not select phone prefix: {e}")
 
@@ -393,7 +392,7 @@ class PassengersPage:
             try:
                 phone_input = self.driver.find_element(By.ID, "phone_phoneNumberId")
                 self.driver.execute_script("arguments[0].scrollIntoView(true);", phone_input)
-                time.sleep(0.2)
+                time.sleep(0.1)  # OPTIMIZADO: 0.2s → 0.1s (ahorro: 0.1s)
                 phone_input.clear()
                 phone_input.send_keys(phone)
                 logger.info(f"  ✓ Phone number filled: {phone}")
@@ -405,7 +404,7 @@ class PassengersPage:
             try:
                 email_input = self.driver.find_element(By.ID, "email")
                 self.driver.execute_script("arguments[0].scrollIntoView(true);", email_input)
-                time.sleep(0.2)
+                time.sleep(0.1)  # OPTIMIZADO: 0.2s → 0.1s (ahorro: 0.1s)
                 email_input.clear()
                 email_input.send_keys(email)
                 logger.info(f"  ✓ Email filled: {email}")
@@ -417,7 +416,7 @@ class PassengersPage:
             try:
                 confirm_email_input = self.driver.find_element(By.ID, "confirmEmail")
                 self.driver.execute_script("arguments[0].scrollIntoView(true);", confirm_email_input)
-                time.sleep(0.2)
+                time.sleep(0.1)  # OPTIMIZADO: 0.2s → 0.1s (ahorro: 0.1s)
                 confirm_email_input.clear()
                 confirm_email_input.send_keys(email)
                 logger.info(f"  ✓ Email confirmed: {email}")
@@ -429,7 +428,7 @@ class PassengersPage:
             try:
                 checkbox = self.driver.find_element(By.ID, "sendNewsLetter")
                 self.driver.execute_script("arguments[0].scrollIntoView(true);", checkbox)
-                time.sleep(0.2)
+                time.sleep(0.1)  # OPTIMIZADO: 0.2s → 0.1s (ahorro: 0.1s)
 
                 # Verificar si ya está seleccionado
                 if not checkbox.is_selected():
@@ -471,7 +470,7 @@ class PassengersPage:
 
         try:
             self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-            time.sleep(2)
+            time.sleep(1)  # OPTIMIZADO: 2s → 1s (ahorro: 1s)
 
             continue_selectors = [
                 "//button[contains(@class, 'btn-next')]",
@@ -490,10 +489,10 @@ class PassengersPage:
                         continue_btn = self.driver.find_element(By.XPATH, selector)
 
                     self.driver.execute_script("arguments[0].scrollIntoView(true);", continue_btn)
-                    time.sleep(0.5)
+                    time.sleep(0.3)  # OPTIMIZADO: 0.5s → 0.3s (ahorro: 0.2s)
                     self.driver.execute_script("arguments[0].click();", continue_btn)
                     logger.info("✓ Continue button clicked")
-                    time.sleep(3)
+                    time.sleep(2)  # OPTIMIZADO: 3s → 2s (ahorro: 1s)
                     return True
                 except:
                     continue

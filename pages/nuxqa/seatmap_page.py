@@ -89,7 +89,7 @@ class SeatmapPage:
 
         try:
             # Esperar a que cambie la URL
-            time.sleep(3)
+            time.sleep(1)
 
             current_url = self.driver.current_url
             logger.info(f"Current URL: {current_url}")
@@ -99,15 +99,15 @@ class SeatmapPage:
             logger.info("Passenger list found")
 
             # Esperar a que aparezcan asientos Economy
-            time.sleep(3)
+            time.sleep(1)
 
             # CRÍTICO: Esperar más tiempo para que Angular complete la inicialización del estado interno
             # Sin esto, obtenemos "ConfigurationErrorsException" al hacer click en asientos
             # El problema: Angular necesita tiempo para inicializar el estado de la reserva (PNR),
             # pasajeros, y configuración del seatmap ANTES de procesar clicks
-            logger.info("Waiting additional 10 seconds for Angular to fully initialize internal state...")
+            logger.info("Waiting additional 7 seconds for Angular to fully initialize internal state...")
             logger.info("(This prevents ConfigurationErrorsException modal)")
-            time.sleep(10)
+            time.sleep(7)
 
             logger.info("✓ Seatmap page loaded successfully")
             return True
@@ -270,7 +270,7 @@ class SeatmapPage:
                     seat_classes = seat.get_attribute("class")
 
                     # VISUAL DEBUG: Mostrar información del asiento en pantalla
-                    self.show_seat_info(seat_id, seat_classes, "CHECKING")
+                    # self.show_seat_info(seat_id, seat_classes, "CHECKING")
 
                     logger.info(f"  Checking seat {seat_id}: classes = '{seat_classes}'")
 
@@ -288,7 +288,7 @@ class SeatmapPage:
 
                         # Scroll al asiento
                         self.driver.execute_script("arguments[0].scrollIntoView({behavior: 'auto', block: 'center'});", seat)
-                        time.sleep(1)
+                        time.sleep(0.5)
 
                         # Esperar a que el asiento sea clickeable
                         try:
@@ -300,22 +300,22 @@ class SeatmapPage:
                             continue
 
                         # VISUAL DEBUG: Mostrar que estamos haciendo click
-                        self.show_seat_info(seat_id, seat_classes, "CLICKING")
+                        # self.show_seat_info(seat_id, seat_classes, "CLICKING")
 
                         # CAMBIO CRÍTICO: Usar click NORMAL de Selenium (no JavaScript click)
                         # El JavaScript click no dispara los event listeners correctos
                         clickable_seat.click()
                         logger.info(f"  Clicked on seat: {seat_id}")
 
-                        # Esperar 2 segundos para ver si aparece un modal
-                        time.sleep(2)
+                        # Esperar 1 segundo para ver si aparece un modal
+                        time.sleep(1)
 
                         # IMPORTANTE: Verificar si apareció un modal de error/advertencia
                         try:
                             modal = self.driver.find_element(By.CSS_SELECTOR, "ngb-modal-window.modal-alert")
 
                             # VISUAL DEBUG: Mostrar que se detectó un modal (ERROR)
-                            self.show_seat_info(seat_id, seat_classes, "ERROR")
+                            # self.show_seat_info(seat_id, seat_classes, "ERROR")
 
                             logger.error(f"⚠⚠⚠ MODAL DETECTED! This should NOT happen in manual testing!")
 
@@ -373,25 +373,25 @@ class SeatmapPage:
                             # No hay modal, perfecto
                             pass
 
-                        # Esperar 8 segundos más (total 10 seg) para que el asiento cambie a 'selected'
-                        logger.info(f"  Waiting 8 more seconds for seat to change to 'selected'...")
-                        time.sleep(8)
+                        # Esperar 3 segundos más para que el asiento cambie a 'selected'
+                        logger.info(f"  Waiting 3 more seconds for seat to change to 'selected'...")
+                        time.sleep(3)
 
                         # Verificar UNA SOLA VEZ si se marcó como selected
                         try:
                             updated_seat = self.driver.find_element(By.ID, seat_id)
                             updated_classes = updated_seat.get_attribute("class")
-                            logger.info(f"  After 5s, seat classes: '{updated_classes}'")
+                            logger.info(f"  After 3s, seat classes: '{updated_classes}'")
 
                             if "selected" in updated_classes:
                                 # VISUAL DEBUG: Mostrar que el asiento fue seleccionado exitosamente
-                                self.show_seat_info(seat_id, updated_classes, "SELECTED")
+                                # self.show_seat_info(seat_id, updated_classes, "SELECTED")
 
                                 logger.info(f"✓ Economy seat selected successfully: {seat_id}")
-                                time.sleep(2)  # Esperar un poco más para que se vea el mensaje SELECTED
+                                # time.sleep(2)  # YA NO NECESARIO - debug visual removido
                                 return True, seat_id
                             else:
-                                logger.warning(f"⚠ Seat {seat_id} still not marked as 'selected' after 5 seconds")
+                                logger.warning(f"⚠ Seat {seat_id} still not marked as 'selected' after 3 seconds")
                                 # Continuar probando el siguiente asiento
                                 continue
                         except Exception as e:
@@ -464,13 +464,13 @@ class SeatmapPage:
                 # Solo si no es el último pasajero
                 if i < passenger_count - 1:
                     logger.info(f"  Waiting for page reload and auto-selection of next passenger...")
-                    time.sleep(3)
+                    time.sleep(1)
 
             logger.info(f"✓ All {len(seat_assignments)} passengers assigned seats successfully")
 
             # CRÍTICO: Esperar tiempo adicional para que la página actualice el botón correctamente
-            logger.info("Waiting 5 additional seconds for page to finalize seat selection state...")
-            time.sleep(5)
+            logger.info("Waiting 2 additional seconds for page to finalize seat selection state...")
+            time.sleep(2)
 
             return seat_assignments
 
@@ -493,7 +493,7 @@ class SeatmapPage:
         try:
             # Scroll hacia abajo para ver el botón
             self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-            time.sleep(2)
+            time.sleep(1)
 
             # DEBUGGING: Tomar screenshot ANTES de hacer click
             try:
@@ -553,7 +553,7 @@ class SeatmapPage:
             self.driver.execute_script("arguments[0].click();", go_to_payment_btn)
             logger.info("✓ 'Ir a pagar' button clicked successfully")
 
-            time.sleep(5)  # Esperar más tiempo a que cargue la página de Payment
+            time.sleep(2)  # Esperar a que cargue la página de Payment
             return True
 
         except Exception as e:

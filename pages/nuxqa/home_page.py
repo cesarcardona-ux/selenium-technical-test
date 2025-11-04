@@ -81,7 +81,7 @@ class HomePage:
         """
         logger.info(f"Opening URL: {url}")
         self.driver.get(url)
-        time.sleep(2)  # Espera 2 segundos para que cargue completamente
+        time.sleep(1)  # OPTIMIZADO: 2s → 1s (ahorro: 1s)
         logger.info("Page loaded successfully")
 
     def click_language_button(self):
@@ -92,7 +92,7 @@ class HomePage:
         logger.info("Clicking language button")
         element = self.driver.find_element(*self.LANGUAGE_BUTTON)
         element.click()
-        time.sleep(1)  # Espera a que se abra el dropdown
+        time.sleep(0.5)  # OPTIMIZADO: 1s → 0.5s (ahorro: 0.5s)
         logger.info("Language dropdown opened")
 
     def select_language(self, language_name):
@@ -110,7 +110,7 @@ class HomePage:
         xpath = f"//span[contains(text(), '{language_name}')]"
         element = self.driver.find_element(By.XPATH, xpath)
         element.click()
-        time.sleep(2)  # Espera a que se recargue la página
+        time.sleep(1)  # OPTIMIZADO: 2s → 1s (ahorro: 1s)
         logger.info(f"Language '{language_name}' selected successfully")
 
     def get_offers_text(self):
@@ -136,7 +136,7 @@ class HomePage:
         logger.info("Clicking POS button")
         element = self.driver.find_element(*self.POS_BUTTON)
         element.click()
-        time.sleep(1)  # Espera a que se abra el dropdown
+        time.sleep(0.5)  # OPTIMIZADO: 1s → 0.5s (ahorro: 0.5s)
         logger.info("POS dropdown opened")
 
     def select_pos(self, pos_name):
@@ -151,14 +151,14 @@ class HomePage:
         xpath = f"//span[@class='points-of-sale_list_item_label' and contains(text(), '{pos_name}')]"
         element = self.driver.find_element(By.XPATH, xpath)
         element.click()
-        time.sleep(1)  # Espera a que se resalte la opción
+        time.sleep(0.5)  # OPTIMIZADO: 1s → 0.5s (ahorro: 0.5s)
         logger.info(f"POS '{pos_name}' clicked")
 
         # Click en el botón "Aplicar" para confirmar el cambio
         logger.info("Clicking 'Aplicar' button to confirm POS change")
         apply_button = self.driver.find_element(*self.POS_APPLY_BUTTON)
         apply_button.click()
-        time.sleep(3)  # Espera a que se recargue la página (más tiempo porque recarga)
+        time.sleep(2)  # OPTIMIZADO: 3s → 2s (ahorro: 1s)
         logger.info(f"POS '{pos_name}' applied successfully")
 
     def get_pos_text(self):

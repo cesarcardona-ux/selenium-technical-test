@@ -79,9 +79,9 @@ class PaymentPage:
         logger.info("Waiting for Payment page to load...")
 
         try:
-            # Esperar a que cambie la URL
-            logger.info("Waiting 8 seconds for page navigation...")
-            time.sleep(8)
+            # Esperar a que cambie la URL (reducido - página carga rápido)
+            logger.info("Waiting 2 seconds for page navigation...")
+            time.sleep(2)
 
             current_url = self.driver.current_url
             logger.info(f"Current URL: {current_url}")
@@ -90,15 +90,13 @@ class PaymentPage:
             if 'payment' not in current_url.lower() and 'pay' not in current_url.lower():
                 logger.warning(f"URL doesn't seem to be a payment page: {current_url}")
                 logger.info("Waiting extra time for navigation...")
-                time.sleep(5)
+                time.sleep(2)
                 current_url = self.driver.current_url
                 logger.info(f"URL after extra wait: {current_url}")
 
-            # CRÍTICO: Payment page usa Angular que inyecta el formulario dinámicamente en el DOM
-            # Esperar tiempo adicional para que Angular termine de renderizar
-            logger.info("Waiting 15 additional seconds for Angular to inject payment form into DOM...")
-            time.sleep(15)
-
+            # CRÍTICO: CAMBIO DE FLUJO - Aceptar cookies PRIMERO (aparecen inmediatamente)
+            # ANTES: Esperábamos 13s → cookies → 8s
+            # AHORA: cookies inmediato → esperar iframe
             # CRÍTICO: Detectar y aceptar modal de cookies si aparece
             # IMPORTANTE: El modal de OneTrust puede estar en un IFRAME separado o en el DOM principal
             logger.info("Checking for cookies consent modal (may be in iframe or main DOM)...")
@@ -131,7 +129,7 @@ class PaymentPage:
                     self.driver.execute_script("arguments[0].scrollIntoView({behavior: 'auto', block: 'center'});", cookies_accept_button)
                     time.sleep(1)
                     cookies_accept_button.click()
-                    time.sleep(3)
+                    time.sleep(2)
                     logger.info("✓ Cookies accepted successfully (main DOM)")
 
                 except Exception as e:
@@ -201,21 +199,12 @@ class PaymentPage:
                 except:
                     pass
 
-            # CRÍTICO: Después de aceptar cookies, esperar tiempo adicional para que el formulario se cargue
-            logger.info("Waiting 10 additional seconds for payment form to fully load after cookies acceptance...")
-            time.sleep(10)
-
-            # IMPORTANTE: Asegurarse MÚLTIPLES VECES de estar en el contexto principal del DOM
-            # El usuario reportó que necesitamos asegurarnos de buscar en la página Payment, no en el contexto de cookies
-            logger.info("Ensuring we are in the main page context (not in any iframe)...")
-            try:
-                # Cambiar al contexto principal MÚLTIPLES veces para asegurar
-                self.driver.switch_to.default_content()
-                time.sleep(1)
-                self.driver.switch_to.default_content()
-                logger.info("✓ Switched to main content twice (ensuring correct context)")
-            except Exception as switch_error:
-                logger.warning(f"Error switching to default content: {switch_error}")
+            # CRÍTICO: Después de aceptar cookies, esperar a que Angular inyecte el iframe de payment
+            # OPTIMIZACIÓN V2: Reducido de 10s → 6s (ahorro adicional de 4 segundos)
+            # Total ahorro desde original: 13s+8s=21s → 6s = 15 segundos ahorrados
+            # Razón: Ya aceptamos cookies inmediatamente, ahora Angular puede cargar el iframe
+            logger.info("Waiting 6 seconds for Angular to inject payment iframe after cookies...")
+            time.sleep(6)
 
             # CRÍTICO: Los campos de tarjeta (Holder, Data, CVV, etc.) están dentro de un IFRAME externo
             # de payment gateway (api-pay.avtest.ink). Necesitamos cambiar al contexto del iframe.
@@ -262,7 +251,7 @@ class PaymentPage:
                     pass
                 raise
 
-            time.sleep(2)
+            time.sleep(1)
 
             logger.info("✓ Payment page loaded successfully")
             return True
@@ -298,8 +287,6 @@ class PaymentPage:
             # PASO 1: Nombre del titular
             logger.info(f"  1. Card Holder: {holder_name}...")
             holder_input = self.wait.until(EC.presence_of_element_located(self.CARD_HOLDER_INPUT))
-            self.driver.execute_script("arguments[0].scrollIntoView(true);", holder_input)
-            time.sleep(0.3)
             holder_input.clear()
             holder_input.send_keys(holder_name)
             logger.info(f"  ✓ Card holder filled: {holder_name}")
@@ -307,8 +294,6 @@ class PaymentPage:
             # PASO 2: Número de tarjeta
             logger.info(f"  2. Card Number: {card_number}...")
             card_input = self.driver.find_element(*self.CARD_NUMBER_INPUT)
-            self.driver.execute_script("arguments[0].scrollIntoView(true);", card_input)
-            time.sleep(0.3)
             card_input.clear()
             card_input.send_keys(card_number)
             logger.info(f"  ✓ Card number filled: {card_number}")
@@ -316,10 +301,8 @@ class PaymentPage:
             # PASO 3: Mes de expiración
             logger.info(f"  3. Expiration Month: {exp_month}...")
             month_button = self.driver.find_element(*self.CARD_MONTH_BUTTON)
-            self.driver.execute_script("arguments[0].scrollIntoView(true);", month_button)
-            time.sleep(0.3)
             self.driver.execute_script("arguments[0].click();", month_button)
-            time.sleep(0.5)
+            time.sleep(0.3)
 
             # Seleccionar mes por ID: expirationMonth_ExpirationDate-12
             month_option_id = f"expirationMonth_ExpirationDate-{exp_month}"
@@ -330,10 +313,8 @@ class PaymentPage:
             # PASO 4: Año de expiración
             logger.info(f"  4. Expiration Year: {exp_year}...")
             year_button = self.driver.find_element(*self.CARD_YEAR_BUTTON)
-            self.driver.execute_script("arguments[0].scrollIntoView(true);", year_button)
-            time.sleep(0.3)
             self.driver.execute_script("arguments[0].click();", year_button)
-            time.sleep(0.5)
+            time.sleep(0.3)
 
             # Seleccionar año por ID: expirationYear_ExpirationDate-28
             year_option_id = f"expirationYear_ExpirationDate-{exp_year}"
@@ -344,8 +325,6 @@ class PaymentPage:
             # PASO 5: CVV
             logger.info(f"  5. CVV: {cvv}...")
             cvv_input = self.driver.find_element(*self.CARD_CVV_INPUT)
-            self.driver.execute_script("arguments[0].scrollIntoView(true);", cvv_input)
-            time.sleep(0.3)
             cvv_input.clear()
             cvv_input.send_keys(cvv)
             logger.info(f"  ✓ CVV filled: {cvv}")
@@ -357,7 +336,7 @@ class PaymentPage:
             self.driver.switch_to.default_content()
             logger.info("✓ Switched back to main DOM context (out of payment iframe)")
 
-            time.sleep(1)
+            time.sleep(0.5)
             return True
 
         except Exception as e:
@@ -387,13 +366,11 @@ class PaymentPage:
         try:
             # Scroll hacia abajo para ver formulario de facturación
             self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight * 0.7);")
-            time.sleep(0.5)
+            time.sleep(0.3)
 
             # PASO 1: Email
             logger.info(f"  1. Email: {email}...")
             email_input = self.wait.until(EC.presence_of_element_located(self.BILLING_EMAIL_INPUT))
-            self.driver.execute_script("arguments[0].scrollIntoView(true);", email_input)
-            time.sleep(0.3)
             email_input.clear()
             email_input.send_keys(email)
             logger.info(f"  ✓ Email filled: {email}")
@@ -401,8 +378,6 @@ class PaymentPage:
             # PASO 2: Address
             logger.info(f"  2. Address: {address}...")
             address_input = self.driver.find_element(*self.BILLING_ADDRESS_INPUT)
-            self.driver.execute_script("arguments[0].scrollIntoView(true);", address_input)
-            time.sleep(0.3)
             address_input.clear()
             address_input.send_keys(address)
             logger.info(f"  ✓ Address filled: {address}")
@@ -410,8 +385,6 @@ class PaymentPage:
             # PASO 3: City
             logger.info(f"  3. City: {city}...")
             city_input = self.driver.find_element(*self.BILLING_CITY_INPUT)
-            self.driver.execute_script("arguments[0].scrollIntoView(true);", city_input)
-            time.sleep(0.3)
             city_input.clear()
             city_input.send_keys(city)
             logger.info(f"  ✓ City filled: {city}")
@@ -419,14 +392,12 @@ class PaymentPage:
             # PASO 4: Country (Colombia)
             logger.info(f"  4. Country: Colombia (searching with '{country_text}')...")
             country_button = self.driver.find_element(*self.BILLING_COUNTRY_BUTTON)
-            self.driver.execute_script("arguments[0].scrollIntoView(true);", country_button)
-            time.sleep(0.3)
             self.driver.execute_script("arguments[0].click();", country_button)
-            time.sleep(0.5)
+            time.sleep(0.3)
 
             # Escribir "colo" para buscar Colombia
             country_button.send_keys(country_text)
-            time.sleep(1)
+            time.sleep(0.5)
 
             # Seleccionar Colombia (aparece como opción filtrada)
             # XPath: //button[@role='option' and contains(., 'Colombia')]
@@ -437,7 +408,7 @@ class PaymentPage:
             logger.info("  ✓ Country selected: Colombia")
 
             logger.info("✓ Billing information filled successfully")
-            time.sleep(1)
+            time.sleep(0.5)
             return True
 
         except Exception as e:
@@ -458,11 +429,9 @@ class PaymentPage:
         try:
             # Scroll hacia abajo para ver el checkbox
             self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight * 0.9);")
-            time.sleep(0.5)
+            time.sleep(0.3)
 
             terms_checkbox = self.wait.until(EC.presence_of_element_located(self.TERMS_CHECKBOX))
-            self.driver.execute_script("arguments[0].scrollIntoView(true);", terms_checkbox)
-            time.sleep(0.3)
 
             # Verificar si ya está seleccionado
             if not terms_checkbox.is_selected():
@@ -471,7 +440,7 @@ class PaymentPage:
             else:
                 logger.info("✓ Terms already accepted")
 
-            time.sleep(1)
+            time.sleep(0.5)
             return True
 
         except Exception as e:
@@ -491,17 +460,15 @@ class PaymentPage:
         try:
             # Scroll hacia abajo para ver el botón
             self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-            time.sleep(1)
+            time.sleep(0.5)
 
             confirm_btn = self.wait.until(EC.presence_of_element_located(self.CONFIRM_PAYMENT_BUTTON))
-            self.driver.execute_script("arguments[0].scrollIntoView(true);", confirm_btn)
-            time.sleep(0.5)
 
             # Click usando JavaScript
             self.driver.execute_script("arguments[0].click();", confirm_btn)
             logger.info("✓ 'Confirmar y pagar' button clicked successfully")
 
-            time.sleep(3)  # Esperar a que se procese el pago
+            time.sleep(2)  # Esperar a que se procese el pago (reducido de 3s a 2s)
             return True
 
         except Exception as e:

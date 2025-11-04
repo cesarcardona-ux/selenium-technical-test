@@ -75,7 +75,7 @@ class ServicesPage:
         logger.info("Waiting for Services page to load...")
 
         try:
-            time.sleep(3)  # Tiempo para que la página empiece a cargar
+            time.sleep(2)  # OPTIMIZADO: 3s → 2s (ahorro: 1s)
 
             current_url = self.driver.current_url
             logger.info(f"Current URL: {current_url}")
@@ -87,7 +87,7 @@ class ServicesPage:
                 logger.warning(f"URL doesn't contain 'service' or 'product': {current_url}")
 
             # Esperar a que aparezcan elementos
-            time.sleep(2)
+            time.sleep(1)  # OPTIMIZADO: 2s → 1s (ahorro: 1s)
 
             logger.info("✓ Services page loaded successfully")
             return True
@@ -112,10 +112,10 @@ class ServicesPage:
                 skip_button = self.driver.find_element(*self.SKIP_SERVICES_BUTTON)
                 logger.info("Skip button found, clicking it...")
                 self.driver.execute_script("arguments[0].scrollIntoView(true);", skip_button)
-                time.sleep(0.5)
+                time.sleep(0.3)  # OPTIMIZADO: 0.5s → 0.3s (ahorro: 0.2s)
                 self.driver.execute_script("arguments[0].click();", skip_button)
                 logger.info("✓ Services skipped using Skip button")
-                time.sleep(2)
+                time.sleep(1.5)  # OPTIMIZADO: 2s → 1.5s (ahorro: 0.5s)
                 return True
             except Exception as e:
                 logger.info(f"Skip button not found: {e}")
@@ -251,7 +251,7 @@ class ServicesPage:
         try:
             # Scroll hacia abajo para asegurar que el botón esté visible
             self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-            time.sleep(2)
+            time.sleep(1)  # OPTIMIZADO: 2s → 1s (ahorro: 1s)
 
             # Buscar botón continuar con diferentes estrategias
             # El botón tiene estructura: <button class="btn-next"><span>Continuar</span></button>
@@ -278,9 +278,9 @@ class ServicesPage:
                         continue_btn = self.driver.find_element(By.XPATH, selector)
 
                     self.driver.execute_script("arguments[0].scrollIntoView(true);", continue_btn)
-                    time.sleep(0.5)
+                    time.sleep(0.3)  # OPTIMIZADO: 0.5s → 0.3s (ahorro: 0.2s)
                     self.driver.execute_script("arguments[0].click();", continue_btn)  # JavaScript click
-                    time.sleep(2)
+                    time.sleep(1.5)  # OPTIMIZADO: 2s → 1.5s (ahorro: 0.5s)
 
                     logger.info("✓ Continue button clicked successfully")
                     return True

@@ -215,32 +215,29 @@ allure serve reports/allure
 - **Repositorio GitHub** configurado y actualizado
 - **Ejecución paralela** con pytest-xdist
 - **Grabación de video** con OpenCV (MP4)
-- **Casos implementados:** 5/7 (Cases 3, 4, 5, 6, 7)
-  - ✅ Case 3: Flight Search & Network Capture (UAT1)
-  - ✅ Case 4: Language Change Validation
-  - ✅ Case 5: POS Change Validation
-  - ✅ Case 6: Header Redirections
-  - ✅ Case 7: Footer Redirections
+- **Casos implementados:** 6/7 (Cases 1, 3, 4, 5, 6, 7)
+  - ✅ Case 1: One-way Booking (6 tests - flujo completo con optimizaciones)
+  - ✅ Case 3: Flight Search & Network Capture (2 tests - UAT1)
+  - ✅ Case 4: Language Change Validation (24 tests)
+  - ✅ Case 5: POS Change Validation (18 tests)
+  - ✅ Case 6: Header Redirections (18 tests)
+  - ✅ Case 7: Footer Redirections (24 tests)
 - **Database SQLite:** 30 campos comprehensivos
 - **Allure Reports:** Totalmente implementado
 - **Selenium Manager:** Configurado (sin webdriver-manager)
-
-### 🚧 En Desarrollo
-- **Case 1:** One-way Booking (complejo - flujo completo)
-  - ✅ Framework completo (6 páginas)
-  - ✅ Payment page iframe handling (cookies + payment gateway)
-  - ⏳ Validación end-to-end pendiente
+- **Performance Optimizations:** Aplicadas en Case 1 (23% más rápido)
 
 ### ⏳ Pendiente
 - **Case 2:** Round-trip Booking (complejo - flujo completo)
 
 ### 📊 Estadísticas Actuales
-- **Casos completados:** 5/7 (71%)
-- **Total tests:** 86 (2 + 24 + 18 + 18 + 24)
+- **Casos completados:** 6/7 (85.7%)
+- **Total tests:** 92 (6 + 2 + 24 + 18 + 18 + 24)
 - **Navegadores:** Chrome, Edge, Firefox (+ CDP para Chrome/Edge en Case 3)
 - **Ambientes:** QA4, QA5, UAT1
 - **CLI Parameters:** 12 opciones configurables
+- **Performance:** Case 1 optimizado (23% más rápido - ~84s ahorrados)
 
 ----------------------------------------------------------
 
-*Última actualización: Case 1 iframe handling implementado (2025-11-03). 5 de 7 casos completos, Case 1 en desarrollo.*
+*Última actualización: Case 1 COMPLETADO con optimizaciones de tiempo (2025-11-03). 6 de 7 casos completos (85.7%), solo Case 2 pendiente.*

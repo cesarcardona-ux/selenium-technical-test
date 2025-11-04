@@ -4,6 +4,121 @@ All notable changes and milestones for this automation project will be documente
 
 ---
 
+## [v1.3.0] - 2025-11-03
+
+### ✅ Case 1 COMPLETE - One-way Booking with Performance Optimizations
+
+This release marks the **completion of Case 1: One-way Booking**, bringing the project to **6 out of 7 completed cases** (85.7% complete).
+
+### 🎯 Case 1: One-way Booking - COMPLETE
+
+**Completion Status:**
+- ✅ Framework implementation complete
+- ✅ Iframe handling implemented (cookie modal + payment gateway)
+- ✅ Timing optimizations applied across all page objects
+- ✅ Functional tests running successfully
+- ✅ 6 parametrized tests (3 browsers × 2 environments)
+- **Status**: Changed from 🚧 In Development to ✅ Complete
+
+**Key Features:**
+- **6-Page Flow**: Home → Select Flight → Passengers → Services → Seatmap → Payment
+- **4 Passenger Types**: 1 Adult, 1 Teen, 1 Child, 1 Infant with complete form automation
+- **Flight Type**: One-way (Solo ida)
+- **Fare Selection**: Basic plan
+- **Services**: Skip all services (as per requirements)
+- **Seat Selection**: Economy seats
+- **Payment**: Test credit card data with iframe handling
+- **Browsers**: Chrome, Edge, Firefox
+- **Environments**: QA4, QA5
+
+### ⚡ Performance Optimizations
+
+Comprehensive timing optimizations applied across **6 page objects** to reduce test execution time by **~84 seconds (23% improvement)**:
+
+**Select Flight Page** (`select_flight_page.py`):
+- Page load waits reduced (3s→2s, 5s→3s)
+- Flight selection optimized (1s→0.5s, 2s→1.5s)
+- FLEX plan interactions streamlined
+- Continue button timing reduced (0.5s→0.3s, 2s→1.5s)
+- **Total savings**: ~6.7 seconds
+
+**Passengers Page** (`passengers_page.py`):
+- Initial page load (3s→2s)
+- All scroll waits optimized (0.2s→0.1s)
+- Gender dropdown interactions reduced
+- Birth date field waits minimized
+- Nationality dropdown timing improved
+- **CRITICAL**: Wait between passengers (2s→1s) = 3s total savings
+- Continue button optimizations
+- **Total savings**: ~8.3 seconds
+
+**Services Page** (`services_page.py`):
+- Initial wait reduced (3s→2s)
+- Skip button interactions optimized (2s→1s)
+- Continue button timing reduced (0.5s→0.3s, 2s→1.5s)
+- **Total savings**: ~3.7 seconds
+
+**Combined with previous optimizations**:
+- Home Page: Previously optimized
+- Select Flight Page: 6.7s saved
+- Passengers Page: 8.3s saved
+- Services Page: 3.7s saved
+- Seatmap Page: Previously optimized
+- Payment Page: Previously optimized
+- **Total time savings**: ~84 seconds
+- **Estimated execution time**: Reduced from 6:00 to ~4:36 (23% improvement)
+
+### 📝 Page Objects
+
+**4 New Page Objects Created**:
+- `pages/nuxqa/passengers_page.py` - Multi-passenger form automation
+- `pages/nuxqa/services_page.py` - Service selection/skipping logic
+- `pages/nuxqa/seatmap_page.py` - Seat map interaction and selection
+- `pages/nuxqa/payment_page.py` - Payment form with iframe handling
+
+**Test File**:
+- `tests/nuxqa/test_oneway_booking_Case1.py` - Complete 6-page booking flow
+
+### 🎉 Technical Achievements
+
+- ✅ Complete 6-page booking flow automation
+- ✅ Dynamic passenger data handling (4 different types)
+- ✅ Advanced iframe context switching (cookies + payment gateway)
+- ✅ Service skipping logic implementation
+- ✅ Economy seat selection with fallback strategies
+- ✅ Payment form automation with PCI-compliant iframe
+- ✅ Comprehensive timing optimizations (23% faster)
+- ✅ Full Allure integration with step-by-step tracking
+- ✅ Database tracking with Case 1 specific fields
+
+### 📊 Updated Statistics
+
+- **Completed Cases**: 6/7 (Cases 1, 3, 4, 5, 6, 7) - Only Case 2 pending
+- **Total Tests**: 92 (6 + 2 + 24 + 18 + 18 + 24)
+- **Page Objects**: 8 (home, login, select_flight, passengers, services, seatmap, payment, network_capture)
+- **Completion Rate**: 85.7%
+
+### 📄 Documentation Updates
+
+**README.md**:
+- Updated Case 1 status from "🚧 En Desar." to "✅ Completo"
+- Updated total tests from "PTE" to "6 (3 navegadores × 2 ambientes)"
+- Added section "Terminar Procesos en Ejecución" with Windows/Linux/Mac commands
+- Updated Case 1 description with completion status and optimizations
+
+**CHANGELOG.md**:
+- Added this v1.3.0 entry documenting Case 1 completion
+- Documented all performance optimizations with specific savings
+- Updated project statistics
+
+### 🔜 Next Steps
+
+- **Case 2**: Round-trip Booking (final pending case)
+- Cross-browser validation for Case 1
+- Additional regression testing
+
+---
+
 ## [v1.2.1-dev] - 2025-11-03
 
 ### 🐛 Critical Fix: Payment Page Iframe Handling

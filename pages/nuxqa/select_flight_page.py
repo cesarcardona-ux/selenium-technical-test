@@ -69,14 +69,14 @@ class SelectFlightPage:
 
         try:
             # Esperar a que cambie la URL (puede contener 'select', 'flight', etc)
-            time.sleep(3)  # Dar tiempo para que empiece la navegación
+            time.sleep(2)  # OPTIMIZADO: 3s → 2s (ahorro: 1s)
 
             current_url = self.driver.current_url
             logger.info(f"Current URL after search: {current_url}")
 
             # Esperar a que aparezcan elementos de vuelos o el botón continuar
             # (la página puede tener diferentes estructuras según el ambiente)
-            time.sleep(5)  # Esperar a que carguen los vuelos
+            time.sleep(3)  # OPTIMIZADO: 5s → 3s (ahorro: 2s)
 
             logger.info("✓ Select Flight page loaded successfully")
             return True
@@ -114,11 +114,11 @@ class SelectFlightPage:
             # Click en el PRIMERO usando JavaScript para mayor confiabilidad
             first_journey = journey_buttons[0]
             self.driver.execute_script("arguments[0].scrollIntoView(true);", first_journey)
-            time.sleep(1)
+            time.sleep(0.5)  # OPTIMIZADO: 1s → 0.5s (ahorro: 0.5s)
             self.driver.execute_script("arguments[0].click();", first_journey)  # JavaScript click
             logger.info("✓ Outbound flight selected (first one)")
 
-            time.sleep(2)  # Esperar a que aparezcan los planes
+            time.sleep(1.5)  # OPTIMIZADO: 2s → 1.5s (ahorro: 0.5s)
 
             # PASO 2: Seleccionar plan BASIC (primer botón fare_button)
             logger.info("Waiting for fare plans to appear...")
@@ -135,11 +135,11 @@ class SelectFlightPage:
             # Click en el PRIMERO (índice 0) = BASIC usando JavaScript
             basic_button = fare_buttons[0]
             self.driver.execute_script("arguments[0].scrollIntoView(true);", basic_button)
-            time.sleep(1)
+            time.sleep(0.5)  # OPTIMIZADO: 1s → 0.5s (ahorro: 0.5s)
             self.driver.execute_script("arguments[0].click();", basic_button)  # JavaScript click
             logger.info("✓ BASIC plan selected for outbound flight (1st button)")
 
-            time.sleep(3)  # Esperar a que la página se recargue
+            time.sleep(2)  # OPTIMIZADO: 3s → 2s (ahorro: 1s)
 
             return True
 
@@ -176,11 +176,11 @@ class SelectFlightPage:
             # Click en el PRIMERO usando JavaScript para mayor confiabilidad
             first_journey = journey_buttons[0]
             self.driver.execute_script("arguments[0].scrollIntoView(true);", first_journey)
-            time.sleep(1)
+            time.sleep(0.5)  # OPTIMIZADO: 1s → 0.5s (ahorro: 0.5s)
             self.driver.execute_script("arguments[0].click();", first_journey)  # JavaScript click
             logger.info("✓ Outbound flight selected (first one)")
 
-            time.sleep(2)  # Esperar a que aparezcan los planes
+            time.sleep(1.5)  # OPTIMIZADO: 2s → 1.5s (ahorro: 0.5s)
 
             # PASO 2: Seleccionar plan FLEX (tercer botón fare_button)
             logger.info("Waiting for fare plans to appear...")
@@ -197,11 +197,11 @@ class SelectFlightPage:
             # Click en el TERCERO (índice 2) = FLEX usando JavaScript
             flex_button = fare_buttons[2]
             self.driver.execute_script("arguments[0].scrollIntoView(true);", flex_button)
-            time.sleep(1)
+            time.sleep(0.5)  # OPTIMIZADO: 1s → 0.5s (ahorro: 0.5s)
             self.driver.execute_script("arguments[0].click();", flex_button)  # JavaScript click
             logger.info("✓ FLEX plan selected for outbound flight (3rd button)")
 
-            time.sleep(3)  # Esperar a que la página se recargue para el vuelo de vuelta
+            time.sleep(2)  # OPTIMIZADO: 3s → 2s (ahorro: 1s)
 
             return True
 
@@ -306,11 +306,11 @@ class SelectFlightPage:
             # Click en el TERCERO (índice 2) = FLEX usando JavaScript
             flex_button = fare_buttons[2]
             self.driver.execute_script("arguments[0].scrollIntoView(true);", flex_button)
-            time.sleep(1)
+            time.sleep(0.5)  # OPTIMIZADO: 1s → 0.5s (ahorro: 0.5s)
             self.driver.execute_script("arguments[0].click();", flex_button)  # JavaScript click
             logger.info("✓ FLEX plan selected for return flight (3rd button)")
 
-            time.sleep(3)  # Esperar a que cargue el resumen
+            time.sleep(2)  # OPTIMIZADO: 3s → 2s (ahorro: 1s)
 
             return True
 
@@ -353,9 +353,9 @@ class SelectFlightPage:
                         continue_btn = self.driver.find_element(By.XPATH, selector)
 
                     self.driver.execute_script("arguments[0].scrollIntoView(true);", continue_btn)
-                    time.sleep(0.5)
+                    time.sleep(0.3)  # OPTIMIZADO: 0.5s → 0.3s (ahorro: 0.2s)
                     self.driver.execute_script("arguments[0].click();", continue_btn)  # JavaScript click
-                    time.sleep(2)
+                    time.sleep(1.5)  # OPTIMIZADO: 2s → 1.5s (ahorro: 0.5s)
 
                     logger.info("✓ Continue button clicked successfully")
                     return True
