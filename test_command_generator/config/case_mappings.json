@@ -1,0 +1,111 @@
+{
+  "case_1": {
+    "name": "Case 1: One-way Booking",
+    "test_file": "tests/nuxqa/test_oneway_booking_Case1.py",
+    "applicable_parameters": [
+      "browser",
+      "language",
+      "pos",
+      "env",
+      "origin",
+      "destination",
+      "departure-days",
+      "video",
+      "screenshots"
+    ],
+    "requires_testdata": true,
+    "testdata_sections": ["passengers", "payment", "billing"],
+    "description": "Flujo completo de reserva solo ida (6 páginas)"
+  },
+  "case_2": {
+    "name": "Case 2: Round-trip Booking",
+    "test_file": "tests/nuxqa/test_roundtrip_booking_Case2.py",
+    "applicable_parameters": [
+      "browser",
+      "language",
+      "pos",
+      "env",
+      "origin",
+      "destination",
+      "departure-days",
+      "return-days",
+      "video",
+      "screenshots"
+    ],
+    "requires_testdata": true,
+    "testdata_sections": ["passengers", "payment", "billing"],
+    "description": "Flujo completo de reserva ida y vuelta"
+  },
+  "case_3": {
+    "name": "Case 3: Flight Search & Network Capture",
+    "test_file": "tests/nuxqa/test_login_network_Case3.py",
+    "applicable_parameters": [
+      "browser",
+      "language",
+      "pos",
+      "env",
+      "origin",
+      "destination",
+      "departure-days",
+      "return-days",
+      "video",
+      "screenshots"
+    ],
+    "requires_testdata": false,
+    "description": "Login UAT1 + búsqueda de vuelos + captura de red con CDP"
+  },
+  "case_4": {
+    "name": "Case 4: Language Change",
+    "test_file": "tests/nuxqa/test_language_change_Case4.py",
+    "applicable_parameters": [
+      "browser",
+      "language",
+      "env",
+      "video",
+      "screenshots"
+    ],
+    "requires_testdata": false,
+    "description": "Validación de cambio de idioma (4 idiomas)"
+  },
+  "case_5": {
+    "name": "Case 5: POS Change",
+    "test_file": "tests/nuxqa/test_pos_change_Case5.py",
+    "applicable_parameters": [
+      "browser",
+      "pos",
+      "env",
+      "video",
+      "screenshots"
+    ],
+    "requires_testdata": false,
+    "description": "Validación de cambio de POS (3 países)"
+  },
+  "case_6": {
+    "name": "Case 6: Header Redirections",
+    "test_file": "tests/nuxqa/test_header_redirections_Case6.py",
+    "applicable_parameters": [
+      "browser",
+      "language",
+      "header-link",
+      "env",
+      "video",
+      "screenshots"
+    ],
+    "requires_testdata": false,
+    "description": "Redirecciones de header con validación de idioma"
+  },
+  "case_7": {
+    "name": "Case 7: Footer Redirections",
+    "test_file": "tests/nuxqa/test_footer_redirections_Case7.py",
+    "applicable_parameters": [
+      "browser",
+      "language",
+      "footer-link",
+      "env",
+      "video",
+      "screenshots"
+    ],
+    "requires_testdata": false,
+    "description": "Redirecciones de footer con validación de idioma"
+  }
+}

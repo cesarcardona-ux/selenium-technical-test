@@ -1,0 +1,74 @@
+{
+  "current_session": {
+    "case_id": "case_1",
+    "parameters": {
+      "browser": "Google Chrome",
+      "language": "Español",
+      "pos": "Chile",
+      "env": "QA4",
+      "origin": "Bogotá (BOG)",
+      "destination": "Bogotá (BOG)",
+      "departure-days": "4",
+      "video": "Enabled",
+      "screenshots": "All Steps"
+    },
+    "pytest_flags": {
+      "verbose": true,
+      "show_prints": false,
+      "stop_on_first_failure": false,
+      "allure_report": false,
+      "parallel_execution": false
+    }
+  },
+  "passengers": {
+    "adult": {
+      "first_name": "Juan",
+      "last_name": "Pérez",
+      "gender": "Male",
+      "birth_date": "1990-01-15",
+      "nationality": "Colombia",
+      "document_type": "CC",
+      "document_number": "1234567890"
+    },
+    "teen": {
+      "first_name": "María",
+      "last_name": "García",
+      "gender": "Female",
+      "birth_date": "2010-05-20",
+      "nationality": "Colombia",
+      "document_type": "TI",
+      "document_number": "9876543210"
+    },
+    "child": {
+      "first_name": "Pedro",
+      "last_name": "López",
+      "gender": "Male",
+      "birth_date": "2018-08-10",
+      "nationality": "Colombia",
+      "document_type": "RC",
+      "document_number": "5555555555"
+    },
+    "infant": {
+      "first_name": "Ana",
+      "last_name": "Martínez",
+      "gender": "Female",
+      "birth_date": "2023-12-01",
+      "nationality": "Colombia",
+      "document_type": "RC",
+      "document_number": "1111111111"
+    }
+  },
+  "payment": {
+    "card_holder": "JUAN PEREZ",
+    "card_number": "4111111111111111",
+    "cvv": "123",
+    "expiration_month": "12",
+    "expiration_year": "2025"
+  },
+  "billing": {
+    "email": "test@avianca.com",
+    "address": "Calle 123 #45-67",
+    "city": "Bogotá",
+    "country": "Colombia"
+  }
+}

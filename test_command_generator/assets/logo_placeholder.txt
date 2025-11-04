@@ -1,0 +1,7 @@
+Logo Placeholder
+
+Coloca el logo de FLYR/Avianca aquí en formato PNG o JPG.
+
+Nombre sugerido: avianca_logo.png
+
+El logo se puede usar en el futuro para personalizar la aplicación.

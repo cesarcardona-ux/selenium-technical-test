@@ -1,0 +1,14 @@
+# Pytest Command Generator - Dependencies
+
+# GUI Framework
+customtkinter==5.2.1
+
+# Clipboard support
+pyperclip==1.8.2
+
+# Core dependencies (already included with Python 3.9+)
+# - json (built-in)
+# - pathlib (built-in)
+# - subprocess (built-in)
+# - datetime (built-in)
+# - typing (built-in)

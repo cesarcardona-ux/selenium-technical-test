@@ -1,0 +1,343 @@
+{
+  "browser": {
+    "chrome": {
+      "display_name": "Google Chrome",
+      "command_value": "chrome",
+      "icon": "🌐",
+      "description": "Navegador Google Chrome"
+    },
+    "edge": {
+      "display_name": "Microsoft Edge",
+      "command_value": "edge",
+      "icon": "🌐",
+      "description": "Navegador Microsoft Edge"
+    },
+    "firefox": {
+      "display_name": "Mozilla Firefox",
+      "command_value": "firefox",
+      "icon": "🦊",
+      "description": "Navegador Mozilla Firefox"
+    },
+    "all": {
+      "display_name": "All Browsers",
+      "command_value": "all",
+      "icon": "🌍",
+      "description": "Ejecutar en todos los navegadores"
+    }
+  },
+
+  "language": {
+    "español": {
+      "display_name": "Español",
+      "command_value": "Español",
+      "iso_code": "es",
+      "url_code": "es",
+      "flag": "🇪🇸",
+      "expected_text_home": "Ofertas",
+      "description": "Idioma español"
+    },
+    "english": {
+      "display_name": "English",
+      "command_value": "English",
+      "iso_code": "en",
+      "url_code": "en",
+      "flag": "🇺🇸",
+      "expected_text_home": "Deals",
+      "description": "English language"
+    },
+    "français": {
+      "display_name": "Français",
+      "command_value": "Français",
+      "iso_code": "fr",
+      "url_code": "fr",
+      "flag": "🇫🇷",
+      "expected_text_home": "Offres",
+      "description": "Langue française"
+    },
+    "português": {
+      "display_name": "Português",
+      "command_value": "Português",
+      "iso_code": "pt",
+      "url_code": "pt",
+      "flag": "🇧🇷",
+      "expected_text_home": "Ofertas",
+      "description": "Idioma português"
+    },
+    "all": {
+      "display_name": "All Languages",
+      "command_value": "all",
+      "flag": "🌍",
+      "description": "Probar todos los idiomas"
+    }
+  },
+
+  "pos": {
+    "chile": {
+      "display_name": "Chile",
+      "command_value": "Chile",
+      "country_code": "CL",
+      "flag": "🇨🇱",
+      "button_text": "Chile",
+      "description": "Punto de venta Chile"
+    },
+    "españa": {
+      "display_name": "España",
+      "command_value": "España",
+      "country_code": "ES",
+      "flag": "🇪🇸",
+      "button_text": "España",
+      "description": "Punto de venta España"
+    },
+    "otros_paises": {
+      "display_name": "Otros países",
+      "command_value": "Otros países",
+      "country_code": "XX",
+      "flag": "🌍",
+      "button_text": "Otros países",
+      "description": "Otros países"
+    },
+    "all": {
+      "display_name": "All POS",
+      "command_value": "all",
+      "flag": "🌎",
+      "description": "Probar todos los POS"
+    }
+  },
+
+  "env": {
+    "qa4": {
+      "display_name": "QA4",
+      "command_value": "qa4",
+      "base_url": "https://nuxqa4.avtest.ink/",
+      "icon": "🧪",
+      "description": "Ambiente de prueba QA4"
+    },
+    "qa5": {
+      "display_name": "QA5",
+      "command_value": "qa5",
+      "base_url": "https://nuxqa5.avtest.ink/",
+      "icon": "🧪",
+      "description": "Ambiente de prueba QA5"
+    },
+    "uat1": {
+      "display_name": "UAT1",
+      "command_value": "uat1",
+      "base_url": "https://nuxqa.avtest.ink/",
+      "icon": "🧪",
+      "description": "Ambiente UAT1 (User Acceptance Testing)"
+    },
+    "all": {
+      "display_name": "All Environments",
+      "command_value": "all",
+      "icon": "🌐",
+      "description": "Ejecutar en todos los ambientes"
+    }
+  },
+
+  "cities": {
+    "BOG": {
+      "iata_code": "BOG",
+      "city_name": "Bogotá",
+      "search_string": "Bogo",
+      "country": "Colombia",
+      "country_code": "CO",
+      "flag": "🇨🇴",
+      "display_name": "Bogotá (BOG)",
+      "timezone": "America/Bogota"
+    },
+    "MDE": {
+      "iata_code": "MDE",
+      "city_name": "Medellín",
+      "search_string": "Mede",
+      "country": "Colombia",
+      "country_code": "CO",
+      "flag": "🇨🇴",
+      "display_name": "Medellín (MDE)",
+      "timezone": "America/Bogota"
+    },
+    "CLO": {
+      "iata_code": "CLO",
+      "city_name": "Cali",
+      "search_string": "Cali",
+      "country": "Colombia",
+      "country_code": "CO",
+      "flag": "🇨🇴",
+      "display_name": "Cali (CLO)",
+      "timezone": "America/Bogota"
+    },
+    "MAD": {
+      "iata_code": "MAD",
+      "city_name": "Madrid",
+      "search_string": "Madr",
+      "country": "España",
+      "country_code": "ES",
+      "flag": "🇪🇸",
+      "display_name": "Madrid (MAD)",
+      "timezone": "Europe/Madrid"
+    },
+    "BCN": {
+      "iata_code": "BCN",
+      "city_name": "Barcelona",
+      "search_string": "Barc",
+      "country": "España",
+      "country_code": "ES",
+      "flag": "🇪🇸",
+      "display_name": "Barcelona (BCN)",
+      "timezone": "Europe/Madrid"
+    },
+    "SCL": {
+      "iata_code": "SCL",
+      "city_name": "Santiago",
+      "search_string": "Sant",
+      "country": "Chile",
+      "country_code": "CL",
+      "flag": "🇨🇱",
+      "display_name": "Santiago (SCL)",
+      "timezone": "America/Santiago"
+    },
+    "LIM": {
+      "iata_code": "LIM",
+      "city_name": "Lima",
+      "search_string": "Lima",
+      "country": "Perú",
+      "country_code": "PE",
+      "flag": "🇵🇪",
+      "display_name": "Lima (LIM)",
+      "timezone": "America/Lima"
+    },
+    "MEX": {
+      "iata_code": "MEX",
+      "city_name": "Ciudad de México",
+      "search_string": "Mexi",
+      "country": "México",
+      "country_code": "MX",
+      "flag": "🇲🇽",
+      "display_name": "Ciudad de México (MEX)",
+      "timezone": "America/Mexico_City"
+    },
+    "MIA": {
+      "iata_code": "MIA",
+      "city_name": "Miami",
+      "search_string": "Miam",
+      "country": "USA",
+      "country_code": "US",
+      "flag": "🇺🇸",
+      "display_name": "Miami (MIA)",
+      "timezone": "America/New_York"
+    },
+    "JFK": {
+      "iata_code": "JFK",
+      "city_name": "New York",
+      "search_string": "New ",
+      "country": "USA",
+      "country_code": "US",
+      "flag": "🇺🇸",
+      "display_name": "New York (JFK)",
+      "timezone": "America/New_York"
+    }
+  },
+
+  "header-link": {
+    "ofertas-vuelos": {
+      "display_name": "Ofertas de vuelos",
+      "command_value": "ofertas-vuelos",
+      "navbar_button": "Ofertas y destinos",
+      "submenu_item": "Reserva de hoteles",
+      "expected_url_contains": "booking.com",
+      "description": "Redirección a Booking.com para hoteles"
+    },
+    "credits": {
+      "display_name": "Avianca Credits",
+      "command_value": "credits",
+      "navbar_button": "Tu reserva",
+      "submenu_item": "avianca credits",
+      "expected_url_contains": "avianca-credits",
+      "description": "Sistema de créditos Avianca"
+    },
+    "equipaje": {
+      "display_name": "Equipaje",
+      "command_value": "equipaje",
+      "navbar_button": "Información y ayuda",
+      "submenu_item": "Equipaje",
+      "expected_url_contains": "equipaje",
+      "description": "Información sobre equipaje"
+    },
+    "all": {
+      "display_name": "All Header Links",
+      "command_value": "all",
+      "description": "Probar todos los links del header"
+    }
+  },
+
+  "footer-link": {
+    "vuelos": {
+      "display_name": "Vuelos baratos",
+      "command_value": "vuelos",
+      "link_text": "Vuelos baratos",
+      "expected_url_contains": ["ofertas-destinos", "ofertas-de-vuelos"],
+      "description": "Página de ofertas de vuelos"
+    },
+    "noticias": {
+      "display_name": "Noticias corporativas",
+      "command_value": "noticias",
+      "link_text": "Trabaja con nosotros",
+      "expected_url_contains": "jobs.avianca.com",
+      "description": "Portal de empleos Avianca"
+    },
+    "aviancadirect": {
+      "display_name": "Avianca Direct",
+      "command_value": "aviancadirect",
+      "link_text": "aviancadirect",
+      "expected_url_contains": ["portales-aliados", "aviancadirect-ndc"],
+      "description": "Portal Avianca Direct NDC"
+    },
+    "contactanos": {
+      "display_name": "Contáctanos",
+      "command_value": "contactanos",
+      "link_text": "Artículos restringidos",
+      "expected_url_contains": ["ayuda.avianca.com", "/hc/"],
+      "description": "Centro de ayuda Avianca"
+    },
+    "all": {
+      "display_name": "All Footer Links",
+      "command_value": "all",
+      "description": "Probar todos los links del footer"
+    }
+  },
+
+  "screenshots": {
+    "none": {
+      "display_name": "None",
+      "command_value": "none",
+      "icon": "🚫",
+      "description": "No capturar screenshots"
+    },
+    "on-failure": {
+      "display_name": "On Failure",
+      "command_value": "on-failure",
+      "icon": "📸",
+      "description": "Captura solo cuando el test falla"
+    },
+    "all": {
+      "display_name": "All Steps",
+      "command_value": "all",
+      "icon": "📷",
+      "description": "Captura en cada paso del test"
+    }
+  },
+
+  "video": {
+    "none": {
+      "display_name": "Disabled",
+      "command_value": "none",
+      "icon": "🚫",
+      "description": "No grabar video"
+    },
+    "enabled": {
+      "display_name": "Enabled",
+      "command_value": "enabled",
+      "icon": "🎥",
+      "description": "Graba video en formato MP4"
+    }
+  }
+}
