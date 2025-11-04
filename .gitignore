@@ -47,3 +47,6 @@ htmlcov/
 # Archivos temporales
 *.tmp
 temp/
+test_output.log
+test_optimized_output.txt
+nul
