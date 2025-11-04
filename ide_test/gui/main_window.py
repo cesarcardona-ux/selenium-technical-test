@@ -40,6 +40,9 @@ class MainWindow(ctk.CTk):
         # Hacer la ventana maximizable y con scroll
         self.resizable(True, True)
 
+        # Maximizar la ventana al iniciar
+        self.state('zoomed')
+
         # Inicializar componentes core
         self.config_manager = ConfigManager()
         self.case_mapper = CaseMapper(self.config_manager)
@@ -51,12 +54,19 @@ class MainWindow(ctk.CTk):
         self.pytest_flag_vars = {}   # {flag_name: BooleanVar}
         self.testdata_widgets = {}   # {field_path: widget}
 
-        # Configurar tema
-        ctk.set_appearance_mode("dark")  # Default: dark mode
+        # Configurar tema - cargar desde JSON si existe
+        saved_theme = self._load_saved_theme()
+        ctk.set_appearance_mode(saved_theme)
         ctk.set_default_color_theme("blue")
 
         # Crear interfaz
         self._create_ui()
+
+        # Actualizar botón de tema según tema cargado
+        if saved_theme.lower() == "dark":
+            self.theme_button.configure(text="🌙 Dark Mode")
+        else:
+            self.theme_button.configure(text="☀️ Light Mode")
 
         # Cargar primer caso por defecto
         self._load_first_case()
@@ -121,8 +131,8 @@ class MainWindow(ctk.CTk):
             width=200,
             height=32,
             font=ctk.CTkFont(size=12, weight="bold"),
-            fg_color="green",
-            hover_color="darkgreen"
+            fg_color="#1E88E5",
+            hover_color="#1565C0"
         ).pack(pady=3)
 
         # Botón Save Config
@@ -626,6 +636,9 @@ class MainWindow(ctk.CTk):
             for name, var in self.pytest_flag_vars.items()
         }
 
+        # Obtener tema actual
+        current_theme = ctk.get_appearance_mode()
+
         # Recopilar test data
         testdata = {
             "passengers": {"adult": {}, "teen": {}, "child": {}, "infant": {}},
@@ -644,12 +657,13 @@ class MainWindow(ctk.CTk):
             elif parts[0] == "billing":
                 testdata["billing"][parts[1]] = value
 
-        # Guardar TODO en testdata.json
+        # Guardar TODO en testdata.json (incluyendo tema)
         self.config_manager.save_complete_state(
             self.current_case_id,
             parameters,
             pytest_flags,
-            testdata
+            testdata,
+            current_theme
         )
 
         messagebox.showinfo("Success", "All configuration saved to testdata.json")
@@ -665,6 +679,15 @@ class MainWindow(ctk.CTk):
         case_id = session_data.get("case_id")
         parameters = session_data.get("parameters", {})
         pytest_flags = session_data.get("pytest_flags", {})
+        appearance_mode = session_data.get("appearance_mode", "Dark")
+
+        # Aplicar tema guardado
+        ctk.set_appearance_mode(appearance_mode)
+        # Actualizar botón de tema
+        if appearance_mode == "Dark":
+            self.theme_button.configure(text="🌙 Dark Mode")
+        else:
+            self.theme_button.configure(text="☀️ Light Mode")
 
         if not case_id:
             return
@@ -711,3 +734,18 @@ class MainWindow(ctk.CTk):
         else:
             ctk.set_appearance_mode("dark")
             self.theme_button.configure(text="🌙 Dark Mode")
+
+    def _load_saved_theme(self) -> str:
+        """
+        Carga el tema guardado desde testdata.json
+
+        Returns:
+            Tema guardado ("Dark" o "Light"), o "dark" por defecto
+        """
+        try:
+            session_data = self.config_manager.load_current_session()
+            if session_data and "appearance_mode" in session_data:
+                return session_data["appearance_mode"]
+        except:
+            pass
+        return "dark"  # Default theme

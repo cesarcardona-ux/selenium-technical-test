@@ -202,7 +202,8 @@ class ConfigManager:
         self._testdata = current_data  # Actualizar cache
 
     def save_complete_state(self, case_id: str, parameters: Dict[str, str],
-                           pytest_flags: Dict[str, bool], testdata: Dict[str, Any]) -> None:
+                           pytest_flags: Dict[str, bool], testdata: Dict[str, Any],
+                           appearance_mode: str = "Dark") -> None:
         """
         Guarda TODO el estado de la aplicación en testdata.json
 
@@ -211,12 +212,14 @@ class ConfigManager:
             parameters: Parámetros configurados
             pytest_flags: Pytest flags configurados
             testdata: Datos de prueba (passengers, payment, billing)
+            appearance_mode: Tema de la aplicación (Light o Dark)
         """
         complete_data = {
             "current_session": {
                 "case_id": case_id,
                 "parameters": parameters,
-                "pytest_flags": pytest_flags
+                "pytest_flags": pytest_flags,
+                "appearance_mode": appearance_mode
             },
             "passengers": testdata.get("passengers", {}),
             "payment": testdata.get("payment", {}),
