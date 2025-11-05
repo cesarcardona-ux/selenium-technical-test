@@ -39,9 +39,13 @@ from datetime import datetime, timedelta
 logger = logging.getLogger(__name__)
 
 # ==================== TEST ====================
+# 📋 Se REPORTA (ALLURE): Feature "Case 2: Round-trip Booking"
 @allure.feature("Case 2: Round-trip Booking")
+# 📋 Se REPORTA (ALLURE): Story "Complete Round-trip Flight Booking Flow"
 @allure.story("Complete Round-trip Flight Booking Flow")
+# 📋 Se REPORTA (ALLURE): Severity level CRITICAL
 @allure.severity(allure.severity_level.CRITICAL)
+# 🔖 Se MARCA (PYTEST): Test marcado como case2
 @pytest.mark.case2
 def test_roundtrip_booking(driver, base_url, db, browser, language, screenshots_mode, request, test_config):
     """
@@ -130,6 +134,7 @@ def test_roundtrip_booking(driver, base_url, db, browser, language, screenshots_
     allure.dynamic.title(f"Round-trip Booking [{browser}] [{env.upper()}] [{language}]")
 
     # ==================== PASO 1: Configuración y Resumen ====================
+    # 📋 Se REPORTA (ALLURE): Step "Initialize Test Configuration"
     with allure.step("Initialize Test Configuration"):
         test_summary = (
             f"═══════════════════════════════════════════════════\n"
@@ -172,6 +177,7 @@ def test_roundtrip_booking(driver, base_url, db, browser, language, screenshots_
             f"═══════════════════════════════════════════════════"
         )
 
+        # 📋 Se REPORTA (ALLURE): Adjuntar resumen de configuración del test
         allure.attach(
             test_summary,
             name="📋 Test Configuration Summary",
@@ -184,19 +190,23 @@ def test_roundtrip_booking(driver, base_url, db, browser, language, screenshots_
     step_results = {}
 
     # ==================== PASO 2: Home Page - Abrir y Configurar Idioma y POS ====================
+    # 📋 Se REPORTA (ALLURE): Step "Open Home Page and Configure Language and POS"
     with allure.step(f"Step 1: Open Home Page and Configure Language ({language}) and POS"):
         current_step = "Home - Language and POS Selection"
         search_page = LoginPage(driver)
+        # 🌐 Se NAVEGA (SELENIUM): Abrir URL base de la aplicación
         search_page.open(base_url)
+        # ⏳ Se ESPERA (SELENIUM): Página cargue completamente
         time.sleep(2)
 
-        # Seleccionar idioma (requisito del PDF - Case 2)
+        # 🖱️ Se PRESIONA (SELENIUM): Seleccionar idioma desde dropdown
         search_page.select_language(language)
         time.sleep(1)
 
-        # Seleccionar POS (requisito del PDF - Case 2)
+        # 🖱️ Se PRESIONA (SELENIUM): Abrir modal de POS
         logger.info(f"Selecting POS: {pos_param}")
         search_page.click_pos_button()
+        # 🖱️ Se PRESIONA (SELENIUM): Seleccionar POS específico y aplicar
         search_page.select_pos(pos_param)
         time.sleep(1)
 
@@ -268,21 +278,27 @@ def test_roundtrip_booking(driver, base_url, db, browser, language, screenshots_
             attachment_type=allure.attachment_type.TEXT
         )
 
-        # Click en buscar
+        # 🖱️ Se PRESIONA (SELENIUM): Botón "Buscar vuelos" para iniciar búsqueda
         search_page.click_search_button()
-        time.sleep(5)  # Esperar resultados de búsqueda
+        # ⏳ Se ESPERA (SELENIUM): Resultados de búsqueda de vuelos carguen
+        time.sleep(5)
 
     # ==================== PASO 4: Select Flight Page - Seleccionar BASIC (IDA) + FLEX (VUELTA) ====================
+    # 📋 Se REPORTA (ALLURE): Step "Select Flights - BASIC (Outbound) + FLEX (Return)"
     with allure.step("Step 3: Select Flights - BASIC (Outbound) + FLEX (Return)"):
         current_step = "Select Flight - Basic + Flex"
         select_flight_page = SelectFlightPage(driver)
 
+        # ⏳ Se ESPERA (SELENIUM): Página de selección de vuelos cargue completamente
         page_loaded = select_flight_page.wait_for_page_load()
+        # ✅ Se VALIDA (PYTEST): Página de vuelos debe cargar correctamente
         assert page_loaded, "Select Flight page did not load"
 
         # PASO 4.1: Seleccionar vuelo de IDA con tarifa BASIC
         logger.info("Selecting OUTBOUND flight with BASIC fare...")
+        # 🖱️ Se PRESIONA (SELENIUM): Seleccionar vuelo de ida con tarifa BASIC
         flight_outbound_selected = select_flight_page.select_outbound_flight_and_basic_plan()
+        # ✅ Se VALIDA (PYTEST): Vuelo de ida con BASIC debe seleccionarse correctamente
         assert flight_outbound_selected, "Failed to select outbound flight with BASIC fare"
 
         step_results["outbound_flight_basic"] = "SUCCESS"
@@ -292,7 +308,9 @@ def test_roundtrip_booking(driver, base_url, db, browser, language, screenshots_
 
         # PASO 4.2: Seleccionar vuelo de VUELTA con tarifa FLEX
         logger.info("Selecting RETURN flight with FLEX fare...")
+        # 🖱️ Se PRESIONA (SELENIUM): Seleccionar vuelo de vuelta con tarifa FLEX
         flight_return_selected = select_flight_page.select_return_flight_and_flex_plan()
+        # ✅ Se VALIDA (PYTEST): Vuelo de vuelta con FLEX debe seleccionarse correctamente
         assert flight_return_selected, "Failed to select return flight with FLEX fare"
 
         step_results["return_flight_flex"] = "SUCCESS"
@@ -324,23 +342,29 @@ def test_roundtrip_booking(driver, base_url, db, browser, language, screenshots_
         time.sleep(5)  # Esperar a que cargue la página de Passengers
 
     # ==================== PASO 5: Passengers Page - Llenar Información ====================
+    # 📋 Se REPORTA (ALLURE): Step "Fill Passenger Information"
     with allure.step(f"Step 4: Fill Passenger Information ({len(PASSENGERS_DATA)} passengers)"):
         current_step = "Passengers Information"
         passengers_page = PassengersPage(driver)
 
+        # ⏳ Se ESPERA (SELENIUM): Página de pasajeros cargue completamente
         page_loaded = passengers_page.wait_for_page_load()
+        # ✅ Se VALIDA (PYTEST): Página de pasajeros debe cargar correctamente
         assert page_loaded, "Passengers page did not load"
 
-        # Llenar información de todos los pasajeros
+        # ⌨️ Se INGRESA (SELENIUM): Información completa de todos los pasajeros (nombres, apellidos, fechas, documentos)
         all_filled = passengers_page.fill_all_passengers(PASSENGERS_DATA)
+        # ✅ Se VALIDA (PYTEST): Todos los pasajeros deben llenarse correctamente
         assert all_filled, "Failed to fill all passenger information"
 
         # Llenar información del Titular de la Reserva (Reservation Holder)
         adult_data = PASSENGERS_DATA[0]  # Primer pasajero es el adulto
+        # ⌨️ Se INGRESA (SELENIUM): Email y teléfono del titular de la reserva
         holder_filled = passengers_page.fill_reservation_holder(
             email=adult_data["email"],
             phone=adult_data["phone"]
         )
+        # ✅ Se VALIDA (PYTEST): Información del titular debe llenarse correctamente
         assert holder_filled, "Failed to fill Reservation Holder information"
 
         step_results["passengers_info"] = "SUCCESS"
@@ -363,13 +387,14 @@ def test_roundtrip_booking(driver, base_url, db, browser, language, screenshots_
             attachment_type=allure.attachment_type.TEXT
         )
 
-        # DEBUG: Tomar screenshot después de llenar pasajeros
+        # 📸 Se CAPTURA (SELENIUM): Screenshot después de llenar pasajeros
         time.sleep(2)
         driver.save_screenshot("reports/debug_passengers_after_fill.png")
         logger.info("DEBUG screenshot saved: debug_passengers_after_fill.png")
 
-        # Continuar al siguiente paso
+        # 🖱️ Se PRESIONA (SELENIUM): Botón "Continuar" para avanzar a Services
         continue_clicked = passengers_page.click_continue()
+        # ✅ Se VALIDA (PYTEST): Botón Continuar debe hacer click correctamente
         assert continue_clicked, "Failed to click continue button on Passengers page"
 
         time.sleep(2)
@@ -442,19 +467,22 @@ def test_roundtrip_booking(driver, base_url, db, browser, language, screenshots_
         time.sleep(2)
 
     # ==================== PASO 7: Seatmap Page - Asignar Asientos (IDA y VUELTA) ====================
+    # 📋 Se REPORTA (ALLURE): Step "Seatmap - Assign Seats for Outbound and Return Flights"
     with allure.step("Step 6: Seatmap - Assign Seats (ANY TYPE) for Outbound and Return Flights"):
         current_step = "Seatmap - Seat Assignment (Round-trip)"
         seatmap_page = SeatmapPage(driver)
 
+        # ⏳ Se ESPERA (SELENIUM): Página de seatmap cargue completamente
         page_loaded = seatmap_page.wait_for_page_load()
+        # ✅ Se VALIDA (PYTEST): Página de seatmap debe cargar correctamente
         assert page_loaded, "Seatmap page did not load"
 
         # ========== VUELO DE IDA (Outbound) ==========
         logger.info("======== SELECTING SEATS FOR OUTBOUND FLIGHT ========")
 
-        # Asignar asientos (cualquier tipo: Plus/Premium/Economy) a los 3 pasajeros
-        # El Bebé no selecciona asiento
+        # 🖱️ Se PRESIONA (SELENIUM): Seleccionar asientos de cualquier tipo para 3 pasajeros (vuelo de ida)
         seat_assignments_outbound = seatmap_page.assign_any_type_seats_to_passengers(passenger_count=3)
+        # ✅ Se VALIDA (PYTEST): Deben asignarse al menos 2 asientos para el vuelo de ida
         assert len(seat_assignments_outbound) >= 2, f"Failed to assign at least 2 seats for outbound. Got: {seat_assignments_outbound}"
 
         if len(seat_assignments_outbound) < 3:
@@ -468,16 +496,18 @@ def test_roundtrip_booking(driver, base_url, db, browser, language, screenshots_
         except:
             pass
 
-        # Click en "Siguiente vuelo" para continuar a asientos de vuelta
+        # 🖱️ Se PRESIONA (SELENIUM): Botón "Siguiente vuelo" para continuar a asientos de vuelta
         logger.info("Clicking 'Siguiente vuelo' to proceed to return flight seatmap...")
         next_flight_clicked = seatmap_page.click_next_flight()
+        # ✅ Se VALIDA (PYTEST): Botón "Siguiente vuelo" debe hacer click correctamente
         assert next_flight_clicked, "Failed to click 'Siguiente vuelo' button"
 
         # ========== VUELO DE VUELTA (Return) ==========
         logger.info("======== SELECTING SEATS FOR RETURN FLIGHT ========")
 
-        # Asignar asientos para el vuelo de vuelta
+        # 🖱️ Se PRESIONA (SELENIUM): Seleccionar asientos de cualquier tipo para 3 pasajeros (vuelo de vuelta)
         seat_assignments_return = seatmap_page.assign_any_type_seats_to_passengers(passenger_count=3)
+        # ✅ Se VALIDA (PYTEST): Deben asignarse al menos 2 asientos para el vuelo de vuelta
         assert len(seat_assignments_return) >= 2, f"Failed to assign at least 2 seats for return. Got: {seat_assignments_return}"
 
         if len(seat_assignments_return) < 3:
@@ -511,30 +541,36 @@ def test_roundtrip_booking(driver, base_url, db, browser, language, screenshots_
         except:
             pass
 
-        # Ahora sí hacer click en "Ir a pagar"
+        # 🖱️ Se PRESIONA (SELENIUM): Botón "Ir a pagar" para avanzar a Payment
         logger.info("Clicking 'Ir a pagar' to proceed to Payment page...")
         go_to_payment_clicked = seatmap_page.click_go_to_payment()
+        # ✅ Se VALIDA (PYTEST): Botón "Ir a pagar" debe hacer click correctamente
         assert go_to_payment_clicked, "Failed to click 'Ir a pagar' button on Seatmap page"
 
-        time.sleep(5)  # Esperar a que cargue Payment page
+        # ⏳ Se ESPERA (SELENIUM): Página de Payment cargue completamente
+        time.sleep(5)
 
     # ==================== PASO 8: Payment Page - Llenar y Confirmar ====================
+    # 📋 Se REPORTA (ALLURE): Step "Payment - Fill Information and Confirm Payment"
     with allure.step("Step 7: Payment - Fill Information and Confirm Payment"):
         current_step = "Payment - Fill and Confirm"
         payment_page = PaymentPage(driver)
 
+        # ⏳ Se ESPERA (SELENIUM): Página de pago cargue completamente
         page_loaded = payment_page.wait_for_page_load()
+        # ✅ Se VALIDA (PYTEST): Página de pago debe cargar correctamente
         assert page_loaded, "Payment page did not load"
 
         # Obtener datos del adulto (titular)
         adult_data = PASSENGERS_DATA[0]
         card_holder_name = f"{adult_data['first_name']} {adult_data['last_name']}"
 
-        # Completar flujo de pago (tarjeta + facturación + términos + confirmar)
+        # ⌨️ Se INGRESA (SELENIUM): Información de tarjeta, facturación y términos (datos fake)
         payment_completed = payment_page.complete_payment_flow(
             card_holder_name=card_holder_name,
             email=adult_data["email"]
         )
+        # ✅ Se VALIDA (PYTEST): Flujo de pago debe completarse correctamente
         assert payment_completed, "Failed to complete payment flow"
 
         step_results["payment_completed"] = "SUCCESS"
@@ -597,7 +633,7 @@ def test_roundtrip_booking(driver, base_url, db, browser, language, screenshots_
         logger.info(f"Post-payment URL: {final_url}")
         logger.info(f"Post-payment Title: {final_title}")
 
-        # Tomar screenshot de la página final
+        # 📸 Se CAPTURA (SELENIUM): Screenshot de la página final después del pago
         final_screenshot = f"reports/final_page_{int(time.time())}.png"
         driver.save_screenshot(final_screenshot)
         logger.info(f"📸 Final page screenshot: {final_screenshot}")
@@ -635,7 +671,7 @@ def test_roundtrip_booking(driver, base_url, db, browser, language, screenshots_
             attachment_type=allure.attachment_type.TEXT
         )
 
-        # Adjuntar screenshot a Allure
+        # 📋 Se REPORTA (ALLURE): Adjuntar screenshot de página final a reporte
         try:
             with open(final_screenshot, "rb") as image:
                 allure.attach(

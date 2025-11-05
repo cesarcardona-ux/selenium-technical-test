@@ -222,6 +222,7 @@ class ServicesPage:
             # PASO 1: Click en botón "Añadir" del servicio
             logger.info("Looking for Avianca Lounges service button...")
 
+            # 🔍 Se BUSCA (SELENIUM): Botón "Añadir" del servicio Avianca Lounges
             service_button_selectors = [
                 "serviceButtonTypeBusinessLounge",  # ID específico
                 "//button[contains(@id, 'BusinessLounge')]",
@@ -246,20 +247,20 @@ class ServicesPage:
                 logger.error("Avianca Lounges service button not found")
                 return False
 
-            # Scroll y click en el botón del servicio
+            # 🖱️ Se PRESIONA (SELENIUM): Botón "Añadir" para abrir modal de Avianca Lounges
             self.driver.execute_script("arguments[0].scrollIntoView(true);", service_button)
             time.sleep(1)
             self.driver.execute_script("arguments[0].click();", service_button)
             logger.info("✓ Clicked on Avianca Lounges 'Añadir' button")
 
-            # PASO 2: Esperar a que se abra el modal
+            # ⏳ Se ESPERA (SELENIUM): Modal de Avianca Lounges se abra
             time.sleep(2)
             logger.info("Waiting for modal to appear...")
 
             # PASO 3: Seleccionar SOLO 1 opción del modal
             logger.info("Looking for first available option in modal...")
 
-            # Buscar labels con for="00000VIPD", "10000VIPD", etc.
+            # 🔍 Se BUSCA (SELENIUM): Primera opción disponible en modal (6 opciones: 2 por pasajero)
             option_selectors = [
                 "//label[@for='00000VIPD']",  # Pasajero 1, opción 1 (ida)
                 "//label[@for='10000VIPD']",  # Pasajero 1, opción 2 (vuelta)
@@ -281,7 +282,7 @@ class ServicesPage:
                     if "Añadir" in label_text or "Add" in label_text:
                         logger.info(f"✓ Found available option: {selector}")
 
-                        # Click en el label
+                        # 🖱️ Se PRESIONA (SELENIUM): Opción disponible en modal de Avianca Lounges
                         self.driver.execute_script("arguments[0].scrollIntoView(true);", option_label)
                         time.sleep(0.5)
                         self.driver.execute_script("arguments[0].click();", option_label)
@@ -301,6 +302,7 @@ class ServicesPage:
             # PASO 4: Click en "Confirmar" del modal
             logger.info("Looking for 'Confirmar' button in modal...")
 
+            # 🔍 Se BUSCA (SELENIUM): Botón "Confirmar" en modal de Avianca Lounges
             confirm_selectors = [
                 "//button[@id='dsButtonId_53161']",  # ID específico del botón
                 "//button[contains(@class, 'btn-action')]//span[contains(text(), 'Confirmar')]/ancestor::button",
@@ -328,13 +330,13 @@ class ServicesPage:
                 logger.error("'Confirmar' button not found in modal")
                 return False
 
-            # Click en Confirmar
+            # 🖱️ Se PRESIONA (SELENIUM): Botón "Confirmar" para cerrar modal y confirmar selección
             self.driver.execute_script("arguments[0].scrollIntoView(true);", confirm_button)
             time.sleep(0.5)
             self.driver.execute_script("arguments[0].click();", confirm_button)
             logger.info("✓ Clicked 'Confirmar' button in modal")
 
-            # PASO 5: Esperar a que el modal se cierre y la página recargue
+            # ⏳ Se ESPERA (SELENIUM): Modal se cierre y página recargue
             time.sleep(3)
             logger.info("✓ Modal closed, page reloaded")
 

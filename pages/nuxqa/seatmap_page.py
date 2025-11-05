@@ -498,6 +498,7 @@ class SeatmapPage:
 
             for seat_id in self.ECONOMY_SEAT_IDS:
                 try:
+                    # 🔍 Se BUSCA (SELENIUM): Elemento de asiento por ID
                     seat_element = self.driver.find_element(By.ID, seat_id)
                     seat_directory[seat_id] = seat_element
                 except:
@@ -531,7 +532,7 @@ class SeatmapPage:
                         self.driver.execute_script("arguments[0].scrollIntoView({behavior: 'auto', block: 'center'});", seat)
                         time.sleep(0.5)
 
-                        # Esperar a que el asiento sea clickeable
+                        # ⏳ Se ESPERA (SELENIUM): Asiento debe ser clickeable
                         try:
                             clickable_seat = self.wait.until(
                                 EC.element_to_be_clickable((By.ID, seat_id))
@@ -540,19 +541,19 @@ class SeatmapPage:
                             logger.warning(f"  ⚠ Seat {seat_id} not clickable, skipping...")
                             continue
 
-                        # Click normal de Selenium
+                        # 🖱️ Se PRESIONA (SELENIUM): Click en asiento para seleccionarlo
                         clickable_seat.click()
                         logger.info(f"  Clicked on seat: {seat_id}")
 
                         # Esperar 1 segundo para ver si aparece un modal
                         time.sleep(1)
 
-                        # Verificar si apareció un modal de error
+                        # 🔍 Se BUSCA (SELENIUM): Verificar si apareció modal de error
                         try:
                             modal = self.driver.find_element(By.CSS_SELECTOR, "ngb-modal-window.modal-alert")
                             logger.error(f"⚠⚠⚠ MODAL DETECTED!")
 
-                            # Tomar screenshot del modal
+                            # 📸 Se CAPTURA (SELENIUM): Screenshot del modal de error
                             try:
                                 screenshot_path = f"reports/modal_error_{seat_id}.png"
                                 self.driver.save_screenshot(screenshot_path)
@@ -560,7 +561,7 @@ class SeatmapPage:
                             except:
                                 pass
 
-                            # Intentar cerrar el modal
+                            # 🖱️ Se PRESIONA (SELENIUM): Botón para cerrar modal de error
                             close_selectors = [
                                 "button[aria-label='Close']",
                                 "button.close",
@@ -698,7 +699,7 @@ class SeatmapPage:
             self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
             time.sleep(1)
 
-            # DEBUGGING: Tomar screenshot ANTES de hacer click
+            # 📸 Se CAPTURA (SELENIUM): Screenshot antes de hacer click en botón
             try:
                 debug_screenshot = f"reports/debug_before_payment_button_{int(time.time())}.png"
                 self.driver.save_screenshot(debug_screenshot)
@@ -706,7 +707,7 @@ class SeatmapPage:
             except:
                 pass
 
-            # Buscar botón "Ir a pagar" usando el HTML exacto proporcionado por el usuario
+            # 🔍 Se BUSCA (SELENIUM): Botón "Ir a pagar" con múltiples selectores
             # HTML: <ds-button class="amount-summary_button--skipstep"><button aria-labelledby="Ir a pagar"><span class="button_label"> Ir a pagar </span></button></ds-button>
 
             # Selectores SÚPER ESPECÍFICOS basados en el HTML real:
@@ -752,11 +753,12 @@ class SeatmapPage:
             self.driver.execute_script("arguments[0].scrollIntoView(true);", go_to_payment_btn)
             time.sleep(1)
 
-            # Click usando JavaScript
+            # 🖱️ Se PRESIONA (SELENIUM): Botón "Ir a pagar" para avanzar a Payment
             self.driver.execute_script("arguments[0].click();", go_to_payment_btn)
             logger.info("✓ 'Ir a pagar' button clicked successfully")
 
-            time.sleep(2)  # Esperar a que cargue la página de Payment
+            # ⏳ Se ESPERA (SELENIUM): Página de Payment cargue completamente
+            time.sleep(2)
             return True
 
         except Exception as e:
@@ -780,7 +782,7 @@ class SeatmapPage:
             self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
             time.sleep(1)
 
-            # DEBUGGING: Tomar screenshot ANTES de hacer click
+            # 📸 Se CAPTURA (SELENIUM): Screenshot antes de hacer click en botón
             try:
                 debug_screenshot = f"reports/debug_before_next_flight_{int(time.time())}.png"
                 self.driver.save_screenshot(debug_screenshot)
@@ -788,7 +790,7 @@ class SeatmapPage:
             except:
                 pass
 
-            # Buscar botón "Siguiente vuelo" usando el HTML exacto proporcionado por el usuario
+            # 🔍 Se BUSCA (SELENIUM): Botón "Siguiente vuelo" con múltiples selectores
             # HTML: <ds-button class="amount-summary_button--nextflight"><button aria-labelledby="Siguiente vuelo"><span class="button_label"> Siguiente vuelo </span></button></ds-button>
 
             # Selectores SÚPER ESPECÍFICOS basados en el HTML real:
@@ -833,14 +835,14 @@ class SeatmapPage:
             self.driver.execute_script("arguments[0].scrollIntoView(true);", next_flight_btn)
             time.sleep(1)
 
-            # Click usando JavaScript
+            # 🖱️ Se PRESIONA (SELENIUM): Botón "Siguiente vuelo" para continuar a seatmap de vuelta
             self.driver.execute_script("arguments[0].click();", next_flight_btn)
             logger.info("✓ 'Siguiente vuelo' button clicked successfully")
 
-            # Esperar a que la página recargue con el seatmap del vuelo de vuelta
+            # ⏳ Se ESPERA (SELENIUM): Página recargue con seatmap del vuelo de vuelta
             time.sleep(3)
 
-            # CRÍTICO: Esperar tiempo adicional para Angular (igual que en wait_for_page_load)
+            # ⏳ Se ESPERA (SELENIUM): Angular inicialice completamente el seatmap del vuelo de vuelta
             logger.info("Waiting additional 5 seconds for Angular to initialize return flight seatmap...")
             time.sleep(5)
 

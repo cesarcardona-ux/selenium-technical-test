@@ -137,8 +137,11 @@ class HomePage:
         Abre el dropdown con las opciones de países/regiones.
         """
         logger.info("Clicking POS button")
+        # 🔍 Se BUSCA (SELENIUM): Botón para abrir dropdown de POS
         element = self.driver.find_element(*self.POS_BUTTON)
+        # 🖱️ Se PRESIONA (SELENIUM): Botón POS para abrir dropdown de selección
         element.click()
+        # ⏳ Se ESPERA (SELENIUM): Dropdown de POS se abra
         time.sleep(0.5)  # OPTIMIZADO: 1s → 0.5s (ahorro: 0.5s)
         logger.info("POS dropdown opened")
 
@@ -165,17 +168,19 @@ class HomePage:
                 logger.info(f"POS '{pos_name}' maps to button_text: '{button_text}'")
                 break
 
-        # XPath dinámico: busca por texto visible en el label (usando button_text del JSON)
+        # 🔍 Se BUSCA (SELENIUM): POS específico en dropdown por button_text
         xpath = f"//span[@class='points-of-sale_list_item_label' and contains(text(), '{button_text}')]"
         element = self.driver.find_element(By.XPATH, xpath)
+        # 🖱️ Se PRESIONA (SELENIUM): POS específico para seleccionarlo
         element.click()
         time.sleep(0.5)  # OPTIMIZADO: 1s → 0.5s (ahorro: 0.5s)
         logger.info(f"POS '{pos_name}' (button: '{button_text}') clicked")
 
-        # Click en el botón "Aplicar" para confirmar el cambio
+        # 🖱️ Se PRESIONA (SELENIUM): Botón "Aplicar" para confirmar cambio de POS
         logger.info("Clicking 'Aplicar' button to confirm POS change")
         apply_button = self.driver.find_element(*self.POS_APPLY_BUTTON)
         apply_button.click()
+        # ⏳ Se ESPERA (SELENIUM): POS se aplique y página recargue
         time.sleep(2)  # OPTIMIZADO: 3s → 2s (ahorro: 1s)
         logger.info(f"POS '{pos_name}' applied successfully")
 
