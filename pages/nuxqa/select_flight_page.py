@@ -101,6 +101,7 @@ class SelectFlightPage:
 
         try:
             # PASO 1: Seleccionar primer vuelo de IDA
+            # ⏳ Se ESPERA (SELENIUM): Botones de vuelos disponibles aparezcan
             journey_buttons = self.wait.until(
                 EC.presence_of_all_elements_located((By.CSS_SELECTOR, "button.journey_price_button"))
             )
@@ -111,17 +112,19 @@ class SelectFlightPage:
 
             logger.info(f"Found {len(journey_buttons)} journey buttons")
 
-            # Click en el PRIMERO usando JavaScript para mayor confiabilidad
+            # 🖱️ Se PRESIONA (SELENIUM): Primer vuelo disponible de ida
             first_journey = journey_buttons[0]
             self.driver.execute_script("arguments[0].scrollIntoView(true);", first_journey)
             time.sleep(0.5)  # OPTIMIZADO: 1s → 0.5s (ahorro: 0.5s)
             self.driver.execute_script("arguments[0].click();", first_journey)  # JavaScript click
             logger.info("✓ Outbound flight selected (first one)")
 
+            # ⏳ Se ESPERA (SELENIUM): Planes de tarifa se carguen
             time.sleep(1.5)  # OPTIMIZADO: 2s → 1.5s (ahorro: 0.5s)
 
             # PASO 2: Seleccionar plan BASIC (primer botón fare_button)
             logger.info("Waiting for fare plans to appear...")
+            # 🔍 Se BUSCA (SELENIUM): Botones de planes de tarifa (Basic, Classic, Flex)
             fare_buttons = self.wait.until(
                 EC.presence_of_all_elements_located((By.CSS_SELECTOR, "button.fare_button"))
             )
@@ -132,7 +135,7 @@ class SelectFlightPage:
 
             logger.info(f"Found {len(fare_buttons)} fare buttons (Basic, Classic, Flex)")
 
-            # Click en el PRIMERO (índice 0) = BASIC usando JavaScript
+            # 🖱️ Se PRESIONA (SELENIUM): Plan BASIC (primer botón - índice 0)
             basic_button = fare_buttons[0]
             self.driver.execute_script("arguments[0].scrollIntoView(true);", basic_button)
             time.sleep(0.5)  # OPTIMIZADO: 1s → 0.5s (ahorro: 0.5s)
@@ -163,6 +166,7 @@ class SelectFlightPage:
 
         try:
             # PASO 1: Seleccionar primer vuelo de IDA
+            # ⏳ Se ESPERA (SELENIUM): Botones de vuelos disponibles aparezcan
             journey_buttons = self.wait.until(
                 EC.presence_of_all_elements_located((By.CSS_SELECTOR, "button.journey_price_button"))
             )
@@ -173,17 +177,19 @@ class SelectFlightPage:
 
             logger.info(f"Found {len(journey_buttons)} journey buttons")
 
-            # Click en el PRIMERO usando JavaScript para mayor confiabilidad
+            # 🖱️ Se PRESIONA (SELENIUM): Primer vuelo disponible de ida
             first_journey = journey_buttons[0]
             self.driver.execute_script("arguments[0].scrollIntoView(true);", first_journey)
             time.sleep(0.5)  # OPTIMIZADO: 1s → 0.5s (ahorro: 0.5s)
             self.driver.execute_script("arguments[0].click();", first_journey)  # JavaScript click
             logger.info("✓ Outbound flight selected (first one)")
 
+            # ⏳ Se ESPERA (SELENIUM): Planes de tarifa se carguen
             time.sleep(1.5)  # OPTIMIZADO: 2s → 1.5s (ahorro: 0.5s)
 
             # PASO 2: Seleccionar plan FLEX (tercer botón fare_button)
             logger.info("Waiting for fare plans to appear...")
+            # 🔍 Se BUSCA (SELENIUM): Botones de planes de tarifa (Basic, Classic, Flex)
             fare_buttons = self.wait.until(
                 EC.presence_of_all_elements_located((By.CSS_SELECTOR, "button.fare_button"))
             )
@@ -194,7 +200,7 @@ class SelectFlightPage:
 
             logger.info(f"Found {len(fare_buttons)} fare buttons (Basic, Classic, Flex)")
 
-            # Click en el TERCERO (índice 2) = FLEX usando JavaScript
+            # 🖱️ Se PRESIONA (SELENIUM): Plan FLEX (tercer botón - índice 2)
             flex_button = fare_buttons[2]
             self.driver.execute_script("arguments[0].scrollIntoView(true);", flex_button)
             time.sleep(0.5)  # OPTIMIZADO: 1s → 0.5s (ahorro: 0.5s)
@@ -270,7 +276,7 @@ class SelectFlightPage:
             # - Português: "Selecionar tarifa"
             logger.info("Looking for return journey buttons (language-agnostic approach)...")
 
-            # Buscar TODOS los botones (incluye IDA + VUELTA)
+            # 🔍 Se BUSCA (SELENIUM): Botones de vuelos de vuelta (filtrados por visibilidad)
             all_journey_buttons = self.wait.until(
                 EC.presence_of_all_elements_located((By.CSS_SELECTOR, "button.journey_price_button"))
             )
@@ -297,7 +303,7 @@ class SelectFlightPage:
                 logger.error("No return flight buttons found")
                 return False
 
-            # Click en el PRIMERO (primer vuelo de vuelta)
+            # 🖱️ Se PRESIONA (SELENIUM): Primer vuelo de vuelta disponible
             first_journey = return_flight_buttons[0]
             self.driver.execute_script("arguments[0].scrollIntoView(true);", first_journey)
             time.sleep(0.5)  # OPTIMIZADO: 1s → 0.5s (ahorro: 0.5s)
@@ -320,7 +326,7 @@ class SelectFlightPage:
             # PASO 2: Seleccionar plan FLEX (tercer botón fare_button)
             logger.info("Locating fare plan buttons...")
 
-            # Usar un wait más largo porque puede tardar en cargar
+            # ⏳ Se ESPERA (SELENIUM): Botones de planes de tarifa aparezcan (max 25 segundos)
             wait_longer = WebDriverWait(self.driver, 25)
             fare_buttons = wait_longer.until(
                 EC.presence_of_all_elements_located((By.CSS_SELECTOR, "button.fare_button"))
@@ -332,7 +338,7 @@ class SelectFlightPage:
 
             logger.info(f"Found {len(fare_buttons)} fare buttons (Basic, Classic, Flex)")
 
-            # Click en el TERCERO (índice 2) = FLEX usando JavaScript
+            # 🖱️ Se PRESIONA (SELENIUM): Plan FLEX para vuelo de vuelta (tercer botón - índice 2)
             flex_button = fare_buttons[2]
             self.driver.execute_script("arguments[0].scrollIntoView(true);", flex_button)
             time.sleep(0.5)  # OPTIMIZADO: 1s → 0.5s (ahorro: 0.5s)

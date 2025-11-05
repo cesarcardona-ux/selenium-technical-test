@@ -101,7 +101,7 @@ class PaymentPage:
             # IMPORTANTE: El modal de OneTrust puede estar en un IFRAME separado o en el DOM principal
             logger.info("Checking for cookies consent modal (may be in iframe or main DOM)...")
 
-            # DEBUGGING: Tomar screenshot y guardar HTML
+            # 📸 Se CAPTURA (SELENIUM): Screenshot y HTML antes de manejar cookies
             try:
                 debug_screenshot = f"reports/debug_payment_before_cookies_{int(time.time())}.png"
                 self.driver.save_screenshot(debug_screenshot)
@@ -120,15 +120,17 @@ class PaymentPage:
                 logger.info("Strategy 1: Looking for cookies button in main DOM...")
                 logger.info("  Waiting up to 10 seconds for button to be clickable...")
                 try:
+                    # ⏳ Se ESPERA (SELENIUM): Botón de cookies sea clickeable (max 10 segundos)
                     cookies_accept_button = WebDriverWait(self.driver, 10).until(
                         EC.element_to_be_clickable((By.ID, "onetrust-accept-btn-handler"))
                     )
                     logger.info("✓ Cookies button found in main DOM")
 
-                    # Scroll y click
+                    # 🖱️ Se PRESIONA (SELENIUM): Botón "Aceptar cookies" en modal OneTrust
                     self.driver.execute_script("arguments[0].scrollIntoView({behavior: 'auto', block: 'center'});", cookies_accept_button)
                     time.sleep(1)
                     cookies_accept_button.click()
+                    # ⏳ Se ESPERA (SELENIUM): Modal de cookies se cierre
                     time.sleep(2)
                     logger.info("✓ Cookies accepted successfully (main DOM)")
 
@@ -286,25 +288,30 @@ class PaymentPage:
         try:
             # PASO 1: Nombre del titular
             logger.info(f"  1. Card Holder: {holder_name}...")
+            # 🔍 Se BUSCA (SELENIUM): Campo de nombre del titular de tarjeta
             holder_input = self.wait.until(EC.presence_of_element_located(self.CARD_HOLDER_INPUT))
             holder_input.clear()
+            # ⌨️ Se INGRESA (SELENIUM): Nombre del titular de la tarjeta
             holder_input.send_keys(holder_name)
             logger.info(f"  ✓ Card holder filled: {holder_name}")
 
             # PASO 2: Número de tarjeta
             logger.info(f"  2. Card Number: {card_number}...")
+            # 🔍 Se BUSCA (SELENIUM): Campo de número de tarjeta
             card_input = self.driver.find_element(*self.CARD_NUMBER_INPUT)
             card_input.clear()
+            # ⌨️ Se INGRESA (SELENIUM): Número de tarjeta de prueba
             card_input.send_keys(card_number)
             logger.info(f"  ✓ Card number filled: {card_number}")
 
             # PASO 3: Mes de expiración
             logger.info(f"  3. Expiration Month: {exp_month}...")
+            # 🖱️ Se PRESIONA (SELENIUM): Botón para abrir dropdown de mes de expiración
             month_button = self.driver.find_element(*self.CARD_MONTH_BUTTON)
             self.driver.execute_script("arguments[0].click();", month_button)
             time.sleep(0.3)
 
-            # Seleccionar mes por ID: expirationMonth_ExpirationDate-12
+            # 🖱️ Se PRESIONA (SELENIUM): Mes de expiración específico
             month_option_id = f"expirationMonth_ExpirationDate-{exp_month}"
             month_option = self.driver.find_element(By.ID, month_option_id)
             self.driver.execute_script("arguments[0].click();", month_option)
@@ -312,11 +319,12 @@ class PaymentPage:
 
             # PASO 4: Año de expiración
             logger.info(f"  4. Expiration Year: {exp_year}...")
+            # 🖱️ Se PRESIONA (SELENIUM): Botón para abrir dropdown de año de expiración
             year_button = self.driver.find_element(*self.CARD_YEAR_BUTTON)
             self.driver.execute_script("arguments[0].click();", year_button)
             time.sleep(0.3)
 
-            # Seleccionar año por ID: expirationYear_ExpirationDate-28
+            # 🖱️ Se PRESIONA (SELENIUM): Año de expiración específico
             year_option_id = f"expirationYear_ExpirationDate-{exp_year}"
             year_option = self.driver.find_element(By.ID, year_option_id)
             self.driver.execute_script("arguments[0].click();", year_option)

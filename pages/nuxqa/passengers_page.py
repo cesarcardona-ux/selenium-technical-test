@@ -108,6 +108,7 @@ class PassengersPage:
         try:
             # ==================== PASO 1: NOMBRE ====================
             logger.info(f"  1. Filling first name: {first_name}")
+            # 🔍 Se BUSCA (SELENIUM): Campo de nombre del pasajero
             first_name_inputs = self.driver.find_elements(By.CSS_SELECTOR, "input[id^='IdFirstName']")
 
             if len(first_name_inputs) <= passenger_index:
@@ -118,26 +119,31 @@ class PassengersPage:
             self.driver.execute_script("arguments[0].scrollIntoView(true);", first_name_field)
             time.sleep(0.1)  # OPTIMIZADO: 0.2s → 0.1s (ahorro: 0.1s)
             first_name_field.clear()
+            # ⌨️ Se INGRESA (SELENIUM): Nombre del pasajero
             first_name_field.send_keys(first_name)
             logger.info(f"  ✓ First name filled: {first_name}")
 
             # ==================== PASO 2: APELLIDO ====================
             logger.info(f"  2. Filling last name: {last_name}")
+            # 🔍 Se BUSCA (SELENIUM): Campo de apellido del pasajero
             last_name_inputs = self.driver.find_elements(By.CSS_SELECTOR, "input[id^='IdLastName']")
             if len(last_name_inputs) > passenger_index:
                 last_name_field = last_name_inputs[passenger_index]
                 last_name_field.clear()
+                # ⌨️ Se INGRESA (SELENIUM): Apellido del pasajero
                 last_name_field.send_keys(last_name)
                 logger.info(f"  ✓ Last name filled: {last_name}")
 
             # ==================== PASO 3: GÉNERO ====================
             logger.info(f"  3. Selecting gender: {gender}")
             try:
+                # 🔍 Se BUSCA (SELENIUM): Dropdown de género
                 gender_buttons = self.driver.find_elements(By.CSS_SELECTOR, "button[id^='IdPaxGender_']")
                 if len(gender_buttons) > passenger_index:
                     gender_button = gender_buttons[passenger_index]
                     self.driver.execute_script("arguments[0].scrollIntoView(true);", gender_button)
                     time.sleep(0.1)  # OPTIMIZADO: 0.2s → 0.1s (ahorro: 0.1s)
+                    # 🖱️ Se PRESIONA (SELENIUM): Botón para abrir dropdown de género
                     self.driver.execute_script("arguments[0].click();", gender_button)
                     time.sleep(0.2)  # OPTIMIZADO: 0.3s → 0.2s (ahorro: 0.1s)
 
@@ -147,7 +153,7 @@ class PassengersPage:
                     gender_option_id = f"{gender_button_id}{gender_suffix}"
 
                     try:
-                        # Intentar encontrar la opción por ID directo
+                        # 🖱️ Se PRESIONA (SELENIUM): Opción de género específica (M/F)
                         gender_option = self.driver.find_element(By.ID, gender_option_id)
                         self.driver.execute_script("arguments[0].click();", gender_option)
                         gender_text = "Masculino" if gender == "M" else "Femenino"
@@ -198,6 +204,7 @@ class PassengersPage:
 
                 # B) MES
                 logger.info(f"  → Selecting MONTH: {month_names[month-1]}")
+                # 🔍 Se BUSCA (SELENIUM): Dropdown de mes para fecha de nacimiento
                 month_buttons = self.driver.find_elements(By.CSS_SELECTOR, "button[id^='dateMonthId_IdDateOfBirthHidden_']")
                 if len(month_buttons) > passenger_index:
                     month_button = month_buttons[passenger_index]
@@ -205,6 +212,7 @@ class PassengersPage:
 
                     self.driver.execute_script("arguments[0].scrollIntoView(true);", month_button)
                     time.sleep(0.1)  # OPTIMIZADO: 0.2s → 0.1s (ahorro: 0.1s)
+                    # 🖱️ Se PRESIONA (SELENIUM): Botón para abrir dropdown de meses
                     self.driver.execute_script("arguments[0].click();", month_button)
                     time.sleep(0.2)  # OPTIMIZADO: 0.3s → 0.2s (ahorro: 0.1s)
 
@@ -213,6 +221,7 @@ class PassengersPage:
                     month_option_id = f"{month_button_id}-{month_value}"
 
                     try:
+                        # 🖱️ Se PRESIONA (SELENIUM): Mes específico en dropdown
                         month_option = self.driver.find_element(By.ID, month_option_id)
                         self.driver.execute_script("arguments[0].click();", month_option)
                         logger.info(f"  ✓ Month selected: {month_names[month-1]} (ID: {month_option_id})")
@@ -223,6 +232,7 @@ class PassengersPage:
 
                 # C) DÍA
                 logger.info(f"  → Selecting DAY: {day}")
+                # 🔍 Se BUSCA (SELENIUM): Dropdown de día para fecha de nacimiento
                 day_buttons = self.driver.find_elements(By.CSS_SELECTOR, "button[id^='dateDayId_IdDateOfBirthHidden_']")
                 if len(day_buttons) > passenger_index:
                     day_button = day_buttons[passenger_index]
@@ -230,6 +240,7 @@ class PassengersPage:
 
                     self.driver.execute_script("arguments[0].scrollIntoView(true);", day_button)
                     time.sleep(0.1)  # OPTIMIZADO: 0.2s → 0.1s (ahorro: 0.1s)
+                    # 🖱️ Se PRESIONA (SELENIUM): Botón para abrir dropdown de días
                     self.driver.execute_script("arguments[0].click();", day_button)
                     time.sleep(0.2)  # OPTIMIZADO: 0.3s → 0.2s (ahorro: 0.1s)
 
@@ -237,6 +248,7 @@ class PassengersPage:
                     day_option_id = f"{day_button_id}{day_suffix}"
 
                     try:
+                        # 🖱️ Se PRESIONA (SELENIUM): Día específico en dropdown
                         day_option = self.driver.find_element(By.ID, day_option_id)
                         self.driver.execute_script("arguments[0].click();", day_option)
                         logger.info(f"  ✓ Day selected: {day} (ID: {day_option_id})")
