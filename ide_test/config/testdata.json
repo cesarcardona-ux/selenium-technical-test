@@ -1,6 +1,6 @@
 {
   "current_session": {
-    "case_id": "case_1",
+    "case_id": "case_2",
     "appearance_mode": "Light"
   },
   "case_1": {
@@ -71,19 +71,20 @@
       "email": "test@test.com",
       "address": "Calle 123 #45-67",
       "city": "Bogota",
+      "zip_code": "110111",
       "country": "Colombia"
     }
   },
   "case_2": {
     "parameters": {
       "browser": "Google Chrome",
-      "language": "English",
-      "pos": "Peru",
-      "env": "QA5",
+      "language": "Español",
+      "pos": "Chile",
+      "env": "QA4",
       "origin": "Bogotá (BOG)",
-      "destination": "Cali (CLO)",
-      "departure-days": "7",
-      "return-days": "14",
+      "destination": "Medellín (MDE)",
+      "departure-days": "2",
+      "return-days": "4",
       "video": "Enabled",
       "screenshots": "On Failure"
     },
@@ -151,7 +152,7 @@
       "browser": "Google Chrome",
       "language": "Français",
       "pos": "Francia",
-      "env": "QA5",
+      "env": "UAT1",
       "origin": "Bogotá (BOG)",
       "destination": "Medellín (MDE)",
       "departure-days": "3",

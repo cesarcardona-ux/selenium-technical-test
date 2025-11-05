@@ -13,7 +13,7 @@
       "video",
       "screenshots"
     ],
-    "env_options": ["qa4", "qa5", "all"],
+    "env_options": ["qa4"],
     "requires_testdata": true,
     "testdata_sections": ["passengers", "payment", "billing"],
     "description": "Flujo completo de reserva solo ida (6 páginas)"
@@ -33,7 +33,7 @@
       "video",
       "screenshots"
     ],
-    "env_options": ["qa4", "qa5", "all"],
+    "env_options": ["qa4"],
     "requires_testdata": true,
     "testdata_sections": ["passengers", "payment", "billing"],
     "description": "Flujo completo de reserva ida y vuelta"
@@ -53,7 +53,7 @@
       "video",
       "screenshots"
     ],
-    "env_options": ["qa5"],
+    "env_options": ["uat1"],
     "requires_testdata": false,
     "description": "Login UAT1 + búsqueda de vuelos + captura de red con CDP"
   },

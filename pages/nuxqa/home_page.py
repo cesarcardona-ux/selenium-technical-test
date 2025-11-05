@@ -10,6 +10,8 @@ from selenium.webdriver.common.by import By
 import logging
 import time
 import random
+import json
+from pathlib import Path
 
 # ==================== LOGGER ====================
 # Requisito técnico del PDF: logs detallados
@@ -143,17 +145,32 @@ class HomePage:
     def select_pos(self, pos_name):
         """
         Selecciona un POS (Point of Sale) del dropdown y aplica el cambio.
+        Usa parameter_options.json para obtener el button_text correcto.
 
         Args:
-            pos_name: Nombre del POS (ej: "Chile", "España", "Otros países")
+            pos_name: Nombre del POS command_value (ej: "Chile", "España", "Francia")
         """
         logger.info(f"Selecting POS: {pos_name}")
-        # XPath dinámico: busca por texto visible en el label
-        xpath = f"//span[@class='points-of-sale_list_item_label' and contains(text(), '{pos_name}')]"
+
+        # Cargar parameter_options.json para obtener button_text
+        config_path = Path(__file__).parent.parent.parent / "ide_test" / "config" / "parameter_options.json"
+        with open(config_path, 'r', encoding='utf-8') as f:
+            parameter_options = json.load(f)
+
+        # Buscar el button_text correspondiente al pos_name
+        button_text = pos_name  # Default: usar el mismo nombre
+        for key, pos_config in parameter_options.get("pos", {}).items():
+            if pos_config.get("command_value") == pos_name:
+                button_text = pos_config.get("button_text", pos_name)
+                logger.info(f"POS '{pos_name}' maps to button_text: '{button_text}'")
+                break
+
+        # XPath dinámico: busca por texto visible en el label (usando button_text del JSON)
+        xpath = f"//span[@class='points-of-sale_list_item_label' and contains(text(), '{button_text}')]"
         element = self.driver.find_element(By.XPATH, xpath)
         element.click()
         time.sleep(0.5)  # OPTIMIZADO: 1s → 0.5s (ahorro: 0.5s)
-        logger.info(f"POS '{pos_name}' clicked")
+        logger.info(f"POS '{pos_name}' (button: '{button_text}') clicked")
 
         # Click en el botón "Aplicar" para confirmar el cambio
         logger.info("Clicking 'Aplicar' button to confirm POS change")

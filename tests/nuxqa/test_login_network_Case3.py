@@ -43,7 +43,7 @@ PASSENGERS_EACH_TYPE = 3  # 3 pasajeros de cada tipo según PDF
 @allure.story("Search Flights with Session Event Capture")
 @allure.severity(allure.severity_level.CRITICAL)
 @pytest.mark.case3
-def test_flight_search_and_network_capture(driver, base_url, db, browser, language, screenshots_mode, request):
+def test_flight_search_and_network_capture(driver, base_url, db, browser, language, screenshots_mode, request, test_config):
     """
     Caso 3: Búsqueda de vuelos y captura del evento Session del Network.
 
