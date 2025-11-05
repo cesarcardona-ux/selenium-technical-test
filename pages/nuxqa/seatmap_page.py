@@ -478,6 +478,209 @@ class SeatmapPage:
             logger.error(f"✗ Error assigning seats: {e}")
             return seat_assignments
 
+    def select_first_available_seat_any_type(self):
+        """
+        Selecciona el primer asiento disponible de CUALQUIER tipo (Plus, Premium, Economy).
+        Similar a select_first_available_economy_seat() pero sin filtrar por tipo de asiento.
+
+        Usado en Case 2 donde se permite seleccionar cualquier asiento según disponibilidad.
+
+        Returns:
+            tuple: (bool, str) - (Éxito, ID del asiento seleccionado)
+        """
+        logger.info("Selecting first available seat (any type: Plus/Premium/Economy)...")
+
+        try:
+            # PASO 1: Pre-cargar TODOS los elementos de asientos
+            logger.info("  STEP 1: Loading all seat elements...")
+
+            seat_directory = {}
+
+            for seat_id in self.ECONOMY_SEAT_IDS:
+                try:
+                    seat_element = self.driver.find_element(By.ID, seat_id)
+                    seat_directory[seat_id] = seat_element
+                except:
+                    pass
+
+            logger.info(f"  ✓ Loaded {len(seat_directory)} seat elements into directory")
+
+            # PASO 2: Iterar y seleccionar primer asiento disponible (sin filtrar por tipo)
+            logger.info("  STEP 2: Iterating through seats (accepting ANY type)...")
+
+            attempts = 0
+            for seat_id, seat in seat_directory.items():
+                attempts += 1
+                try:
+                    seat_classes = seat.get_attribute("class")
+                    logger.info(f"  Checking seat {seat_id}: classes = '{seat_classes}'")
+
+                    # Verificar si está disponible (tiene "seat" pero NO tiene "selected" ni "unavailable")
+                    # NO filtramos por tipo (upfront, xlarge, etc) - aceptamos cualquier tipo
+                    if "seat" in seat_classes and "selected" not in seat_classes and "unavailable" not in seat_classes:
+                        # Identificar tipo de asiento para logging
+                        seat_type = "Economy"
+                        if "upfront" in seat_classes:
+                            seat_type = "Premium"
+                        elif "xlarge" in seat_classes:
+                            seat_type = "Plus"
+
+                        logger.info(f"  ✓ Seat {seat_id} ({seat_type}) is available, attempting to select...")
+
+                        # Scroll al asiento
+                        self.driver.execute_script("arguments[0].scrollIntoView({behavior: 'auto', block: 'center'});", seat)
+                        time.sleep(0.5)
+
+                        # Esperar a que el asiento sea clickeable
+                        try:
+                            clickable_seat = self.wait.until(
+                                EC.element_to_be_clickable((By.ID, seat_id))
+                            )
+                        except:
+                            logger.warning(f"  ⚠ Seat {seat_id} not clickable, skipping...")
+                            continue
+
+                        # Click normal de Selenium
+                        clickable_seat.click()
+                        logger.info(f"  Clicked on seat: {seat_id}")
+
+                        # Esperar 1 segundo para ver si aparece un modal
+                        time.sleep(1)
+
+                        # Verificar si apareció un modal de error
+                        try:
+                            modal = self.driver.find_element(By.CSS_SELECTOR, "ngb-modal-window.modal-alert")
+                            logger.error(f"⚠⚠⚠ MODAL DETECTED!")
+
+                            # Tomar screenshot del modal
+                            try:
+                                screenshot_path = f"reports/modal_error_{seat_id}.png"
+                                self.driver.save_screenshot(screenshot_path)
+                                logger.error(f"⚠⚠⚠ MODAL SCREENSHOT SAVED: {screenshot_path}")
+                            except:
+                                pass
+
+                            # Intentar cerrar el modal
+                            close_selectors = [
+                                "button[aria-label='Close']",
+                                "button.close",
+                                "//button[contains(text(), 'Aceptar')]",
+                                "//button[contains(text(), 'OK')]",
+                                "//button[contains(text(), 'Cerrar')]"
+                            ]
+
+                            for selector in close_selectors:
+                                try:
+                                    if selector.startswith("//"):
+                                        close_btn = self.driver.find_element(By.XPATH, selector)
+                                    else:
+                                        close_btn = self.driver.find_element(By.CSS_SELECTOR, selector)
+                                    close_btn.click()
+                                    logger.info(f"  ✓ Modal closed")
+                                    break
+                                except:
+                                    continue
+
+                            time.sleep(1)
+                        except:
+                            # No hay modal, perfecto
+                            pass
+
+                        # Esperar 3 segundos para que el asiento cambie a 'selected'
+                        logger.info(f"  Waiting 3 seconds for seat to change to 'selected'...")
+                        time.sleep(3)
+
+                        # Verificar si se marcó como selected
+                        try:
+                            updated_seat = self.driver.find_element(By.ID, seat_id)
+                            updated_classes = updated_seat.get_attribute("class")
+                            logger.info(f"  After 3s, seat classes: '{updated_classes}'")
+
+                            if "selected" in updated_classes:
+                                logger.info(f"✓ Seat {seat_id} ({seat_type}) selected successfully")
+                                return True, seat_id
+                            else:
+                                logger.warning(f"⚠ Seat {seat_id} still not marked as 'selected' after 3 seconds")
+                                continue
+                        except Exception as e:
+                            logger.warning(f"⚠ Error checking seat status: {e}")
+                            continue
+                    else:
+                        logger.info(f"  ✗ Seat {seat_id} is NOT available (selected or unavailable)")
+
+                except Exception as e:
+                    logger.warning(f"  ✗ Could not find or check seat {seat_id}: {e}")
+                    continue
+
+            logger.error(f"✗ No available seats found after checking {attempts} seats")
+            return False, None
+
+        except Exception as e:
+            logger.error(f"✗ Error selecting seat: {e}")
+            import traceback
+            traceback.print_exc()
+            return False, None
+
+    def assign_any_type_seats_to_passengers(self, passenger_count=3):
+        """
+        Asigna asientos de CUALQUIER tipo (Plus/Premium/Economy) a todos los pasajeros en orden.
+        Versión para Case 2 donde se permite cualquier tipo de asiento según disponibilidad.
+
+        FLUJO:
+        1. El primer pasajero YA está seleccionado automáticamente
+        2. Click en asiento → recarga automática → siguiente pasajero
+        3. Repetir para todos los pasajeros
+
+        Args:
+            passenger_count (int): Número de pasajeros (default 3)
+
+        Returns:
+            dict: Diccionario con pasajeros y sus asientos asignados
+        """
+        logger.info(f"Assigning seats (ANY type) to {passenger_count} passengers...")
+        logger.info("NOTE: Passengers are auto-selected after each seat click.")
+
+        passenger_types = [
+            "Adulto 1",
+            "Joven 1",
+            "Niño 1"
+        ][:passenger_count]
+
+        seat_assignments = {}
+
+        try:
+            for i, passenger_type in enumerate(passenger_types):
+                logger.info(f"")
+                logger.info(f"========== Passenger {i+1}/3: {passenger_type} ==========")
+                logger.info(f"  (Passenger is ALREADY auto-selected by the page)")
+
+                logger.info(f"  Selecting seat (any type) for passenger {i+1}...")
+                seat_selected, seat_id = self.select_first_available_seat_any_type()
+
+                if not seat_selected:
+                    logger.error(f"  ✗ Failed to select seat for passenger {i+1}")
+                    continue
+
+                seat_assignments[passenger_type] = seat_id
+                logger.info(f"✓ Passenger {i+1} ({passenger_type}) → Seat {seat_id}")
+
+                # Esperar recarga y auto-selección del siguiente pasajero
+                if i < passenger_count - 1:
+                    logger.info(f"  Waiting for page reload and auto-selection of next passenger...")
+                    time.sleep(1)
+
+            logger.info(f"✓ All {len(seat_assignments)} passengers assigned seats successfully")
+
+            # Esperar tiempo adicional para que la página finalice
+            logger.info("Waiting 2 additional seconds for page to finalize seat selection state...")
+            time.sleep(2)
+
+            return seat_assignments
+
+        except Exception as e:
+            logger.error(f"✗ Error assigning seats: {e}")
+            return seat_assignments
+
     def click_go_to_payment(self):
         """
         Hace click en el botón "Ir a pagar" para ir a la página de Payment.
@@ -558,6 +761,93 @@ class SeatmapPage:
 
         except Exception as e:
             logger.error(f"✗ Error clicking 'Ir a pagar' button: {e}")
+            import traceback
+            traceback.print_exc()
+            return False
+
+    def click_next_flight(self):
+        """
+        Hace click en el botón "Siguiente vuelo" para continuar a la selección de asientos del vuelo de vuelta.
+        Este botón aparece en viajes round-trip después de seleccionar asientos para el vuelo de ida.
+
+        Returns:
+            bool: True si se hizo click correctamente
+        """
+        logger.info("Clicking 'Siguiente vuelo' button...")
+
+        try:
+            # Scroll hacia abajo para ver el botón
+            self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            time.sleep(1)
+
+            # DEBUGGING: Tomar screenshot ANTES de hacer click
+            try:
+                debug_screenshot = f"reports/debug_before_next_flight_{int(time.time())}.png"
+                self.driver.save_screenshot(debug_screenshot)
+                logger.info(f"📸 Screenshot saved before clicking button: {debug_screenshot}")
+            except:
+                pass
+
+            # Buscar botón "Siguiente vuelo" usando el HTML exacto proporcionado por el usuario
+            # HTML: <ds-button class="amount-summary_button--nextflight"><button aria-labelledby="Siguiente vuelo"><span class="button_label"> Siguiente vuelo </span></button></ds-button>
+
+            # Selectores SÚPER ESPECÍFICOS basados en el HTML real:
+            next_flight_selectors = [
+                # Selector 1: ÓPTIMO - Por aria-labelledby (atributo único del botón "Siguiente vuelo")
+                "//button[@aria-labelledby='Siguiente vuelo']",
+                # Selector 2: Por clase específica amount-summary_button--nextflight
+                "//ds-button[contains(@class, 'amount-summary_button--nextflight')]//button",
+                # Selector 3: Por span con texto exacto (incluyendo espacios)
+                "//span[@class='button_label' and contains(text(), 'Siguiente vuelo')]",
+                # Selector 4: Fallback - Por cualquier botón que contenga "Siguiente vuelo"
+                "//button[contains(., 'Siguiente vuelo')]",
+            ]
+
+            next_flight_btn = None
+            used_selector = None
+            for selector in next_flight_selectors:
+                try:
+                    if selector.startswith("//span") and "ancestor" not in selector:
+                        span_elem = self.driver.find_element(By.XPATH, selector)
+                        next_flight_btn = span_elem.find_element(By.XPATH, "./ancestor::button")
+                        logger.info(f"✓ 'Siguiente vuelo' button found via span, selector: {selector[:60]}...")
+                    else:
+                        next_flight_btn = self.driver.find_element(By.XPATH, selector)
+                        logger.info(f"✓ 'Siguiente vuelo' button found directly, selector: {selector[:60]}...")
+
+                    used_selector = selector
+                    logger.info(f"✓ Button found successfully with selector: {selector}")
+                    break
+                except Exception as e:
+                    logger.debug(f"Selector '{selector[:40]}...' failed: {e}")
+                    continue
+
+            if not next_flight_btn:
+                logger.error("'Siguiente vuelo' button not found with any selector")
+                return False
+
+            # Loggear información del botón antes de hacer click
+            logger.info(f"Button to click: text='{next_flight_btn.text}', class='{next_flight_btn.get_attribute('class')}'")
+
+            # Scroll al botón
+            self.driver.execute_script("arguments[0].scrollIntoView(true);", next_flight_btn)
+            time.sleep(1)
+
+            # Click usando JavaScript
+            self.driver.execute_script("arguments[0].click();", next_flight_btn)
+            logger.info("✓ 'Siguiente vuelo' button clicked successfully")
+
+            # Esperar a que la página recargue con el seatmap del vuelo de vuelta
+            time.sleep(3)
+
+            # CRÍTICO: Esperar tiempo adicional para Angular (igual que en wait_for_page_load)
+            logger.info("Waiting additional 5 seconds for Angular to initialize return flight seatmap...")
+            time.sleep(5)
+
+            return True
+
+        except Exception as e:
+            logger.error(f"✗ Error clicking 'Siguiente vuelo' button: {e}")
             import traceback
             traceback.print_exc()
             return False

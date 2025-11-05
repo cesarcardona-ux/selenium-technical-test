@@ -161,6 +161,10 @@ class ServicesPage:
         """
         logger.info(f"Attempting to select service: {service_name}")
 
+        # CASO ESPECIAL: Avianca Lounges tiene flujo con modal
+        if "Avianca Lounges" in service_name or "lounges" in service_name.lower():
+            return self.select_avianca_lounges_with_modal()
+
         try:
             # Buscar el servicio por texto que contenga el nombre
             service_xpath = f"//div[contains(@class, 'service') or contains(@class, 'product')][contains(., '{service_name}')]"
@@ -196,6 +200,151 @@ class ServicesPage:
 
         except Exception as e:
             logger.error(f"✗ Error selecting service '{service_name}': {e}")
+            return False
+
+    def select_avianca_lounges_with_modal(self):
+        """
+        Selecciona el servicio "Avianca Lounges" que tiene un flujo especial con modal.
+
+        Flujo:
+        1. Click en botón "Añadir" del servicio (ID: serviceButtonTypeBusinessLounge)
+        2. Se abre modal con 6 opciones (2 por cada uno de 3 pasajeros)
+        3. Seleccionar SOLO 1 opción (cualquiera)
+        4. Click "Confirmar" en el modal
+        5. Página recarga
+
+        Returns:
+            bool: True si se seleccionó correctamente
+        """
+        logger.info("Selecting 'Avianca Lounges' service with modal flow...")
+
+        try:
+            # PASO 1: Click en botón "Añadir" del servicio
+            logger.info("Looking for Avianca Lounges service button...")
+
+            service_button_selectors = [
+                "serviceButtonTypeBusinessLounge",  # ID específico
+                "//button[contains(@id, 'BusinessLounge')]",
+                "//button[contains(., 'Avianca Lounges')]//span[contains(text(), 'Añadir')]/ancestor::button"
+            ]
+
+            service_button = None
+            for selector in service_button_selectors:
+                try:
+                    if not selector.startswith("//"):
+                        # Es un ID
+                        service_button = self.driver.find_element(By.ID, selector)
+                    else:
+                        service_button = self.driver.find_element(By.XPATH, selector)
+
+                    logger.info(f"✓ Avianca Lounges button found with selector: {selector}")
+                    break
+                except:
+                    continue
+
+            if not service_button:
+                logger.error("Avianca Lounges service button not found")
+                return False
+
+            # Scroll y click en el botón del servicio
+            self.driver.execute_script("arguments[0].scrollIntoView(true);", service_button)
+            time.sleep(1)
+            self.driver.execute_script("arguments[0].click();", service_button)
+            logger.info("✓ Clicked on Avianca Lounges 'Añadir' button")
+
+            # PASO 2: Esperar a que se abra el modal
+            time.sleep(2)
+            logger.info("Waiting for modal to appear...")
+
+            # PASO 3: Seleccionar SOLO 1 opción del modal
+            logger.info("Looking for first available option in modal...")
+
+            # Buscar labels con for="00000VIPD", "10000VIPD", etc.
+            option_selectors = [
+                "//label[@for='00000VIPD']",  # Pasajero 1, opción 1 (ida)
+                "//label[@for='10000VIPD']",  # Pasajero 1, opción 2 (vuelta)
+                "//label[@for='00100VIPD']",  # Pasajero 2, opción 1
+                "//label[@for='10100VIPD']",  # Pasajero 2, opción 2
+                "//label[@for='00200VIPD']",  # Pasajero 3, opción 1
+                "//label[@for='10200VIPD']",  # Pasajero 3, opción 2
+                # Fallback genérico
+                "//div[@class='service_item_action']//label[@role='button']"
+            ]
+
+            option_selected = False
+            for selector in option_selectors:
+                try:
+                    option_label = self.driver.find_element(By.XPATH, selector)
+
+                    # Verificar que el texto sea "Añadir" (no "Quitar")
+                    label_text = option_label.text.strip()
+                    if "Añadir" in label_text or "Add" in label_text:
+                        logger.info(f"✓ Found available option: {selector}")
+
+                        # Click en el label
+                        self.driver.execute_script("arguments[0].scrollIntoView(true);", option_label)
+                        time.sleep(0.5)
+                        self.driver.execute_script("arguments[0].click();", option_label)
+                        logger.info(f"✓ Selected option in modal")
+
+                        option_selected = True
+                        break
+                except:
+                    continue
+
+            if not option_selected:
+                logger.error("No available options found in modal")
+                return False
+
+            time.sleep(1)
+
+            # PASO 4: Click en "Confirmar" del modal
+            logger.info("Looking for 'Confirmar' button in modal...")
+
+            confirm_selectors = [
+                "//button[@id='dsButtonId_53161']",  # ID específico del botón
+                "//button[contains(@class, 'btn-action')]//span[contains(text(), 'Confirmar')]/ancestor::button",
+                "//button//span[contains(text(), 'Confirmar')]/parent::button",
+                "//button[contains(., 'Confirmar')]"
+            ]
+
+            confirm_button = None
+            for selector in confirm_selectors:
+                try:
+                    if selector.startswith("//button[@id"):
+                        confirm_button = self.driver.find_element(By.XPATH, selector)
+                    elif "ancestor" in selector or "parent" in selector:
+                        span_elem = self.driver.find_element(By.XPATH, selector.split("/ancestor::")[0] if "ancestor" in selector else selector.split("/parent::")[0])
+                        confirm_button = span_elem.find_element(By.XPATH, "./ancestor::button" if "ancestor" in selector else "./parent::button")
+                    else:
+                        confirm_button = self.driver.find_element(By.XPATH, selector)
+
+                    logger.info(f"✓ 'Confirmar' button found with selector: {selector[:60]}")
+                    break
+                except:
+                    continue
+
+            if not confirm_button:
+                logger.error("'Confirmar' button not found in modal")
+                return False
+
+            # Click en Confirmar
+            self.driver.execute_script("arguments[0].scrollIntoView(true);", confirm_button)
+            time.sleep(0.5)
+            self.driver.execute_script("arguments[0].click();", confirm_button)
+            logger.info("✓ Clicked 'Confirmar' button in modal")
+
+            # PASO 5: Esperar a que el modal se cierre y la página recargue
+            time.sleep(3)
+            logger.info("✓ Modal closed, page reloaded")
+
+            logger.info("✓ Avianca Lounges service selected successfully")
+            return True
+
+        except Exception as e:
+            logger.error(f"✗ Error selecting Avianca Lounges service: {e}")
+            import traceback
+            traceback.print_exc()
             return False
 
     def select_first_available_service(self):
