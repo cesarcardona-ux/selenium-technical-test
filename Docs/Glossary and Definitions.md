@@ -1330,4 +1330,242 @@ pytest tests/nuxqa/test_oneway_booking_Case1.py \
 
 ------------------------------------------
 
-*Última actualización: Agregados conceptos de ConfigManager, CustomTkinter, GUI, Parametrización, JSON, Language_POS_Mapping, y códigos IATA relacionados con v1.4.0*
+## OR LOGIC (Lógica OR)
+
+**Qué es:** Estrategia de validación donde **al menos uno** de múltiples patrones debe coincidir
+
+**Para qué se usa en el proyecto:** Validación de URLs multi-idioma en Cases 6 y 7
+
+**Cómo funciona:**
+```python
+# Validar si AL MENOS UNA de las partes esperadas está en la URL
+expected_parts = ["avianca-credits", "creditos-avianca", "credits-avianca"]
+found_match = False
+for expected_part in expected_parts:
+    if expected_part in url:
+        found_match = True  # ✅ Con que UNA coincida, es válido
+        break
+```
+
+**Ejemplo práctico:**
+- URL: `https://example.com/es/avianca-credits`
+- Patrones: `["avianca-credits", "creditos-avianca", "credits-avianca"]`
+- **Resultado:** ✅ PASA (contiene "avianca-credits")
+
+**Ventajas:**
+- ✅ Flexible para múltiples idiomas
+- ✅ Robusto ante variaciones de URL
+- ✅ No requiere conocer idioma exacto
+
+**Diferencia con AND Logic:**
+- OR: Pasa si **cualquier** patrón coincide
+- AND: Pasa solo si **todos** los patrones coinciden
+
+------------------------------------------
+
+## AND LOGIC (Lógica AND)
+
+**Qué es:** Estrategia de validación donde **todos** los patrones deben coincidir
+
+**Problema:** Demasiado restrictiva para URLs multi-idioma
+
+**Cómo funcionaba (antes):**
+```python
+# Validar que TODAS las partes esperadas estén en la URL
+if "avianca-credits" in url and "creditos-avianca" in url:
+    # ❌ Falla porque una URL solo tendrá UNO de estos patrones
+    pass
+```
+
+**Ejemplo práctico:**
+- URL: `https://example.com/es/avianca-credits`
+- Patrones requeridos: `"avianca-credits"` AND `"creditos-avianca"`
+- **Resultado:** ❌ FALLA (solo contiene uno de los dos)
+
+**Por qué se cambió a OR Logic:**
+- URLs multi-idioma solo contienen UN patrón a la vez
+- AND Logic causaba fallos en todos los idiomas
+- OR Logic permite validar cualquier variante de idioma
+
+**Casos de uso apropiados para AND:**
+- Validar múltiples secciones INDEPENDIENTES de una URL
+- Ejemplo: `"https://example.com"` AND `"/productos"` AND `"?filter=new"`
+
+------------------------------------------
+
+## JSON-DRIVEN VALIDATION
+
+**Qué es:** Patrón de diseño donde las validaciones se configuran en archivos JSON en lugar de código
+
+**Para qué sirve:** Separar lógica de configuración, permitiendo cambios sin modificar código
+
+**Implementación en el proyecto:**
+
+**Antes (hardcoded):**
+```python
+# ❌ Patrones fijos en el código
+if header_link == "credits":
+    if "avianca-credits" in url:
+        return True
+```
+
+**Después (JSON-driven):**
+```python
+# ✅ Patrones cargados desde JSON
+url_validations = config.get_parameter_options("header-link")
+expected_parts = url_validations[header_link]["expected_url_contains"]
+```
+
+**Configuración en `parameter_options.json`:**
+```json
+"header-link": {
+  "credits": {
+    "expected_url_contains": [
+      "avianca-credits",
+      "creditos-avianca",
+      "credits-avianca",
+      "les-credits-avianca"
+    ]
+  }
+}
+```
+
+**Ventajas:**
+- ✅ **Zero hardcoded values** en código Python
+- ✅ **Fácil mantenimiento:** Editar JSON sin tocar código
+- ✅ **Escalable:** Agregar idiomas sin cambios de código
+- ✅ **Centralizado:** Toda configuración en un lugar
+- ✅ **Versionable:** Cambios de configuración rastreables en Git
+
+**Casos de uso:**
+- Cases 6 & 7: Validación de URLs multi-idioma
+- Todos los casos: Parámetros de CLI y datos de prueba
+
+------------------------------------------
+
+## LANGUAGE EXCEPTIONS
+
+**Qué es:** Sistema para manejar casos especiales donde ciertos idiomas requieren comportamiento diferente
+
+**Para qué sirve:** Gestionar redirects externos o rutas alternativas según el idioma
+
+**Implementación en el proyecto:**
+
+**Configuración en `parameter_options.json`:**
+```json
+"header-link": {
+  "credits": {
+    "language_exceptions": {
+      "Français": {
+        "external_url": "https://www.lifemiles.com",
+        "use_alternate_submenu": true,
+        "reason": "Français redirects to LifeMiles instead of Avianca Credits"
+      }
+    }
+  }
+}
+```
+
+**Carga dinámica en código:**
+```python
+# Cargar excepciones desde JSON
+link_config = header_options.get(header_link_name, {})
+language_exceptions = link_config.get("language_exceptions", {})
+
+# Verificar si idioma actual tiene excepción
+if selected_language in language_exceptions:
+    exception_config = language_exceptions[selected_language]
+    # Aplicar comportamiento especial
+```
+
+**Ejemplo real - Case 6:**
+- **Problema:** Français + "credits" → redirect a LifeMiles (no Avianca Credits)
+- **Solución:** Exception define URL externa esperada
+- **Resultado:** Test valida correctamente el redirect a LifeMiles
+
+**Beneficios:**
+- ✅ Manejo centralizado de casos especiales
+- ✅ No requiere código condicional por idioma
+- ✅ Documentación clara del comportamiento esperado
+- ✅ Fácil agregar nuevas excepciones
+
+------------------------------------------
+
+## MULTI-LANGUAGE URL VALIDATION
+
+**Qué es:** Estrategia de validación que soporta múltiples idiomas simultáneamente usando patrones de URL
+
+**Para qué sirve:** Validar redirects de links que cambian de URL según el idioma seleccionado
+
+**Problema que resuelve:**
+```python
+# ❌ ANTES: Un solo patrón, falla en otros idiomas
+if "avianca-credits" in url:  # Solo funciona en español
+    pass  # Falla en français, english, português
+```
+
+**Solución implementada:**
+```python
+# ✅ AHORA: Array de patrones multi-idioma con OR logic
+expected_parts = [
+    "avianca-credits",      # Español
+    "creditos-avianca",     # Español alternativo
+    "credits-avianca",      # English
+    "les-credits-avianca",  # Français
+    "creditos-da-avianca"   # Português
+]
+# Valida si AL MENOS UNO está presente
+```
+
+**Implementación en Cases 6 & 7:**
+
+**Case 6 - Header Links:**
+- 3 links (hoteles, credits, equipaje)
+- 4 idiomas (Español, English, Français, Português)
+- Patrones de URL: 1-5 variaciones por link
+- Total: 12 tests (3 × 4)
+
+**Case 7 - Footer Links:**
+- 4 links (vuelos, noticias, aviancadirect, contactanos)
+- 4 idiomas (Español, English, Français, Português)
+- Patrones de URL: 2-7 variaciones por link
+- Total: 16 tests (4 × 4)
+
+**Componentes técnicos:**
+1. **OR Logic:** Al menos un patrón debe coincidir
+2. **JSON-Driven:** Patrones almacenados en `parameter_options.json`
+3. **Language Exceptions:** Casos especiales por idioma
+4. **Dynamic Loading:** Carga automática desde ConfigManager
+
+**Ejemplo completo:**
+```json
+"footer-link": {
+  "vuelos": {
+    "expected_url_contains": [
+      "ofertas-destinos",     // Español
+      "ofertas-de-vuelos",    // Español alt
+      "offers-destinations",  // English
+      "flight-offers",        // English alt
+      "offres-destinations",  // Français
+      "offres-de-vols",       // Français alt
+      "ofertas-de-voos"       // Português
+    ]
+  }
+}
+```
+
+**Resultados:**
+- ✅ Case 6: 12/12 tests PASSED
+- ✅ Case 7: 16/16 tests PASSED
+- ✅ Total: 28 tests con soporte multi-idioma
+- ✅ Zero hardcoded values
+
+**Beneficios:**
+- **Escalabilidad:** Agregar idiomas = agregar patrones en JSON
+- **Mantenibilidad:** Cambios centralizados, sin tocar código
+- **Robustez:** Valida correctamente en cualquier idioma
+- **Flexibilidad:** Soporta variaciones de URL por idioma
+
+------------------------------------------
+
+*Última actualización: v1.5.0 - Agregados conceptos de OR Logic, AND Logic, JSON-Driven Validation, Language Exceptions, y Multi-Language URL Validation relacionados con mejoras multi-idioma de Cases 6 & 7 (2025-11-05)*

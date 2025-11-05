@@ -132,16 +132,18 @@ pytest tests/nuxqa/test_pos_change_Case5.py --browser=all --pos=all --env=all -n
 
 -------------------------------
 
-### Caso 6: Redirecciones Header con Validación de Idioma
-**Estado:** ✅ Completado
-**Objetivo:** Usar opciones del Navbar para acceder a 3 sitios diferentes con validación de idioma
+### Caso 6: Redirecciones Header con Validación Multi-idioma
+**Estado:** ✅ Completado (100% JSON-driven con validación multi-idioma)
+**Objetivo:** Usar opciones del Navbar para acceder a 3 sitios diferentes con validación multi-idioma de URLs
 **Header Links:** Ofertas de vuelos, Avianca Credits, Equipaje
-**Language Validation:** Selección de idioma (random por defecto, configurable con --language) con verificación del código en URL
+**Idiomas Soportados:** Español, English, Français, Português
+**Language Validation:** Validación OR logic con patrones de URL multi-idioma desde JSON
 **Navegadores:** Chrome, Edge, Firefox
 **Ambientes:** QA4, QA5
 **Total tests:**
-- Por defecto: 18 (3 links × 2 ambientes × 3 navegadores × random language)
-- Con --language=all: 72 (3 links × 2 ambientes × 3 navegadores × 4 idiomas)
+- Validación completa: 12 tests (3 links × 4 idiomas)
+- Con todos los navegadores: 36 tests (3 links × 4 idiomas × 3 navegadores)
+- Con todos los ambientes: 72 tests (3 links × 4 idiomas × 3 navegadores × 2 ambientes)
 
 **Archivos implementados:**
 - `pages/nuxqa/home_page.py` - Page Object con locators de navbar y submenús (actualizado)
@@ -163,16 +165,65 @@ pytest tests/nuxqa/test_pos_change_Case5.py --browser=all --pos=all --env=all -n
 - `//span[@class='link_label' and contains(text(), 'avianca credits')]` - Link del submenú
 - `//span[@class='link_label' and contains(text(), 'Equipaje')]` - Link del submenú
 
+**🎯 Validación Multi-idioma con OR Logic (JSON-driven):**
+
+**Configuración en `parameter_options.json` (lines 292-326):**
+```json
+"header-link": {
+  "hoteles": {
+    "expected_url_contains": ["booking.com"]
+  },
+  "credits": {
+    "expected_url_contains": [
+      "avianca-credits",
+      "creditos-avianca",
+      "credits-avianca",
+      "les-credits-avianca",
+      "creditos-da-avianca"
+    ]
+  },
+  "equipaje": {
+    "expected_url_contains": [
+      "equipaje",
+      "baggage",
+      "bagages",
+      "bagagem"
+    ]
+  }
+}
+```
+
+**Language Exceptions (Français + credits → external redirect):**
+```json
+"language_exceptions": {
+  "Français": {
+    "credits": {
+      "external_url": "https://www.lifemiles.com"
+    }
+  }
+}
+```
+
+**Lógica de validación implementada en `home_page.py` (lines 392-405):**
+- **OR Logic:** Valida si AL MENOS UNO de los patrones esperados está presente en la URL
+- **Multi-idioma:** Soporta 4 idiomas simultáneamente sin modificar código
+- **Excepciones dinámicas:** Carga excepciones de idioma desde JSON
+- **Ejemplo:** Para "credits" en Español → valida "avianca-credits" OR "creditos-avianca"
+- **Ejemplo:** Para "credits" en Français → redirect a lifemiles.com (excepción)
+
 **Validaciones implementadas:**
-- Verificación de que la URL cambió después del click
-- Validación de que la URL final contiene la parte esperada:
-  - hoteles → debe contener "booking.com"
-  - credits → debe contener "avianca-credits"
-  - equipaje → debe contener "equipaje"
-- Manejo automático de pestañas nuevas (target="_blank")
-- Cierre de pestañas extras y regreso a pestaña principal
-- Resultados guardados en SQLite database con campo `case_number`
-- Logs detallados de cada paso con validación de URL
+- ✅ Verificación de que la URL cambió después del click
+- ✅ Validación multi-idioma con OR logic (al menos un patrón debe coincidir)
+- ✅ Soporte para 4 idiomas sin código duplicado
+- ✅ Manejo de excepciones de idioma (Français + credits → LifeMiles)
+- ✅ Validación de patrones específicos por link:
+  - hoteles → "booking.com"
+  - credits → "avianca-credits" OR "creditos-avianca" OR "credits-avianca" OR "les-credits-avianca" OR "creditos-da-avianca"
+  - equipaje → "equipaje" OR "baggage" OR "bagages" OR "bagagem"
+- ✅ Manejo automático de pestañas nuevas (target="_blank")
+- ✅ Cierre de pestañas extras y regreso a pestaña principal
+- ✅ Resultados guardados en SQLite database con campo `case_number`
+- ✅ Logs detallados de cada paso con validación de URL multi-idioma
 
 **Características técnicas:**
 - Reutiliza infraestructura de Casos 4 y 5 (POM, fixtures, CLI options)
@@ -205,19 +256,31 @@ pytest tests/nuxqa/test_header_redirections_Case6.py --browser=all --header-link
 3. **Selectores incorrectos inicialmente** - Solución: Inspección del HTML real del sitio y ajuste de XPath
 4. **Links con target="_blank" abren pestañas nuevas** - Solución: Detección automática y cambio a nueva pestaña
 5. **Validación débil (solo verificaba cambio de URL)** - Solución: Validación robusta que verifica URL esperada
+6. **Validación multi-idioma con patrones hardcodeados** - Solución:
+   - **Problema:** Valores hardcodeados en código para validación de URLs por idioma
+   - **Impacto:** Tests fallaban al cambiar idioma (ej: Français con "credits" redirige a LifeMiles)
+   - **Solución implementada:**
+     - Migración completa a `parameter_options.json` con arrays de patrones por link
+     - Cambio de lógica AND (todos los patrones) a OR (al menos uno)
+     - Sistema de excepciones dinámico por idioma en JSON (`language_exceptions`)
+     - Eliminación de hardcodeo de "Français" en código Python
+   - **Resultado:** 12/12 tests pasando con 4 idiomas simultáneamente
+   - **Commit:** `fa4aa75` - Multi-language URL validation y JSON-driven configuration
 
 -------------------------------
 
-### Caso 7: Redirecciones Footer con Validación de Idioma
-**Estado:** ✅ Completado
-**Objetivo:** Usar links del footer para acceder a 4 sitios diferentes con validación de idioma
+### Caso 7: Redirecciones Footer con Validación Multi-idioma
+**Estado:** ✅ Completado (100% JSON-driven con validación multi-idioma)
+**Objetivo:** Usar links del footer para acceder a 4 sitios diferentes con validación multi-idioma de URLs
 **Footer Links:** Vuelos baratos, Noticias corporativas, aviancadirect, Contáctanos
-**Language Validation:** Selección de idioma (random por defecto, configurable con --language) con verificación del código en URL
+**Idiomas Soportados:** Español, English, Français, Português
+**Language Validation:** Validación OR logic con patrones de URL multi-idioma desde JSON
 **Navegadores:** Chrome, Edge, Firefox
 **Ambientes:** QA4, QA5
 **Total tests:**
-- Por defecto: 24 (4 links × 2 ambientes × 3 navegadores × random language)
-- Con --language=all: 96 (4 links × 2 ambientes × 3 navegadores × 4 idiomas)
+- Validación completa: 16 tests (4 links × 4 idiomas)
+- Con todos los navegadores: 48 tests (4 links × 4 idiomas × 3 navegadores)
+- Con todos los ambientes: 96 tests (4 links × 4 idiomas × 3 navegadores × 2 ambientes)
 
 **Archivos implementados:**
 - `pages/nuxqa/home_page.py` - Page Object con locators de footer (actualizado)
@@ -237,17 +300,69 @@ pytest tests/nuxqa/test_header_redirections_Case6.py --browser=all --header-link
 - `//span[@class='link-label' and contains(text(), 'aviancadirect')]` - Link del footer
 - `//span[@class='link-label' and contains(text(), 'Artículos restringidos')]` - Link del footer
 
+**🎯 Validación Multi-idioma con OR Logic (JSON-driven):**
+
+**Configuración en `parameter_options.json` (lines 328-359):**
+```json
+"footer-link": {
+  "vuelos": {
+    "expected_url_contains": [
+      "ofertas-destinos",
+      "ofertas-de-vuelos",
+      "offers-destinations",
+      "flight-offers",
+      "offres-destinations",
+      "offres-de-vols",
+      "ofertas-de-voos"
+    ]
+  },
+  "noticias": {
+    "expected_url_contains": [
+      "noticias-corporativas",
+      "corporate-news",
+      "nouvelles-dentreprise",
+      "destaques-de-noticias",
+      "jobs.avianca.com"
+    ]
+  },
+  "aviancadirect": {
+    "expected_url_contains": [
+      "portales-aliados",
+      "aviancadirect-ndc"
+    ]
+  },
+  "contactanos": {
+    "expected_url_contains": [
+      "contactanos",
+      "contact-us",
+      "nous-contacter",
+      "entre-em-contato",
+      "ayuda.avianca.com",
+      "/hc/"
+    ]
+  }
+}
+```
+
+**Lógica de validación implementada en `home_page.py` (lines 543-556):**
+- **OR Logic:** Valida si AL MENOS UNO de los patrones esperados está presente en la URL
+- **Multi-idioma:** Soporta 4 idiomas (Español, English, Français, Português) sin modificar código
+- **Ejemplo:** Para "vuelos" en Español → "ofertas-de-vuelos" OR en English → "flight-offers" OR en Français → "offres-de-vols"
+- **Ejemplo:** Para "contactanos" en cualquier idioma → "ayuda.avianca.com" OR "/hc/"
+
 **Validaciones implementadas:**
-- Verificación de que la URL cambió después del click
-- Validación multi-parte de URL final (similar a Case 6):
-  - vuelos → debe contener "ofertas-destinos" y "ofertas-de-vuelos"
-  - trabajos → debe contener "jobs.avianca.com"
-  - aviancadirect → debe contener "portales-aliados" y "aviancadirect-ndc"
-  - articulos → debe contener "ayuda.avianca.com" y "/hc/"
-- Manejo automático de pestañas nuevas (target="_blank")
-- Cierre de pestañas extras y regreso a pestaña principal
-- Resultados guardados en SQLite database con campo `case_number`
-- Logs detallados de cada paso con validación de URL
+- ✅ Verificación de que la URL cambió después del click
+- ✅ Validación multi-idioma con OR logic (al menos un patrón debe coincidir)
+- ✅ Soporte para 4 idiomas sin código duplicado
+- ✅ Validación de patrones específicos por link:
+  - vuelos → "ofertas-destinos" OR "ofertas-de-vuelos" OR "offers-destinations" OR "flight-offers" OR "offres-destinations" OR "offres-de-vols" OR "ofertas-de-voos"
+  - noticias → "noticias-corporativas" OR "corporate-news" OR "nouvelles-dentreprise" OR "destaques-de-noticias" OR "jobs.avianca.com"
+  - aviancadirect → "portales-aliados" OR "aviancadirect-ndc"
+  - contactanos → "contactanos" OR "contact-us" OR "nous-contacter" OR "entre-em-contato" OR "ayuda.avianca.com" OR "/hc/"
+- ✅ Manejo automático de pestañas nuevas (target="_blank")
+- ✅ Cierre de pestañas extras y regreso a pestaña principal
+- ✅ Resultados guardados en SQLite database con campo `case_number`
+- ✅ Logs detallados de cada paso con validación de URL multi-idioma
 
 **Características técnicas:**
 - Reutiliza infraestructura de Casos 4, 5 y 6 (POM, fixtures, CLI options)
@@ -279,6 +394,16 @@ pytest tests/nuxqa/test_footer_redirections_Case7.py --browser=all --footer-link
 2. **Elementos del footer tardan en cargar** - Solución: Explicit waits con EC.visibility_of_element_located
 3. **Links externos abren en nueva pestaña** - Solución: Detección automática y switch a nueva pestaña
 4. **Diferentes dominios de destino** - Solución: Validación multi-parte adaptada a cada link (internos y externos)
+5. **Validación multi-idioma con patrones hardcodeados** - Solución:
+   - **Problema:** Validación de URLs fallaba con diferentes idiomas debido a patrones hardcodeados
+   - **Impacto:** Tests fallaban al cambiar idioma (ej: "vuelos" → diferentes URLs por idioma)
+   - **Solución implementada:**
+     - Migración completa a `parameter_options.json` con arrays extensos de patrones por link
+     - Cambio de lógica AND a OR (al menos un patrón debe coincidir)
+     - Soporte para 7 variaciones de URL en "vuelos" (Español, English, Français, Português)
+     - Soporte para 6 variaciones en "contactanos" incluyendo dominio externo "ayuda.avianca.com"
+   - **Resultado:** 16/16 tests pasando con 4 idiomas simultáneamente
+   - **Commit:** `fa4aa75` - Multi-language URL validation y JSON-driven configuration
 
 -------------------------------
 

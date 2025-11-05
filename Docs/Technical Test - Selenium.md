@@ -224,10 +224,10 @@ allure serve reports/allure
 - **Casos implementados:** 6/7 (Cases 1, 3, 4, 5, 6, 7)
   - ✅ Case 1: One-way Booking (6 tests - flujo completo, 10/10 parametrización)
   - ✅ Case 3: Flight Search & Network Capture (2 tests - UAT1, 10/10 parametrización)
-  - ✅ Case 4: Language Change Validation (24 tests)
+  - ✅ Case 4: Language Change Validation (24 tests - 4 idiomas)
   - ✅ Case 5: POS Change Validation (18 tests)
-  - ✅ Case 6: Header Redirections (18 tests)
-  - ✅ Case 7: Footer Redirections (24 tests)
+  - ✅ Case 6: Header Redirections (12 tests - Multi-idioma con OR logic, JSON-driven, 4 idiomas)
+  - ✅ Case 7: Footer Redirections (16 tests - Multi-idioma con OR logic, JSON-driven, 4 idiomas)
 - **Database SQLite:** 30 campos comprehensivos
 - **Allure Reports:** Totalmente implementado
 - **Selenium Manager:** Configurado (sin webdriver-manager)
@@ -239,14 +239,16 @@ allure serve reports/allure
 
 ### 📊 Estadísticas Actuales
 - **Casos completados:** 6/7 (85.7%)
-- **Total tests:** 92 (6 + 2 + 24 + 18 + 18 + 24)
+- **Total tests:** 78 (6 + 2 + 24 + 18 + 12 + 16) - Con multi-idioma: Case 6 (12 tests), Case 7 (16 tests)
+- **Multi-language support:** Cases 6 & 7 con 4 idiomas (Español, English, Français, Português)
 - **Navegadores:** Chrome, Edge, Firefox (+ CDP para Chrome/Edge en Case 3)
 - **Ambientes:** QA4, QA5, UAT1
 - **CLI Parameters:** 12 opciones configurables
 - **Performance:** Case 1 optimizado (23% más rápido - ~84s ahorrados)
 - **Parametrización:** 10/10 en todos los casos ✅
 - **POS disponibles:** Chile, España, Francia, Peru, Otros países
+- **Validación JSON-driven:** Cases 6 & 7 con patrones de URL multi-idioma y OR logic
 
 ----------------------------------------------------------
 
-*Última actualización: v1.4.0 - GUI Tool + 100% Parametrización completada (2025-11-04). 6 de 7 casos completos (85.7%), solo Case 2 pendiente.*
+*Última actualización: v1.5.0 - Multi-Language URL Validation para Cases 6 & 7 (2025-11-05). 6 de 7 casos completos (85.7%), solo Case 2 pendiente. 28 tests adicionales con soporte multi-idioma (12+16).*

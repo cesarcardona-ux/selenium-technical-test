@@ -243,15 +243,15 @@ pkill -9 chrome; pkill -9 chromedriver; pkill -9 msedge; pkill -9 msedgedriver; 
 
 ## Estado de Casos de Prueba
 
-| Caso   | Estado       | Descripción                           | Tests |
-|--------|--------------|---------------------------------------|-------|
-| Caso 1 | ✅ Completo  | Reserva Solo Ida (Flujo Completo)     |   6   |
-| Caso 2 | ⏳ Pendiente | Reserva Ida y Vuelta                  |  -    |
-| Caso 3 | ✅ Completo  | Búsqueda de Vuelos y Captura de Red   |   2   |
-| Caso 4 | ✅ Completo  | Validación de Cambio de Idioma        |  24   |
-| Caso 5 | ✅ Completo  | Validación de Cambio de POS           |  18   |
-| Caso 6 | ✅ Completo  | Redirecciones de Header               |  18   |
-| Caso 7 | ✅ Completo  | Redirecciones de Footer               |  24   |
+| Caso   | Estado       | Descripción                           | Tests | Multi-idioma |
+|--------|--------------|---------------------------------------|-------|--------------|
+| Caso 1 | ✅ Completo  | Reserva Solo Ida (Flujo Completo)     |   6   | -            |
+| Caso 2 | ⏳ Pendiente | Reserva Ida y Vuelta                  |  -    | -            |
+| Caso 3 | ✅ Completo  | Búsqueda de Vuelos y Captura de Red   |   2   | -            |
+| Caso 4 | ✅ Completo  | Validación de Cambio de Idioma        |  24   | 4 idiomas    |
+| Caso 5 | ✅ Completo  | Validación de Cambio de POS           |  18   | -            |
+| Caso 6 | ✅ Completo  | Redirecciones de Header (Multi-idioma) |  12   | 4 idiomas (OR logic, JSON-driven) |
+| Caso 7 | ✅ Completo  | Redirecciones de Footer (Multi-idioma) |  16   | 4 idiomas (OR logic, JSON-driven) |
 
 ### Caso 1: Reserva Solo Ida ✅
 - **Flujo:** Flujo de reserva completo (6 páginas)
@@ -368,21 +368,33 @@ La página de Pago presenta desafíos únicos que requirieron manejo avanzado de
 - **Combinaciones totales:** 18 tests
 - **Archivo:** `tests/nuxqa/test_pos_change_Case5.py`
 
-### Caso 6: Redirecciones de Header con Validación de Idioma ✅
+### Caso 6: Redirecciones de Header con Validación Multi-idioma ✅
 - **Links de Header:** Ofertas de vuelos, Avianca Credits, Equipaje
-- **Validación de Idioma:** Selección aleatoria (Español, English, Français, Português) con verificación de código de URL
+- **Validación Multi-idioma:** Soporte completo para Español, English, Français, Português con validación OR logic
+- **Configuración JSON:** Patrones de URL multi-idioma desde `parameter_options.json` (sin valores hardcodeados)
+- **Language Exceptions:** Sistema dinámico de excepciones por idioma (ej: Français + credits → LifeMiles)
 - **Navegadores:** Chrome, Edge, Firefox
 - **Ambientes:** QA4, QA5
-- **Combinaciones totales:** 18 tests (3 links × 3 navegadores × 2 ambientes)
+- **Combinaciones de tests:**
+  - **Con --language=all:** 12 tests (3 links × 4 idiomas)
+  - **Con todos los navegadores:** 36 tests (3 links × 4 idiomas × 3 navegadores)
+  - **Máximo total:** 72 tests (3 links × 4 idiomas × 3 navegadores × 2 ambientes)
 - **Archivo:** `tests/nuxqa/test_header_redirections_Case6.py`
+- **Parametrización:** 100% - Patrones de validación completamente configurables desde JSON
 
-### Caso 7: Redirecciones de Footer con Validación de Idioma ✅
+### Caso 7: Redirecciones de Footer con Validación Multi-idioma ✅
 - **Links de Footer:** Vuelos baratos, Noticias corporativas, aviancadirect, Contáctanos
-- **Validación de Idioma:** Selección aleatoria (Español, English, Français, Português) con verificación de código de URL
+- **Validación Multi-idioma:** Soporte completo para Español, English, Français, Português con validación OR logic
+- **Configuración JSON:** Patrones de URL multi-idioma desde `parameter_options.json` (sin valores hardcodeados)
+- **Patrones extensos:** Hasta 7 variaciones de URL por link para soportar todos los idiomas
 - **Navegadores:** Chrome, Edge, Firefox
 - **Ambientes:** QA4, QA5
-- **Combinaciones totales:** 24 tests (4 links × 3 navegadores × 2 ambientes)
+- **Combinaciones de tests:**
+  - **Con --language=all:** 16 tests (4 links × 4 idiomas)
+  - **Con todos los navegadores:** 48 tests (4 links × 4 idiomas × 3 navegadores)
+  - **Máximo total:** 96 tests (4 links × 4 idiomas × 3 navegadores × 2 ambientes)
 - **Archivo:** `tests/nuxqa/test_footer_redirections_Case7.py`
+- **Parametrización:** 100% - Patrones de validación completamente configurables desde JSON
 
 ## Implementación Técnica
 

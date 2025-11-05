@@ -4,6 +4,143 @@ All notable changes and milestones for this automation project will be documente
 
 ---
 
+## [v1.5.0] - 2025-11-05
+
+### 🌍 Multi-Language URL Validation - Cases 6 & 7
+
+This release implements **comprehensive multi-language support** for Cases 6 and 7, achieving 100% JSON-driven URL validation with support for 4 languages simultaneously.
+
+### ✨ Case 6: Header Redirections - Multi-Language Validation
+
+**Previous State**: Basic validation with hardcoded URL patterns, limited multi-language support
+
+**Changes Made**:
+- ✅ Multi-language URL patterns in `parameter_options.json` (lines 292-326)
+- ✅ OR Logic validation: At least ONE pattern must match (changed from AND logic)
+- ✅ Language exceptions system for special cases (Français + credits → LifeMiles)
+- ✅ Dynamic loading of exceptions from JSON (eliminated hardcoded "Français" in code)
+- ✅ Support for 4 languages (Español, English, Français, Português) without code changes
+- ✅ **Test Results**: 12/12 tests PASSED (3 links × 4 languages)
+
+**URL Pattern Examples**:
+```json
+"credits": {
+  "expected_url_contains": [
+    "avianca-credits",      // Español
+    "creditos-avianca",     // Español alternate
+    "credits-avianca",      // English
+    "les-credits-avianca",  // Français
+    "creditos-da-avianca"   // Português
+  ]
+}
+```
+
+**Updated Files**:
+- `pages/nuxqa/home_page.py` - Lines 335-405
+  - Dynamic language exception loading from JSON
+  - OR logic for URL validation (at least one pattern matches)
+  - Eliminated hardcoded language values
+- `ide_test/config/parameter_options.json` - Lines 292-326
+  - Multi-language URL patterns for all header links
+  - Language exceptions configuration
+
+**Benefits**:
+- Zero hardcoded URL patterns
+- Easy to add new languages without code changes
+- Robust validation across all language variants
+- Special case handling via language exceptions
+
+### ✨ Case 7: Footer Redirections - Multi-Language Validation
+
+**Previous State**: Basic validation with hardcoded URL patterns, limited multi-language support
+
+**Changes Made**:
+- ✅ Multi-language URL patterns in `parameter_options.json` (lines 328-359)
+- ✅ OR Logic validation: At least ONE pattern must match
+- ✅ Support for 4 languages (Español, English, Français, Português) without code changes
+- ✅ Up to 7 URL variations per link to cover all languages
+- ✅ **Test Results**: 16/16 tests PASSED (4 links × 4 languages)
+
+**URL Pattern Examples**:
+```json
+"vuelos": {
+  "expected_url_contains": [
+    "ofertas-destinos",     // Español
+    "ofertas-de-vuelos",    // Español alternate
+    "offers-destinations",  // English
+    "flight-offers",        // English alternate
+    "offres-destinations",  // Français
+    "offres-de-vols",       // Français alternate
+    "ofertas-de-voos"       // Português
+  ]
+}
+```
+
+**Updated Files**:
+- `pages/nuxqa/home_page.py` - Lines 543-556
+  - OR logic for URL validation
+  - Multi-language pattern matching
+- `ide_test/config/parameter_options.json` - Lines 328-359
+  - Extensive URL patterns for all footer links
+  - Support for external domains (ayuda.avianca.com)
+
+**Benefits**:
+- Zero hardcoded URL patterns for footer links
+- Comprehensive coverage of language variants
+- Easy maintenance and extension
+- Reliable validation across all languages
+
+### 🔧 Technical Improvements
+
+**Validation Logic Change**:
+- **Before**: AND logic - ALL patterns had to match (brittle, language-specific)
+- **After**: OR logic - AT LEAST ONE pattern must match (flexible, multi-language)
+
+**Example**:
+```python
+# OLD (AND logic - all must match):
+if "avianca-credits" in url and "creditos-avianca" in url:  # ❌ Fails for most URLs
+
+# NEW (OR logic - at least one must match):
+for pattern in expected_patterns:
+    if pattern in url:  # ✅ Succeeds if ANY pattern matches
+        return True
+```
+
+**JSON-Driven Configuration**:
+- All URL validation patterns loaded from `parameter_options.json`
+- Language exceptions loaded dynamically
+- No hardcoded values in Python code
+- Easy to modify without code changes
+
+### 📊 Test Results
+
+**Case 6 - Header Redirections**:
+- ✅ 12 tests PASSED (3 links × 4 languages)
+- ✅ Language exception working (Français + credits → LifeMiles)
+- ✅ All URL patterns validated correctly
+
+**Case 7 - Footer Redirections**:
+- ✅ 16 tests PASSED (4 links × 4 languages)
+- ✅ All URL patterns validated correctly
+- ✅ External domains validated (ayuda.avianca.com)
+
+**Total**: 28 tests PASSED with multi-language support
+
+### 📝 Documentation Updates
+
+**Files Updated**:
+- ✅ `Docs/Advance Test.md` - Complete documentation of multi-language validation for Cases 6 & 7
+- ✅ `README.md` - Updated test counts and multi-language capabilities
+- ✅ `CHANGELOG.md` - This entry
+
+### 🚀 Commit
+
+**Commit Hash**: `fa4aa75`
+**Message**: "Multi-language URL validation for Cases 6 & 7 with JSON-driven configuration"
+
+---
+
 ## [v1.4.0] - 2025-11-04
 
 ### 🎯 Complete Parametrization - Zero Hardcoded Values
