@@ -53,9 +53,9 @@
       "video",
       "screenshots"
     ],
-    "env_options": ["uat1"],
+    "env_options": ["qa3"],
     "requires_testdata": false,
-    "description": "Login UAT1 + búsqueda de vuelos + captura de red con CDP"
+    "description": "Login UAT1/QA3 + búsqueda de vuelos + captura de red con CDP"
   },
   "case_4": {
     "name": "Case 4: Language Change",

@@ -1,6 +1,6 @@
 {
   "current_session": {
-    "case_id": "case_2",
+    "case_id": "case_7",
     "appearance_mode": "Light"
   },
   "case_1": {
@@ -198,7 +198,21 @@
       "infant": {}
     },
     "payment": {},
-    "billing": {}
+    "billing": {},
+    "language_validations": {
+      "Español": {
+        "expected_text_home": "Ofertas"
+      },
+      "English": {
+        "expected_text_home": "Offers and destinations"
+      },
+      "Français": {
+        "expected_text_home": "Offres"
+      },
+      "Português": {
+        "expected_text_home": "Ofertas"
+      }
+    }
   },
   "case_5": {
     "parameters": {
@@ -222,15 +236,32 @@
       "infant": {}
     },
     "payment": {},
-    "billing": {}
+    "billing": {},
+    "pos_validations": {
+      "Chile": {
+        "expected_button_text": "Chile"
+      },
+      "España": {
+        "expected_button_text": "España"
+      },
+      "Francia": {
+        "expected_button_text": "France"
+      },
+      "Peru": {
+        "expected_button_text": "Perú"
+      },
+      "Otros países": {
+        "expected_button_text": "Otros países"
+      }
+    }
   },
   "case_6": {
     "parameters": {
       "browser": "Google Chrome",
-      "language": "Español",
-      "header-link": "vuelos",
-      "env": "QA5",
-      "video": "Disabled",
+      "language": "Français",
+      "header-link": "All Header Links",
+      "env": "QA4",
+      "video": "Enabled",
       "screenshots": "All Steps"
     },
     "pytest_flags": {
@@ -251,11 +282,11 @@
   },
   "case_7": {
     "parameters": {
-      "browser": "Google Chrome",
-      "language": "Español",
-      "footer-link": "vuelos",
+      "browser": "Microsoft Edge",
+      "language": "Português",
+      "footer-link": "All Footer Links",
       "env": "QA5",
-      "video": "Disabled",
+      "video": "Enabled",
       "screenshots": "All Steps"
     },
     "pytest_flags": {

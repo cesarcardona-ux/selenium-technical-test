@@ -2,8 +2,8 @@
 test_login_network_Case3.py - Caso de prueba 3: Búsqueda de vuelos y captura de Network
 
 DESCRIPCIÓN DEL CASO DE PRUEBA (según PDF página 4):
-- Navegar a UAT1 (nuxqa.avtest.ink)
-- Configurar idioma Francés y POS France
+- Navegar al ambiente configurado (QA3 o UAT1)
+- Configurar idioma y POS según parametrización
 - Realizar búsqueda de vuelos (tipo viaje, origen, destino, 3 pasajeros de cada tipo)
 - Validar que cargue página de Select Flight
 - Capturar el evento "Session" del Network usando Chrome DevTools Protocol
@@ -11,12 +11,12 @@ DESCRIPCIÓN DEL CASO DE PRUEBA (según PDF página 4):
 - Generar reporte detallado en Allure
 
 CONFIGURACIÓN:
-- Ambiente: UAT1 (nuxqa.avtest.ink)
-- Idioma: Français
-- POS: France
+- Ambiente: Configurado por --env (default: QA3 o UAT1 según case_mappings.json)
+- Idioma: Parametrizado por --language
+- POS: Asignado automáticamente según idioma
 - Pasajeros: 3 de cada tipo (Adulto, Joven, Niño, Infante)
 
-NOTA: El sitio UAT1 NO tiene botón de login visible. El flujo se realiza sin login.
+NOTA: Este flujo se realiza sin login visible.
 
 PUNTOS: 10 pts (según PDF)
 """
@@ -50,16 +50,16 @@ def test_flight_search_and_network_capture(driver, base_url, db, browser, langua
     Parametrización dinámica basada en opciones CLI:
     - language: Controlado por --language (default: all)
     - browser: Controlado por --browser (default: all)
-    - base_url: Fijo a UAT1 (nuxqa.avtest.ink)
+    - env: Controlado por --env (default: según case_mappings.json)
     - screenshots_mode: Controlado por --screenshots (default: on-failure)
 
     Total de ejecuciones:
-    - Por defecto: 4 idiomas × 1 env (UAT1) × 1 navegador (chrome) = 4 tests
-    - Ejemplo: --browser=chrome --language=Español --env=uat1 → 1 test
+    - Por defecto: 4 idiomas × 1+ ambientes × 1 navegador = 4+ tests
+    - Ejemplo: --browser=chrome --language=Español --env=qa3 → 1 test
 
     Flujo del test (según PDF página 4):
     1. Habilitar captura de red (CDP)
-    2. Navegar a UAT1
+    2. Navegar al ambiente configurado
     3. Configurar idioma (parametrizado: Español, English, Français, Português)
     4. Configurar POS según idioma (mapeo automático)
     5. Llenar formulario de búsqueda (origen, destino, fechas, 3 pasajeros de cada tipo)
@@ -88,7 +88,17 @@ def test_flight_search_and_network_capture(driver, base_url, db, browser, langua
     # ==================== SETUP ====================
     case_number = "3"
     test_name = request.node.name  # Nombre del test desde pytest
-    env = "uat1"  # UAT1 environment
+
+    # Extraer el ambiente del base_url dinámicamente
+    if "nuxqa3" in base_url:
+        env = "qa3"
+    elif "nuxqa4" in base_url:
+        env = "qa4"
+    elif "nuxqa5" in base_url:
+        env = "qa5"
+    else:
+        env = "uat1"  # Default para nuxqa.avtest.ink (sin número)
+
     video_mode = request.config.getoption("--video")
 
     # Cargar mapeo idioma→POS desde JSON
@@ -115,7 +125,7 @@ def test_flight_search_and_network_capture(driver, base_url, db, browser, langua
     allure.dynamic.tag("network-capture")
 
     # Título dinámico
-    allure.dynamic.title(f"Flight Search & Network Capture [{browser}] [UAT1] [{language}-{POS}]")
+    allure.dynamic.title(f"Flight Search & Network Capture [{browser}] [{env.upper()}] [{language}-{POS}]")
 
     # ==================== PASO 1: Inicializar Page Objects y Network Capture ====================
     with allure.step("Initialize Page Objects and Network Capture"):
@@ -138,7 +148,7 @@ def test_flight_search_and_network_capture(driver, base_url, db, browser, langua
             f"📋 TEST DETAILS:\n"
             f"   • Test Name: {test_name}\n"
             f"   • Case Number: {case_number}\n"
-            f"   • Environment: {env.upper()} (https://nuxqa.avtest.ink/)\n"
+            f"   • Environment: {env.upper()} ({base_url})\n"
             f"   • Browser: {browser.capitalize()}\n\n"
             f"🌍 LOCALIZATION:\n"
             f"   • Language: {language}\n"
@@ -176,8 +186,8 @@ def test_flight_search_and_network_capture(driver, base_url, db, browser, langua
             attachment_type=allure.attachment_type.TEXT
         )
 
-    # ==================== PASO 2: Navegar a UAT1 ====================
-    with allure.step(f"Open UAT1 URL: {base_url}"):
+    # ==================== PASO 2: Navegar al ambiente ====================
+    with allure.step(f"Open {env.upper()} URL: {base_url}"):
         search_page.open(base_url)
         time.sleep(1)  # OPTIMIZADO: 2s → 1s (ahorro: 1s) - Espera inicial para carga completa
 

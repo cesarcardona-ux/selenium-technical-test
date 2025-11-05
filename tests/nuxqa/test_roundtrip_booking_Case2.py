@@ -123,6 +123,9 @@ def test_roundtrip_booking(driver, base_url, db, browser, language, screenshots_
     else:
         env = "unknown"
 
+    # Capturar timestamp de ejecución
+    execution_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
     # Agregar tags dinámicos a Allure
     allure.dynamic.tag(f"browser-{browser}")
     allure.dynamic.tag(f"env-{env}")
@@ -130,8 +133,8 @@ def test_roundtrip_booking(driver, base_url, db, browser, language, screenshots_
     allure.dynamic.tag("round-trip-booking")
     allure.dynamic.tag("complete-flow")
 
-    # Título dinámico
-    allure.dynamic.title(f"Round-trip Booking [{browser}] [{env.upper()}] [{language}]")
+    # Título dinámico con fecha y hora
+    allure.dynamic.title(f"Round-trip Booking [{browser}] [{env.upper()}] [{language}] | {execution_timestamp}")
 
     # ==================== PASO 1: Configuración y Resumen ====================
     # 📋 Se REPORTA (ALLURE): Step "Initialize Test Configuration"

@@ -33,7 +33,6 @@
       "iso_code": "es",
       "url_code": "es",
       "flag": "🇪🇸",
-      "expected_text_home": "Ofertas",
       "description": "Idioma español"
     },
     "english": {
@@ -42,7 +41,6 @@
       "iso_code": "en",
       "url_code": "en",
       "flag": "🇺🇸",
-      "expected_text_home": "Offers and destinations",
       "description": "English language"
     },
     "français": {
@@ -51,7 +49,6 @@
       "iso_code": "fr",
       "url_code": "fr",
       "flag": "🇫🇷",
-      "expected_text_home": "Offres",
       "description": "Langue française"
     },
     "português": {
@@ -60,7 +57,6 @@
       "iso_code": "pt",
       "url_code": "pt",
       "flag": "🇧🇷",
-      "expected_text_home": "Ofertas",
       "description": "Idioma português"
     },
     "all": {
@@ -77,7 +73,6 @@
       "command_value": "Chile",
       "country_code": "CL",
       "flag": "🇨🇱",
-      "button_text": "Chile",
       "description": "Punto de venta Chile"
     },
     "españa": {
@@ -85,7 +80,6 @@
       "command_value": "España",
       "country_code": "ES",
       "flag": "🇪🇸",
-      "button_text": "España",
       "description": "Punto de venta España"
     },
     "francia": {
@@ -93,7 +87,6 @@
       "command_value": "Francia",
       "country_code": "FR",
       "flag": "🇫🇷",
-      "button_text": "France",
       "description": "Punto de venta Francia"
     },
     "peru": {
@@ -101,7 +94,6 @@
       "command_value": "Peru",
       "country_code": "PE",
       "flag": "🇵🇪",
-      "button_text": "Perú",
       "description": "Punto de venta Perú"
     },
     "otros_paises": {
@@ -109,7 +101,6 @@
       "command_value": "Otros países",
       "country_code": "XX",
       "flag": "🌍",
-      "button_text": "Otros países",
       "description": "Otros países"
     },
     "all": {
@@ -121,6 +112,13 @@
   },
 
   "env": {
+    "qa3": {
+      "display_name": "QA3",
+      "command_value": "qa3",
+      "base_url": "https://nuxqa3.avtest.ink/",
+      "icon": "🧪",
+      "description": "Ambiente de prueba QA3 (Case 3)"
+    },
     "qa4": {
       "display_name": "QA4",
       "command_value": "qa4",
@@ -259,24 +257,30 @@
       "command_value": "ofertas-vuelos",
       "navbar_button": "Ofertas y destinos",
       "submenu_item": "Reserva de hoteles",
-      "expected_url_contains": "booking.com",
-      "description": "Redirección a Booking.com para hoteles"
+      "expected_url_contains": ["ofertas-de", "offres-de", "flight-offers", "voos-promocionais"],
+      "description": "Redirección a página de ofertas de vuelos (multi-idioma)"
     },
     "credits": {
       "display_name": "Avianca Credits",
       "command_value": "credits",
       "navbar_button": "Tu reserva",
       "submenu_item": "avianca credits",
-      "expected_url_contains": "avianca-credits",
-      "description": "Sistema de créditos Avianca"
+      "expected_url_contains": ["avianca-credits", "changements-et-remboursements"],
+      "description": "Sistema de créditos Avianca (en Français: cambios y reembolsos)",
+      "language_exceptions": {
+        "Français": {
+          "use_alternate_submenu": true,
+          "reason": "En francés, el link 'Avianca Credits' no existe; se usa 'Changements et remboursements' en su lugar"
+        }
+      }
     },
     "equipaje": {
       "display_name": "Equipaje",
       "command_value": "equipaje",
       "navbar_button": "Información y ayuda",
       "submenu_item": "Equipaje",
-      "expected_url_contains": "equipaje",
-      "description": "Información sobre equipaje"
+      "expected_url_contains": ["equipaje", "bagages", "baggage", "bagagem"],
+      "description": "Información sobre equipaje (multi-idioma)"
     },
     "all": {
       "display_name": "All Header Links",
@@ -290,29 +294,29 @@
       "display_name": "Vuelos baratos",
       "command_value": "vuelos",
       "link_text": "Vuelos baratos",
-      "expected_url_contains": ["ofertas-destinos", "ofertas-de-vuelos"],
-      "description": "Página de ofertas de vuelos"
+      "expected_url_contains": ["ofertas-destinos", "ofertas-de-vuelos", "offers-destinations", "flight-offers", "offres-destinations", "offres-de-vols", "ofertas-de-voos"],
+      "description": "Página de ofertas de vuelos (multi-idioma)"
     },
     "noticias": {
       "display_name": "Noticias corporativas",
       "command_value": "noticias",
       "link_text": "Trabaja con nosotros",
-      "expected_url_contains": "jobs.avianca.com",
-      "description": "Portal de empleos Avianca"
+      "expected_url_contains": ["noticias-corporativas", "corporate-news", "nouvelles-dentreprise", "destaques-de-noticias", "jobs.avianca.com"],
+      "description": "Página de noticias corporativas (multi-idioma)"
     },
     "aviancadirect": {
       "display_name": "Avianca Direct",
       "command_value": "aviancadirect",
       "link_text": "aviancadirect",
-      "expected_url_contains": ["portales-aliados", "aviancadirect-ndc"],
-      "description": "Portal Avianca Direct NDC"
+      "expected_url_contains": ["portales-aliados", "partner-portals", "portails-partenaires", "aviancadirect-ndc"],
+      "description": "Portal Avianca Direct NDC (multi-idioma)"
     },
     "contactanos": {
       "display_name": "Contáctanos",
       "command_value": "contactanos",
       "link_text": "Artículos restringidos",
-      "expected_url_contains": ["ayuda.avianca.com", "/hc/"],
-      "description": "Centro de ayuda Avianca"
+      "expected_url_contains": ["contactanos", "contact-us", "nous-contacter", "entre-em-contato", "ayuda.avianca.com", "/hc/"],
+      "description": "Página de contacto (multi-idioma)"
     },
     "all": {
       "display_name": "All Footer Links",

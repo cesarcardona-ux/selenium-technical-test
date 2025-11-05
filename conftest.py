@@ -32,12 +32,6 @@ from pathlib import Path  # Para manejo de rutas de archivos
 sys.path.append(str(Path(__file__).parent / "ide_test"))
 from core.config_manager import ConfigManager  # Gestor de configuraciones JSON
 
-# ==================== CONSTANTES GLOBALES ====================
-# URLs de los ambientes de prueba (definidas en el PDF de la prueba técnica)
-BASE_URL_QA4 = "https://nuxqa4.avtest.ink/"  # Ambiente QA4
-BASE_URL_QA5 = "https://nuxqa5.avtest.ink/"  # Ambiente QA5
-BASE_URL_UAT1 = "https://nuxqa.avtest.ink/"  # Ambiente UAT1 (Case 3: Login y Network Capture)
-
 # ==================== FUNCIÓN AUXILIAR ====================
 def sanitize_filename(filename):
     """
@@ -163,6 +157,104 @@ class VideoRecorder:
             traceback.print_exc()
             return None
 
+# ==================== HELPERS PARA CONFIGURACIÓN DINÁMICA ====================
+def _get_available_environments():
+    """
+    Carga la lista de ambientes disponibles desde parameter_options.json
+
+    Returns:
+        Lista de environment keys definidos en el archivo JSON de configuración
+    """
+    try:
+        config_mgr = ConfigManager()
+        env_options = config_mgr.get_parameter_options("env")
+        if env_options:
+            # Retornar solo los keys que no sean "all" y tengan base_url
+            return [key for key in env_options.keys() if key != "all" and "base_url" in env_options[key]]
+        return []
+    except Exception:
+        return []
+
+def _get_parameter_keys(parameter_name, exclude_all=True):
+    """
+    Carga las opciones disponibles para cualquier parámetro desde parameter_options.json
+
+    Args:
+        parameter_name: Nombre del parámetro en JSON
+        exclude_all: Si True, excluye la opción "all" de la lista
+
+    Returns:
+        Lista de keys disponibles para el parámetro desde JSON
+    """
+    try:
+        config_mgr = ConfigManager()
+        options = config_mgr.get_parameter_options(parameter_name)
+        if options:
+            keys = list(options.keys())
+            if exclude_all and "all" in keys:
+                keys.remove("all")
+            return keys
+        return []
+    except Exception:
+        return []
+
+def _get_parameter_display_names(parameter_name, exclude_all=True):
+    """
+    Carga los display_names de los parámetros desde parameter_options.json
+
+    Args:
+        parameter_name: Nombre del parámetro en JSON (ej: "language", "pos")
+        exclude_all: Si True, excluye la opción "all" de la lista
+
+    Returns:
+        Lista de display_names disponibles para el parámetro desde JSON
+        Ejemplo para language: ["Español", "English", "Français", "Português"]
+    """
+    try:
+        config_mgr = ConfigManager()
+        options = config_mgr.get_parameter_options(parameter_name)
+        if options:
+            display_names = []
+            for key, value in options.items():
+                if exclude_all and key == "all":
+                    continue
+                if isinstance(value, dict) and "display_name" in value:
+                    display_names.append(value["display_name"])
+            return display_names
+        return []
+    except Exception:
+        return []
+
+def _convert_cli_value_to_display_name(parameter_name, cli_value):
+    """
+    Convierte un valor CLI (key o command_value) a su display_name correspondiente.
+
+    Args:
+        parameter_name: Nombre del parámetro (ej: "language", "pos")
+        cli_value: Valor desde CLI (ej: "español", "Español", etc.)
+
+    Returns:
+        display_name correspondiente o el valor original si no se encuentra
+        Ejemplo: "español" -> "Español", "chile" -> "Chile"
+    """
+    try:
+        config_mgr = ConfigManager()
+        options = config_mgr.get_parameter_options(parameter_name)
+        if options:
+            # Buscar por key (ej: "español")
+            if cli_value in options:
+                return options[cli_value].get("display_name", cli_value)
+            # Buscar por command_value (case-insensitive)
+            for key, value in options.items():
+                if isinstance(value, dict):
+                    command_val = value.get("command_value", "")
+                    display_name = value.get("display_name", "")
+                    if command_val.lower() == cli_value.lower() or display_name.lower() == cli_value.lower():
+                        return display_name
+        return cli_value  # Si no se encuentra, devolver el valor original
+    except Exception:
+        return cli_value
+
 # ==================== OPCIONES PERSONALIZADAS CLI ====================
 def pytest_addoption(parser):
     """
@@ -173,44 +265,60 @@ def pytest_addoption(parser):
     - --language: Selecciona idioma(s) para ejecutar tests
 
     Uso:
-    pytest --browser=chrome --language=Español
+    pytest --browser=<browser_option> --language=<language_option>
     pytest --browser=all --language=all
     """
+    # Cargar todos los parámetros disponibles dinámicamente desde JSON para help texts
+    available_envs = _get_available_environments()
+    available_browsers = _get_parameter_keys("browser")
+    available_languages = _get_parameter_keys("language")
+    available_pos = _get_parameter_keys("pos")
+    available_header_links = _get_parameter_keys("header-link")
+    available_footer_links = _get_parameter_keys("footer-link")
+
+    # Construir strings para help texts
+    env_list_str = ", ".join(available_envs) if available_envs else "check parameter_options.json"
+    browser_list_str = ", ".join(available_browsers) if available_browsers else "check parameter_options.json"
+    language_list_str = ", ".join(available_languages) if available_languages else "check parameter_options.json"
+    pos_list_str = ", ".join(available_pos) if available_pos else "check parameter_options.json"
+    header_link_list_str = ", ".join(available_header_links) if available_header_links else "check parameter_options.json"
+    footer_link_list_str = ", ".join(available_footer_links) if available_footer_links else "check parameter_options.json"
+
     parser.addoption(
         "--browser",
         action="store",
         default="all",
-        help="Browser to run tests on: chrome, edge, firefox, or all (default: all)"
+        help=f"Browser to run tests on: {browser_list_str}, or all (default: all)"
     )
     parser.addoption(
         "--language",
         action="store",
         default=None,
-        help="Language to test: Español, English, Français, Português, all, or none for random (default: depends on test case)"
+        help=f"Language to test: {language_list_str}, all, or none for random (default: depends on test case)"
     )
     parser.addoption(
         "--pos",
         action="store",
         default="all",
-        help="POS to test: Chile, España, Otros países, or all (default: all)"
+        help=f"POS to test: {pos_list_str}, or all (default: all)"
     )
     parser.addoption(
         "--header-link",
         action="store",
         default="all",
-        help="Header link to test: hoteles, credits, equipaje, or all (default: all)"
+        help=f"Header link to test: {header_link_list_str}, or all (default: all)"
     )
     parser.addoption(
         "--footer-link",
         action="store",
         default="all",
-        help="Footer link to test: vuelos, trabajos, aviancadirect, articulos, or all (default: all)"
+        help=f"Footer link to test: {footer_link_list_str}, or all (default: all)"
     )
     parser.addoption(
         "--env",
         action="store",
         default="all",
-        help="Environment to test: qa4, qa5, uat1, or all (default: all)"
+        help=f"Environment to test: {env_list_str}, or all (default: all)"
     )
     parser.addoption(
         "--screenshots",
@@ -271,27 +379,22 @@ def pytest_generate_tests(metafunc):
     footer_link_option = metafunc.config.getoption("footer_link")  # pytest convierte guiones a guiones bajos
     env_option = metafunc.config.getoption("env")
 
-    # Definir todos los navegadores disponibles
-    all_browsers = ["chrome", "edge", "firefox"]
+    # Cargar todos los parámetros disponibles dinámicamente desde parameter_options.json
+    all_browsers = _get_parameter_keys("browser")
+    all_languages = _get_parameter_display_names("language")  # Usar display_names: "Español", "English", etc.
+    all_pos = _get_parameter_display_names("pos")  # Usar display_names: "Chile", "España", etc.
+    all_header_links = _get_parameter_keys("header-link")
+    all_footer_links = _get_parameter_keys("footer-link")
 
-    # Definir todos los idiomas disponibles
-    all_languages = ["Español", "English", "Français", "Português"]
-
-    # Definir todos los POS disponibles
-    all_pos = ["Chile", "España", "Otros países"]
-
-    # Definir todos los header links disponibles
-    all_header_links = ["ofertas-vuelos", "credits", "equipaje"]
-
-    # Definir todos los footer links disponibles
-    all_footer_links = ["vuelos", "noticias", "aviancadirect", "contactanos"]
-
-    # Definir todos los ambientes disponibles
-    all_envs = {
-        "qa4": BASE_URL_QA4,
-        "qa5": BASE_URL_QA5,
-        "uat1": BASE_URL_UAT1
-    }
+    # Cargar todos los ambientes disponibles con sus URLs desde parameter_options.json
+    config_mgr = ConfigManager()
+    env_options = config_mgr.get_parameter_options("env")
+    all_envs = {}
+    if env_options:
+        for env_key, env_data in env_options.items():
+            # Excluir la opción "all" y solo cargar ambientes con base_url definida
+            if env_key != "all" and "base_url" in env_data:
+                all_envs[env_key] = env_data["base_url"]
 
     # Filtrar navegadores según opción
     if "browser" in metafunc.fixturenames:
@@ -313,7 +416,9 @@ def pytest_generate_tests(metafunc):
             if language_option is None or language_option == "all":
                 languages = all_languages
             else:
-                languages = [language_option] if language_option in all_languages else all_languages
+                # Convertir el valor CLI al display_name correspondiente
+                display_name = _convert_cli_value_to_display_name("language", language_option)
+                languages = [display_name] if display_name in all_languages else all_languages
         elif is_case6_or_7:
             # Cases 6 y 7: None = idioma aleatorio, all = todos los idiomas
             if language_option is None:
@@ -323,23 +428,45 @@ def pytest_generate_tests(metafunc):
                 # Con --language=all: parametrizar con todos los idiomas
                 languages = all_languages
             else:
-                # Con --language=English: parametrizar con ese idioma específico
-                languages = [language_option] if language_option in all_languages else [None]
+                # Con --language=<idioma>: parametrizar con ese idioma específico
+                display_name = _convert_cli_value_to_display_name("language", language_option)
+                languages = [display_name] if display_name in all_languages else [None]
         else:
             # Otros tests: comportamiento por defecto (similar a Case 4)
             if language_option == "all" or language_option is None:
                 languages = all_languages
             else:
-                languages = [language_option] if language_option in all_languages else all_languages
+                # Convertir el valor CLI al display_name correspondiente
+                display_name = _convert_cli_value_to_display_name("language", language_option)
+                languages = [display_name] if display_name in all_languages else all_languages
 
         metafunc.parametrize("language", languages, scope="function")
 
     # Filtrar POS según opción
     if "pos" in metafunc.fixturenames:
-        if pos_option == "all":
-            pos_list = all_pos
+        # Determinar si es Case 5 basado en el módulo del test
+        test_module = metafunc.module.__name__
+        is_case5 = "test_pos_change" in test_module
+
+        if is_case5:
+            # Case 5: Solo usar Chile, España y Otros países
+            # Francia y Peru requieren idioma específico primero
+            available_pos = ["Chile", "España", "Otros países"]
+            if pos_option == "all":
+                pos_list = available_pos
+            else:
+                # Convertir el valor CLI al display_name correspondiente
+                display_name = _convert_cli_value_to_display_name("pos", pos_option)
+                pos_list = [display_name] if display_name in available_pos else available_pos
         else:
-            pos_list = [pos_option] if pos_option in all_pos else all_pos
+            # Otros tests: usar todos los POS
+            if pos_option == "all":
+                pos_list = all_pos
+            else:
+                # Convertir el valor CLI al display_name correspondiente
+                display_name = _convert_cli_value_to_display_name("pos", pos_option)
+                pos_list = [display_name] if display_name in all_pos else all_pos
+
         metafunc.parametrize("pos", pos_list, scope="function")
 
     # Filtrar header links según opción
@@ -379,7 +506,8 @@ def pytest_generate_tests(metafunc):
             case_id = "case_7"
 
         # Obtener los env_options permitidos para este caso desde case_mappings.json
-        allowed_env_keys = ["qa4", "qa5", "uat1"]  # Default: todos
+        # Cargar todos los ambientes disponibles dinámicamente como default
+        allowed_env_keys = _get_available_environments()
         if case_id:
             try:
                 from pathlib import Path
@@ -389,8 +517,8 @@ def pytest_generate_tests(metafunc):
                     # Filtrar "all" de env_options ya que no es un ambiente real
                     allowed_env_keys = [e for e in case_info["env_options"] if e != "all"]
             except Exception:
-                # Si falla, usar todos los ambientes
-                allowed_env_keys = ["qa4", "qa5", "uat1"]
+                # Si falla, usar todos los ambientes disponibles dinámicamente
+                allowed_env_keys = _get_available_environments()
 
         # Filtrar según opción CLI y ambientes permitidos
         if env_option == "all":
@@ -621,6 +749,25 @@ def take_screenshot(driver, name="screenshot"):
         print(f"Error capturing screenshot: {e}")
 
 
+# ==================== HOOK: AGREGAR TIMESTAMPS A ALLURE ====================
+@pytest.hookimpl(tryfirst=True)
+def pytest_runtest_setup(item):
+    """
+    Hook de pytest: ejecuta ANTES de cada test para agregar timestamp a Allure.
+
+    Agrega automáticamente la fecha/hora de inicio como attachment en Allure.
+    """
+    # Obtener timestamp actual
+    start_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    # Adjuntar a Allure
+    allure.attach(
+        f"Test Started: {start_time}",
+        name="⏰ Execution Timestamp",
+        attachment_type=allure.attachment_type.TEXT
+    )
+
+
 # ==================== HOOK: CAPTURA DE SCREENSHOTS EN FALLOS ====================
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
 def pytest_runtest_makereport(item, call):
@@ -654,3 +801,12 @@ def pytest_runtest_makereport(item, call):
             # Capturar screenshot con nombre descriptivo
             test_name = item.name
             take_screenshot(driver, name=f"FAILURE - {test_name}")
+
+    # Agregar timestamp de finalización si el test terminó
+    if report.when == "call":
+        end_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        allure.attach(
+            f"Test Finished: {end_time}",
+            name="⏱️ Completion Timestamp",
+            attachment_type=allure.attachment_type.TEXT
+        )

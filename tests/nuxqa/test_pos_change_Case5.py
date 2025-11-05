@@ -99,19 +99,20 @@ def test_pos_change(driver, base_url, db, pos, browser, screenshots_mode, reques
 
     # PASO 6: Obtener texto esperado desde JSON
     with allure.step(f"Verify POS change to {pos}"):
-        # Cargar todas las opciones de POS desde parameter_options.json
-        pos_options = test_config.get_parameter_options("pos")
+        # Cargar configuración completa de Case 5 desde testdata.json
+        case_5_config = test_config.get_case_config("case_5")
 
-        # Buscar el POS actual y obtener su button_text
+        # Obtener validaciones de POS
+        pos_validations = case_5_config.get("pos_validations", {})
+
+        # Buscar el POS actual y obtener su expected_button_text
         expected_text = None
-        for pos_key, pos_data in pos_options.items():
-            if pos_data.get("command_value") == pos:
-                expected_text = pos_data.get("button_text")
-                break
+        if pos in pos_validations:
+            expected_text = pos_validations[pos].get("expected_button_text")
 
         # Si no se encuentra, lanzar error descriptivo
         if expected_text is None:
-            raise ValueError(f"No se encontró button_text para el POS '{pos}' en parameter_options.json")
+            raise ValueError(f"No se encontró expected_button_text para el POS '{pos}' en testdata.json > case_5 > pos_validations")
 
         # Obtener texto actual de la página
         actual_text = home.get_pos_text()

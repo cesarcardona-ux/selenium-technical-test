@@ -73,6 +73,74 @@ class HomePage:
         self.driver = driver
         logger.info("HomePage object initialized")
 
+    # ==================== MÉTODOS AUXILIARES ====================
+
+    @staticmethod
+    def _get_language_codes():
+        """
+        Obtiene el mapeo de idiomas a códigos URL desde parameter_options.json
+
+        Returns:
+            dict: Diccionario con estructura {"Español": "es", "English": "en", ...}
+        """
+        try:
+            from ide_test.core.config_manager import ConfigManager
+            config_mgr = ConfigManager()
+            language_options = config_mgr.get_parameter_options("language")
+
+            language_codes = {}
+            for lang_key, lang_data in language_options.items():
+                if lang_key != "all" and "url_code" in lang_data:
+                    command_value = lang_data.get("command_value")
+                    url_code = lang_data.get("url_code")
+                    language_codes[command_value] = url_code
+
+            return language_codes
+        except Exception as e:
+            logger.error(f"Error loading language codes from JSON: {e}")
+            # Fallback a valores por defecto solo en caso de error
+            return {
+                "Español": "es",
+                "English": "en",
+                "Français": "fr",
+                "Português": "pt"
+            }
+
+    @staticmethod
+    def _get_url_validations(link_type):
+        """
+        Obtiene las validaciones de URL desde parameter_options.json
+
+        Args:
+            link_type: "header-link" o "footer-link"
+
+        Returns:
+            dict: Diccionario con expected_url_contains por cada link
+        """
+        try:
+            from ide_test.core.config_manager import ConfigManager
+            config_mgr = ConfigManager()
+            link_options = config_mgr.get_parameter_options(link_type)
+
+            validations = {}
+            for link_key, link_data in link_options.items():
+                if link_key != "all" and "expected_url_contains" in link_data:
+                    command_value = link_data.get("command_value")
+                    expected_url = link_data.get("expected_url_contains")
+
+                    # Convertir a lista si es string
+                    if isinstance(expected_url, str):
+                        expected_url = [expected_url]
+                    elif not isinstance(expected_url, list):
+                        expected_url = []
+
+                    validations[command_value] = expected_url
+
+            return validations
+        except Exception as e:
+            logger.error(f"Error loading URL validations from JSON: {e}")
+            return {}
+
     # ==================== MÉTODOS ====================
 
     def open(self, url):
@@ -216,31 +284,25 @@ class HomePage:
         from selenium.webdriver.support.ui import WebDriverWait
         from selenium.webdriver.support import expected_conditions as EC
 
-        # Mapeo de idiomas a códigos de lenguaje en URL
-        language_codes = {
-            "Español": "es",
-            "English": "en",
-            "Français": "fr",
-            "Português": "pt"
-        }
+        # Cargar mapeo de idiomas a códigos URL desde JSON
+        language_codes = self._get_language_codes()
 
-        # Mapear nombre corto a selectores y URLs esperadas
-        # expected_url_parts: Lista de strings que DEBEN estar en la URL final (validación multi-parte)
+        # Cargar validaciones de URL desde JSON
+        url_validations = self._get_url_validations("header-link")
+
+        # Mapear nombre corto a selectores
         navigation_map = {
             "ofertas-vuelos": {
                 "navbar": self.NAVBAR_OFFERS,
-                "submenu": self.SUBMENU_FLIGHT_OFFERS,
-                "expected_url_parts": []  # El slug cambia con idioma, solo validamos que navegó
+                "submenu": self.SUBMENU_FLIGHT_OFFERS
             },
             "credits": {
                 "navbar": self.NAVBAR_YOUR_RESERVATION,
-                "submenu": self.SUBMENU_AVIANCA_CREDITS,
-                "expected_url_parts": ["credits"]  # "credits" no cambia con el idioma
+                "submenu": self.SUBMENU_AVIANCA_CREDITS
             },
             "equipaje": {
                 "navbar": self.NAVBAR_INFO_AND_HELP,
-                "submenu": self.SUBMENU_LUGGAGE,
-                "expected_url_parts": []  # El slug "equipaje" cambia con idioma
+                "submenu": self.SUBMENU_LUGGAGE
             }
         }
 
@@ -270,16 +332,23 @@ class HomePage:
             self.select_language(selected_language)
             time.sleep(2)  # Esperar a que se aplique el cambio de idioma
 
-            # CASO ESPECIAL: Para Français, el link "Avianca Credits" no existe
-            # En su lugar, debemos usar "Changements et remboursements"
-            if selected_language == "Français" and header_link_name == "credits":
-                logger.info("Special case detected: Français language with credits link")
-                logger.info("Using 'Changements et remboursements' link instead of 'Avianca Credits'")
-                nav_data = {
-                    "navbar": self.NAVBAR_YOUR_RESERVATION,
-                    "submenu": self.SUBMENU_CHANGEMENTS_REMBOURSEMENTS,
-                    "expected_url_parts": ["changements-et-remboursements"]  # URL en francés
-                }
+            # CASO ESPECIAL: Verificar si hay excepciones de idioma definidas en JSON
+            from ide_test.core.config_manager import ConfigManager
+            config_mgr = ConfigManager()
+            header_options = config_mgr.get_parameter_options("header-link")
+            link_config = header_options.get(header_link_name, {})
+            language_exceptions = link_config.get("language_exceptions", {})
+
+            if selected_language in language_exceptions:
+                exception_config = language_exceptions[selected_language]
+                if exception_config.get("use_alternate_submenu"):
+                    logger.info(f"Language exception detected: {selected_language} with {header_link_name}")
+                    logger.info(f"Reason: {exception_config.get('reason', 'No reason provided')}")
+                    logger.info("Using alternate submenu XPath")
+                    nav_data = {
+                        "navbar": self.NAVBAR_YOUR_RESERVATION,
+                        "submenu": self.SUBMENU_CHANGEMENTS_REMBOURSEMENTS
+                    }
 
             # Guardar URL inicial
             initial_url = self.driver.current_url
@@ -328,14 +397,20 @@ class HomePage:
                 logger.warning(f"URL did not change after clicking '{header_link_name}'")
                 return False, final_url, "URL did not change", selected_language
 
-            # Paso 7: Validar que la URL contiene TODAS las partes esperadas (validación multi-parte)
-            expected_parts = nav_data["expected_url_parts"]
-            for expected_part in expected_parts:
-                if expected_part not in final_url:
-                    logger.error(f"URL validation failed: expected '{expected_part}' in URL but got '{final_url}'")
-                    return False, final_url, f"URL doesn't contain expected part: '{expected_part}'", selected_language
-                else:
-                    logger.info(f"✓ URL validation passed: contains '{expected_part}'")
+            # Paso 7: Validar que la URL contiene AL MENOS UNA de las partes esperadas (lógica OR)
+            expected_parts = url_validations.get(header_link_name, [])
+            if expected_parts:
+                # Buscar si alguna de las partes esperadas está en la URL
+                found_match = False
+                for expected_part in expected_parts:
+                    if expected_part in final_url:
+                        logger.info(f"✓ URL validation passed: contains '{expected_part}'")
+                        found_match = True
+                        break
+
+                if not found_match:
+                    logger.error(f"URL validation failed: expected one of {expected_parts} in URL but got '{final_url}'")
+                    return False, final_url, f"URL doesn't contain any expected part from: {expected_parts}", selected_language
 
             # PASO NUEVO: Validar que el idioma está en la URL
             if f"/{expected_lang_code}/" in final_url or final_url.endswith(f"/{expected_lang_code}"):
@@ -389,32 +464,25 @@ class HomePage:
         from selenium.webdriver.support.ui import WebDriverWait
         from selenium.webdriver.support import expected_conditions as EC
 
-        # Mapeo de idiomas a códigos de lenguaje en URL
-        language_codes = {
-            "Español": "es",
-            "English": "en",
-            "Français": "fr",
-            "Português": "pt"
-        }
+        # Cargar mapeo de idiomas a códigos URL desde JSON
+        language_codes = self._get_language_codes()
 
-        # Mapear nombre corto a selectores y URLs esperadas
-        # expected_url_parts: Lista de strings que DEBEN estar en la URL final (validación multi-parte)
+        # Cargar validaciones de URL desde JSON
+        url_validations = self._get_url_validations("footer-link")
+
+        # Mapear nombre corto a selectores
         navigation_map = {
             "vuelos": {
-                "selector": self.FOOTER_VUELOS_BARATOS,
-                "expected_url_parts": []  # El slug cambia con idioma, solo validamos que navegó
+                "selector": self.FOOTER_VUELOS_BARATOS
             },
             "noticias": {
-                "selector": self.FOOTER_NOTICIAS_CORPORATIVAS,
-                "expected_url_parts": []  # El slug cambia con idioma
+                "selector": self.FOOTER_NOTICIAS_CORPORATIVAS
             },
             "aviancadirect": {
-                "selector": self.FOOTER_AVIANCADIRECT,
-                "expected_url_parts": ["aviancadirect"]  # Único que no cambia
+                "selector": self.FOOTER_AVIANCADIRECT
             },
             "contactanos": {
-                "selector": self.FOOTER_CONTACTANOS,
-                "expected_url_parts": []  # El slug cambia con idioma
+                "selector": self.FOOTER_CONTACTANOS
             }
         }
 
@@ -486,14 +554,20 @@ class HomePage:
                 logger.warning(f"URL did not change after clicking '{footer_link_name}'")
                 return False, final_url, "URL did not change", selected_language
 
-            # Paso 7: Validar que la URL contiene TODAS las partes esperadas (validación multi-parte)
-            expected_parts = nav_data["expected_url_parts"]
-            for expected_part in expected_parts:
-                if expected_part not in final_url:
-                    logger.error(f"URL validation failed: expected '{expected_part}' in URL but got '{final_url}'")
-                    return False, final_url, f"URL doesn't contain expected part: '{expected_part}'", selected_language
-                else:
-                    logger.info(f"✓ URL validation passed: contains '{expected_part}'")
+            # Paso 7: Validar que la URL contiene AL MENOS UNA de las partes esperadas (lógica OR)
+            expected_parts = url_validations.get(footer_link_name, [])
+            if expected_parts:
+                # Buscar si alguna de las partes esperadas está en la URL
+                found_match = False
+                for expected_part in expected_parts:
+                    if expected_part in final_url:
+                        logger.info(f"✓ URL validation passed: contains '{expected_part}'")
+                        found_match = True
+                        break
+
+                if not found_match:
+                    logger.error(f"URL validation failed: expected one of {expected_parts} in URL but got '{final_url}'")
+                    return False, final_url, f"URL doesn't contain any expected part from: {expected_parts}", selected_language
 
             # PASO NUEVO: Validar que el idioma está en la URL
             if f"/{expected_lang_code}/" in final_url or final_url.endswith(f"/{expected_lang_code}"):

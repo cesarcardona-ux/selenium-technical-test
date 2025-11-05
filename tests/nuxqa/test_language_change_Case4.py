@@ -91,19 +91,20 @@ def test_language_change(driver, base_url, db, language, browser, screenshots_mo
 
     # PASO 5: Obtener texto esperado desde JSON
     with allure.step(f"Verify language change to {language}"):
-        # Cargar todas las opciones de idiomas desde parameter_options.json
-        language_options = test_config.get_parameter_options("language")
+        # Cargar configuración completa de Case 4 desde testdata.json
+        case_4_config = test_config.get_case_config("case_4")
+
+        # Obtener validaciones de idioma
+        language_validations = case_4_config.get("language_validations", {})
 
         # Buscar el idioma actual y obtener su expected_text_home
         expected_text = None
-        for lang_key, lang_data in language_options.items():
-            if lang_data.get("command_value") == language:
-                expected_text = lang_data.get("expected_text_home")
-                break
+        if language in language_validations:
+            expected_text = language_validations[language].get("expected_text_home")
 
         # Si no se encuentra, lanzar error descriptivo
         if expected_text is None:
-            raise ValueError(f"No se encontró expected_text_home para el idioma '{language}' en parameter_options.json")
+            raise ValueError(f"No se encontró expected_text_home para el idioma '{language}' en testdata.json > case_4 > language_validations")
 
         # Obtener texto actual de la página
         actual_text = home.get_offers_text()
