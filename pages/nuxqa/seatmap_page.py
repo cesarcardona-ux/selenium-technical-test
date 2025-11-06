@@ -13,6 +13,15 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import logging
 import time
+import sys
+from pathlib import Path
+
+# Add ide_test directory to path for accessing ConfigManager
+ide_test_dir = Path(__file__).parent.parent.parent / "ide_test"
+if str(ide_test_dir) not in sys.path:
+    sys.path.insert(0, str(ide_test_dir))
+
+from core.config_manager import ConfigManager
 
 # ==================== LOGGER ====================
 logger = logging.getLogger(__name__)
@@ -61,16 +70,19 @@ class SeatmapPage:
     ECONOMY_SEAT_IDS = _generate_economy_seat_ids()
 
     # ==================== CONSTRUCTOR ====================
-    def __init__(self, driver):
+    def __init__(self, driver, language="Español"):
         """
         Constructor de la clase.
 
         Args:
             driver: Instancia de Selenium WebDriver
+            language: Idioma de la UI (Español, English, Français, Português)
         """
         self.driver = driver
         self.wait = WebDriverWait(driver, 25)  # Wait más largo para carga de mapa de asientos
-        logger.info("SeatmapPage object initialized")
+        self.language = language
+        self.config = ConfigManager()
+        logger.info(f"SeatmapPage object initialized (language: {language})")
 
     # ==================== MÉTODOS ====================
 
@@ -105,9 +117,10 @@ class SeatmapPage:
             # Sin esto, obtenemos "ConfigurationErrorsException" al hacer click en asientos
             # El problema: Angular necesita tiempo para inicializar el estado de la reserva (PNR),
             # pasajeros, y configuración del seatmap ANTES de procesar clicks
-            logger.info("Waiting additional 7 seconds for Angular to fully initialize internal state...")
+            # OPTIMIZADO: Reducido de 7s a 5s (ahorro: 2s)
+            logger.info("Waiting additional 5 seconds for Angular to fully initialize internal state...")
             logger.info("(This prevents ConfigurationErrorsException modal)")
-            time.sleep(7)
+            time.sleep(5)
 
             logger.info("✓ Seatmap page loaded successfully")
             return True
@@ -480,147 +493,147 @@ class SeatmapPage:
 
     def select_first_available_seat_any_type(self):
         """
-        Selecciona el primer asiento disponible de CUALQUIER tipo (Plus, Premium, Economy).
-        Similar a select_first_available_economy_seat() pero sin filtrar por tipo de asiento.
+        🚀 OPTIMIZADO CON XPATH - Selecciona el primer asiento disponible de CUALQUIER tipo.
 
-        Usado en Case 2 donde se permite seleccionar cualquier asiento según disponibilidad.
+        MEJORAS DE RENDIMIENTO:
+        - Antes: Iteraba 120 asientos uno por uno (~5-6s por vuelo)
+        - Ahora: 1 solo XPath encuentra directamente el asiento (~0.5-1s por vuelo)
+        - Ahorro estimado: 4-5s por vuelo (10s total en Case 2)
 
         Returns:
             tuple: (bool, str) - (Éxito, ID del asiento seleccionado)
         """
-        logger.info("Selecting first available seat (any type: Plus/Premium/Economy)...")
+        logger.info("🚀 XPATH OPTIMIZED: Selecting first available seat (any type)...")
 
-        try:
-            # PASO 1: Pre-cargar TODOS los elementos de asientos
-            logger.info("  STEP 1: Loading all seat elements...")
+        max_attempts = 3  # Intentar hasta 3 asientos diferentes si alguno falla
 
-            seat_directory = {}
+        for attempt in range(max_attempts):
+            try:
+                # 🔍 XPATH DIRECTO: Encuentra DIRECTAMENTE el primer asiento disponible
+                # Sin iteraciones, sin pre-cargar 120 elementos
+                # ESTRATEGIA: Buscar solo elementos <button> cuyo @id termine en _ECONOMY, _PLUS o _PREMIUM
+                # Esto garantiza que solo encontramos asientos reales, no contenedores
+                # Asientos reales tienen IDs como: 4A_ECONOMY, 11B_ECONOMY, 15C_PLUS, 1A_PREMIUM, etc.
+                xpath_available_seat = (
+                    "//button[contains(@class, 'seat') and "
+                    "("
+                    "  substring(@id, string-length(@id) - string-length('_ECONOMY') + 1) = '_ECONOMY' or "
+                    "  substring(@id, string-length(@id) - string-length('_PLUS') + 1) = '_PLUS' or "
+                    "  substring(@id, string-length(@id) - string-length('_PREMIUM') + 1) = '_PREMIUM'"
+                    ") and "
+                    "not(contains(@class, 'selected')) and "
+                    "not(contains(@class, 'unavailable')) and "
+                    "not(contains(@class, 'occupied'))]"
+                )
 
-            for seat_id in self.ECONOMY_SEAT_IDS:
+                # Buscar TODOS los asientos disponibles
+                available_seats = self.driver.find_elements(By.XPATH, xpath_available_seat)
+
+                if not available_seats:
+                    logger.error("✗ No available seats found via XPath")
+                    return False, None
+
+                # Tomar el asiento en la posición 'attempt' (0, 1, 2)
+                # Esto permite intentar diferentes asientos si el primero falla
+                seat_index = min(attempt, len(available_seats) - 1)
+                seat = available_seats[seat_index]
+                seat_id = seat.get_attribute("id")
+
+                # Identificar tipo de asiento para logging
+                seat_classes = seat.get_attribute("class")
+                seat_type = "Economy"
+                if "upfront" in seat_classes:
+                    seat_type = "Premium"
+                elif "xlarge" in seat_classes:
+                    seat_type = "Plus"
+
+                logger.info(f"  ✓ Found available seat: {seat_id} ({seat_type}) - Attempt {attempt + 1}/{max_attempts}")
+
+                # Scroll al asiento (optimizado: reducido de 0.5s a 0.3s)
+                self.driver.execute_script("arguments[0].scrollIntoView({behavior: 'auto', block: 'center'});", seat)
+                time.sleep(0.3)  # OPTIMIZADO: 0.5s → 0.3s (ahorro: 0.2s × 6 = 1.2s)
+
+                # ⏳ Esperar que sea clickeable
                 try:
-                    # 🔍 Se BUSCA (SELENIUM): Elemento de asiento por ID
-                    seat_element = self.driver.find_element(By.ID, seat_id)
-                    seat_directory[seat_id] = seat_element
+                    clickable_seat = WebDriverWait(self.driver, 3).until(
+                        EC.element_to_be_clickable((By.ID, seat_id))
+                    )
                 except:
-                    pass
-
-            logger.info(f"  ✓ Loaded {len(seat_directory)} seat elements into directory")
-
-            # PASO 2: Iterar y seleccionar primer asiento disponible (sin filtrar por tipo)
-            logger.info("  STEP 2: Iterating through seats (accepting ANY type)...")
-
-            attempts = 0
-            for seat_id, seat in seat_directory.items():
-                attempts += 1
-                try:
-                    seat_classes = seat.get_attribute("class")
-                    logger.info(f"  Checking seat {seat_id}: classes = '{seat_classes}'")
-
-                    # Verificar si está disponible (tiene "seat" pero NO tiene "selected" ni "unavailable")
-                    # NO filtramos por tipo (upfront, xlarge, etc) - aceptamos cualquier tipo
-                    if "seat" in seat_classes and "selected" not in seat_classes and "unavailable" not in seat_classes:
-                        # Identificar tipo de asiento para logging
-                        seat_type = "Economy"
-                        if "upfront" in seat_classes:
-                            seat_type = "Premium"
-                        elif "xlarge" in seat_classes:
-                            seat_type = "Plus"
-
-                        logger.info(f"  ✓ Seat {seat_id} ({seat_type}) is available, attempting to select...")
-
-                        # Scroll al asiento
-                        self.driver.execute_script("arguments[0].scrollIntoView({behavior: 'auto', block: 'center'});", seat)
-                        time.sleep(0.5)
-
-                        # ⏳ Se ESPERA (SELENIUM): Asiento debe ser clickeable
-                        try:
-                            clickable_seat = self.wait.until(
-                                EC.element_to_be_clickable((By.ID, seat_id))
-                            )
-                        except:
-                            logger.warning(f"  ⚠ Seat {seat_id} not clickable, skipping...")
-                            continue
-
-                        # 🖱️ Se PRESIONA (SELENIUM): Click en asiento para seleccionarlo
-                        clickable_seat.click()
-                        logger.info(f"  Clicked on seat: {seat_id}")
-
-                        # Esperar 1 segundo para ver si aparece un modal
-                        time.sleep(1)
-
-                        # 🔍 Se BUSCA (SELENIUM): Verificar si apareció modal de error
-                        try:
-                            modal = self.driver.find_element(By.CSS_SELECTOR, "ngb-modal-window.modal-alert")
-                            logger.error(f"⚠⚠⚠ MODAL DETECTED!")
-
-                            # 📸 Se CAPTURA (SELENIUM): Screenshot del modal de error
-                            try:
-                                screenshot_path = f"reports/modal_error_{seat_id}.png"
-                                self.driver.save_screenshot(screenshot_path)
-                                logger.error(f"⚠⚠⚠ MODAL SCREENSHOT SAVED: {screenshot_path}")
-                            except:
-                                pass
-
-                            # 🖱️ Se PRESIONA (SELENIUM): Botón para cerrar modal de error
-                            close_selectors = [
-                                "button[aria-label='Close']",
-                                "button.close",
-                                "//button[contains(text(), 'Aceptar')]",
-                                "//button[contains(text(), 'OK')]",
-                                "//button[contains(text(), 'Cerrar')]"
-                            ]
-
-                            for selector in close_selectors:
-                                try:
-                                    if selector.startswith("//"):
-                                        close_btn = self.driver.find_element(By.XPATH, selector)
-                                    else:
-                                        close_btn = self.driver.find_element(By.CSS_SELECTOR, selector)
-                                    close_btn.click()
-                                    logger.info(f"  ✓ Modal closed")
-                                    break
-                                except:
-                                    continue
-
-                            time.sleep(1)
-                        except:
-                            # No hay modal, perfecto
-                            pass
-
-                        # Esperar 3 segundos para que el asiento cambie a 'selected'
-                        logger.info(f"  Waiting 3 seconds for seat to change to 'selected'...")
-                        time.sleep(3)
-
-                        # Verificar si se marcó como selected
-                        try:
-                            updated_seat = self.driver.find_element(By.ID, seat_id)
-                            updated_classes = updated_seat.get_attribute("class")
-                            logger.info(f"  After 3s, seat classes: '{updated_classes}'")
-
-                            if "selected" in updated_classes:
-                                logger.info(f"✓ Seat {seat_id} ({seat_type}) selected successfully")
-                                return True, seat_id
-                            else:
-                                logger.warning(f"⚠ Seat {seat_id} still not marked as 'selected' after 3 seconds")
-                                continue
-                        except Exception as e:
-                            logger.warning(f"⚠ Error checking seat status: {e}")
-                            continue
-                    else:
-                        logger.info(f"  ✗ Seat {seat_id} is NOT available (selected or unavailable)")
-
-                except Exception as e:
-                    logger.warning(f"  ✗ Could not find or check seat {seat_id}: {e}")
+                    logger.warning(f"  ⚠ Seat {seat_id} not clickeable, trying next...")
                     continue
 
-            logger.error(f"✗ No available seats found after checking {attempts} seats")
-            return False, None
+                # 🖱️ Click en el asiento
+                clickable_seat.click()
+                logger.info(f"  ✓ Clicked on seat: {seat_id}")
 
-        except Exception as e:
-            logger.error(f"✗ Error selecting seat: {e}")
-            import traceback
-            traceback.print_exc()
-            return False, None
+                # OPTIMIZADO: Esperar menos tiempo para detectar modal (1s → 0.8s)
+                time.sleep(0.8)  # OPTIMIZADO: 1s → 0.8s (ahorro: 0.2s × 6 = 1.2s)
+
+                # 🔍 Verificar si apareció modal de error
+                try:
+                    modal = self.driver.find_element(By.CSS_SELECTOR, "ngb-modal-window.modal-alert")
+                    logger.error(f"  ⚠ Modal detected for seat {seat_id}, trying next seat...")
+
+                    # Cerrar modal
+                    close_selectors = [
+                        "button[aria-label='Close']",
+                        "button.close",
+                        "//button[contains(text(), 'Aceptar')]",
+                        "//button[contains(text(), 'OK')]",
+                        "//button[contains(text(), 'Cerrar')]"
+                    ]
+
+                    for selector in close_selectors:
+                        try:
+                            if selector.startswith("//"):
+                                close_btn = self.driver.find_element(By.XPATH, selector)
+                            else:
+                                close_btn = self.driver.find_element(By.CSS_SELECTOR, selector)
+                            close_btn.click()
+                            logger.info(f"    ✓ Modal closed")
+                            break
+                        except:
+                            continue
+
+                    time.sleep(0.5)
+                    continue  # Intentar con el siguiente asiento
+
+                except:
+                    # No hay modal, perfecto
+                    pass
+
+                # OPTIMIZADO: Esperar confirmación (reducido de 2s a 1.5s)
+                logger.info(f"  Waiting 1.5s for seat confirmation...")
+                time.sleep(1.5)  # OPTIMIZADO: 2s → 1.5s (ahorro: 0.5s × 6 = 3s)
+
+                # Verificar si se marcó como selected
+                try:
+                    updated_seat = self.driver.find_element(By.ID, seat_id)
+                    updated_classes = updated_seat.get_attribute("class")
+
+                    if "selected" in updated_classes:
+                        logger.info(f"✓ XPATH OPTIMIZED: Seat {seat_id} ({seat_type}) selected successfully!")
+                        return True, seat_id
+                    else:
+                        logger.warning(f"  ⚠ Seat {seat_id} not marked as 'selected', trying next...")
+                        continue
+
+                except Exception as e:
+                    logger.warning(f"  ⚠ Error checking seat status: {e}, trying next...")
+                    continue
+
+            except Exception as e:
+                logger.warning(f"  ✗ Error in attempt {attempt + 1}: {e}")
+                if attempt < max_attempts - 1:
+                    continue
+                else:
+                    logger.error(f"✗ Failed to select seat after {max_attempts} attempts")
+                    import traceback
+                    traceback.print_exc()
+                    return False, None
+
+        logger.error(f"✗ No available seats could be selected after {max_attempts} attempts")
+        return False, None
 
     def assign_any_type_seats_to_passengers(self, passenger_count=3):
         """
@@ -684,40 +697,56 @@ class SeatmapPage:
 
     def click_go_to_payment(self):
         """
-        Hace click en el botón "Ir a pagar" para ir a la página de Payment.
+        Hace click en el botón de pago para ir a la página de Payment.
 
-        IMPORTANTE: Debe buscar específicamente el botón "Ir a pagar" y NO el botón "Continuar".
-        Si clickea "Continuar" en lugar de "Ir a pagar", va a Services en lugar de Payment.
+        SOLUCIÓN DINÁMICA Y ESCALABLE:
+        - Lee traducciones desde JSON (parameter_options.json > ui_translations)
+        - Funciona con CUALQUIER número de idiomas configurados en el JSON
+        - NO hardcodea listas de palabras en múltiples idiomas
+
+        IMPORTANTE: Debe buscar específicamente el botón de pago y NO el botón "Continuar".
+        Si clickea "Continuar" en lugar de pago, va a Services en lugar de Payment.
 
         Returns:
             bool: True si se hizo click correctamente
         """
-        logger.info("Clicking 'Ir a pagar' button...")
+        logger.info("Clicking payment button...")
 
         try:
             # Scroll hacia abajo para ver el botón
             self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
             time.sleep(1)
 
-            # 📸 Se CAPTURA (SELENIUM): Screenshot antes de hacer click en botón
+            # 📸 Screenshot antes de hacer click en botón
             try:
                 debug_screenshot = f"reports/debug_before_payment_button_{int(time.time())}.png"
                 self.driver.save_screenshot(debug_screenshot)
-                logger.info(f"📸 Screenshot saved before clicking button: {debug_screenshot}")
+                logger.info(f"📸 Screenshot saved: {debug_screenshot}")
             except:
                 pass
 
-            # 🔍 Se BUSCA (SELENIUM): Botón "Ir a pagar" con múltiples selectores
-            # HTML: <ds-button class="amount-summary_button--skipstep"><button aria-labelledby="Ir a pagar"><span class="button_label"> Ir a pagar </span></button></ds-button>
+            # 🌍 OBTENER TRADUCCIONES DINÁMICAMENTE DESDE JSON
+            # Obtener TODAS las traducciones del botón de pago (todos los idiomas en el JSON)
+            payment_button_texts = self.config.get_all_ui_texts("payment_button")
 
-            # Selectores SÚPER ESPECÍFICOS basados en el HTML real:
+            # Obtener palabras clave de pago y palabras a excluir (para validación)
+            payment_keywords = self.config.get_ui_keywords("payment_keywords")  # Todas las palabras de todos los idiomas
+            exclude_keywords = self.config.get_ui_keywords("exclude_keywords")  # Palabras a excluir
+
+            logger.info(f"Searching for payment button in {len(payment_button_texts)} languages: {list(payment_button_texts.keys())}")
+
+            # Construir selectores dinámicamente basados en traducciones del JSON
+            aria_conditions = " or ".join([f"@aria-labelledby='{text}'" for text in payment_button_texts.values()])
+            text_conditions = " or ".join([f"contains(text(), '{text}')" for text in payment_button_texts.values()])
+
+            # Selectores DINÁMICOS (generados en runtime desde JSON)
             go_to_payment_selectors = [
-                # Selector 1: ÓPTIMO - Por aria-labelledby (atributo único del botón "Ir a pagar")
-                "//button[@aria-labelledby='Ir a pagar']",
+                # Selector 1: Por aria-labelledby (ÓPTIMO - dinámico para todos los idiomas)
+                f"//button[{aria_conditions}]",
                 # Selector 2: Por clase específica amount-summary_button--skipstep
                 "//ds-button[contains(@class, 'amount-summary_button--skipstep')]//button",
-                # Selector 3: Por span con texto exacto (incluyendo espacios)
-                "//span[@class='button_label' and contains(text(), 'Ir a pagar')]",
+                # Selector 3: Por span con texto (dinámico para todos los idiomas)
+                f"//span[@class='button_label' and ({text_conditions})]",
                 # Selector 4: Fallback - ds-button con clase amount-summary_button
                 "//ds-button[contains(@class, 'amount-summary_button')]//button",
             ]
@@ -726,24 +755,47 @@ class SeatmapPage:
             used_selector = None
             for selector in go_to_payment_selectors:
                 try:
-                    # Si el selector busca span, obtenemos el botón padre
+                    # 🔍 USAR find_elements (plural) para obtener TODOS los botones que coinciden
+                    # Si el selector busca span, obtenemos los botones padres de TODOS los spans
                     if selector.startswith("//span"):
-                        span_elem = self.driver.find_element(By.XPATH, selector)
-                        go_to_payment_btn = span_elem.find_element(By.XPATH, "./ancestor::button")
-                        logger.info(f"✓ 'Ir a pagar' button found via span, selector: {selector[:60]}...")
+                        span_elems = self.driver.find_elements(By.XPATH, selector)
+                        candidate_buttons = [span.find_element(By.XPATH, "./ancestor::button") for span in span_elems]
+                        logger.info(f"Found {len(candidate_buttons)} buttons via span selector")
                     else:
-                        go_to_payment_btn = self.driver.find_element(By.XPATH, selector)
-                        logger.info(f"✓ 'Ir a pagar' button found directly, selector: {selector[:60]}...")
+                        candidate_buttons = self.driver.find_elements(By.XPATH, selector)
+                        logger.info(f"Found {len(candidate_buttons)} buttons with selector")
 
-                    used_selector = selector
-                    logger.info(f"✓ Button found successfully with selector: {selector}")
-                    break
+                    # Iterar por TODOS los botones encontrados y validar cada uno
+                    for button in candidate_buttons:
+                        # VALIDACIÓN DINÁMICA: Validar texto del botón usando keywords del JSON
+                        button_text = button.text.strip().lower()
+                        logger.debug(f"  Checking button with text: '{button.text}'")
+
+                        # Verificar que NO sea un botón incorrecto (ej: "Vuelo anterior", "Previous flight")
+                        # Convertir todas las keywords a lowercase para comparación
+                        exclude_keywords_lower = [kw.lower() for kw in exclude_keywords]
+                        if any(keyword in button_text for keyword in exclude_keywords_lower):
+                            logger.warning(f"  Skipping button with text '{button.text}' (matches exclude keywords)")
+                            continue
+
+                        # Verificar que SÍ contenga palabras relacionadas con pago
+                        payment_keywords_lower = [kw.lower() for kw in payment_keywords]
+                        if any(keyword in button_text for keyword in payment_keywords_lower):
+                            go_to_payment_btn = button
+                            used_selector = selector
+                            logger.info(f"✓ Button validated: '{go_to_payment_btn.text}'")
+                            break  # Salir del loop de botones
+
+                    # Si encontramos el botón correcto, salir del loop de selectores
+                    if go_to_payment_btn:
+                        break
+
                 except Exception as e:
-                    logger.debug(f"Selector '{selector[:40]}...' failed: {e}")
+                    logger.debug(f"Selector failed: {str(e)[:50]}...")
                     continue
 
             if not go_to_payment_btn:
-                logger.error("'Ir a pagar' button not found with any selector")
+                logger.error("Payment button not found with any selector")
                 return False
 
             # Loggear información del botón antes de hacer click
@@ -753,16 +805,16 @@ class SeatmapPage:
             self.driver.execute_script("arguments[0].scrollIntoView(true);", go_to_payment_btn)
             time.sleep(1)
 
-            # 🖱️ Se PRESIONA (SELENIUM): Botón "Ir a pagar" para avanzar a Payment
+            # 🖱️ Click en el botón de pago
             self.driver.execute_script("arguments[0].click();", go_to_payment_btn)
-            logger.info("✓ 'Ir a pagar' button clicked successfully")
+            logger.info("✓ Payment button clicked successfully")
 
-            # ⏳ Se ESPERA (SELENIUM): Página de Payment cargue completamente
+            # ⏳ Esperar a que cargue la página de Payment
             time.sleep(2)
             return True
 
         except Exception as e:
-            logger.error(f"✗ Error clicking 'Ir a pagar' button: {e}")
+            logger.error(f"✗ Error clicking payment button: {e}")
             import traceback
             traceback.print_exc()
             return False

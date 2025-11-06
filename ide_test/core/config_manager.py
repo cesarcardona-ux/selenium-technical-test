@@ -294,27 +294,38 @@ class ConfigManager:
         except:
             return None
 
-    def get_passenger_data(self, passenger_type: str) -> Optional[Dict[str, Any]]:
+    def get_passenger_data(self, passenger_type: str, case_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
         """
         Obtiene datos de un tipo de pasajero
 
         Args:
             passenger_type: Tipo de pasajero (adult, teen, child, infant)
+            case_id: ID del caso (ej: "case_1", "case_2"). Si es None, usa current_session
 
         Returns:
             Diccionario con datos del pasajero
         """
-        testdata = self.load_testdata()
+        testdata = self.load_testdata(case_id=case_id)
         return testdata.get("passengers", {}).get(passenger_type)
 
-    def get_payment_data(self) -> Dict[str, Any]:
-        """Obtiene datos de pago"""
-        testdata = self.load_testdata()
+    def get_payment_data(self, case_id: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Obtiene datos de pago
+
+        Args:
+            case_id: ID del caso (ej: "case_1", "case_2"). Si es None, usa current_session
+        """
+        testdata = self.load_testdata(case_id=case_id)
         return testdata.get("payment", {})
 
-    def get_billing_data(self) -> Dict[str, Any]:
-        """Obtiene datos de facturación"""
-        testdata = self.load_testdata()
+    def get_billing_data(self, case_id: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Obtiene datos de facturación
+
+        Args:
+            case_id: ID del caso (ej: "case_1", "case_2"). Si es None, usa current_session
+        """
+        testdata = self.load_testdata(case_id=case_id)
         return testdata.get("billing", {})
 
     def update_current_case(self, case_id: str) -> None:
@@ -358,4 +369,132 @@ class ConfigManager:
             return self._testdata.get(case_id)
         except:
             return None
+
+    def translate_country(self, country_id: str, language: str) -> str:
+        """
+        Traduce un ID de país al nombre en el idioma especificado
+
+        Args:
+            country_id: ID del país (ej: "colombia", "peru", "chile")
+            language: Idioma (ej: "Español", "English", "Français", "Português")
+
+        Returns:
+            Nombre del país en el idioma especificado
+        """
+        countries = self.load_parameter_options().get("countries", {})
+        country_data = countries.get(country_id.lower())
+
+        if country_data and language in country_data:
+            return country_data[language]
+
+        # Fallback: devolver el ID con primera letra mayúscula
+        return country_id.capitalize()
+
+    def get_country_display_names(self, language: str = "Español") -> list:
+        """
+        Obtiene lista de nombres de países en el idioma especificado para GUI
+
+        Args:
+            language: Idioma en que mostrar países (default: "Español")
+
+        Returns:
+            Lista de nombres de países ordenados alfabéticamente
+        """
+        countries = self.load_parameter_options().get("countries", {})
+        country_names = []
+
+        for country_id, country_data in countries.items():
+            if language in country_data:
+                country_names.append(country_data[language])
+
+        return sorted(country_names)
+
+    def get_country_id_from_display(self, display_name: str, language: str = "Español") -> Optional[str]:
+        """
+        Convierte nombre de país mostrado en GUI a ID neutral para guardar en JSON
+
+        Args:
+            display_name: Nombre mostrado (ej: "Colombia", "Colombie")
+            language: Idioma del nombre mostrado (default: "Español")
+
+        Returns:
+            ID neutral del país (ej: "colombia") o None si no se encuentra
+        """
+        countries = self.load_parameter_options().get("countries", {})
+
+        for country_id, country_data in countries.items():
+            if language in country_data and country_data[language] == display_name:
+                return country_id
+
+        return None
+
+    def get_ui_text(self, element_key: str, language: str) -> Optional[str]:
+        """
+        Obtiene el texto de un elemento de UI en el idioma especificado
+
+        Args:
+            element_key: Clave del elemento (ej: "payment_button", "add_button")
+            language: Idioma (ej: "Español", "English", "Français", "Português")
+
+        Returns:
+            Texto traducido del elemento o None si no existe
+        """
+        ui_translations = self.load_parameter_options().get("ui_translations", {})
+        element_data = ui_translations.get(element_key, {})
+
+        return element_data.get(language)
+
+    def get_all_ui_texts(self, element_key: str) -> Dict[str, str]:
+        """
+        Obtiene todos los textos de un elemento de UI en todos los idiomas
+
+        Args:
+            element_key: Clave del elemento (ej: "payment_button", "add_button")
+
+        Returns:
+            Diccionario {idioma: texto} para todos los idiomas disponibles
+        """
+        ui_translations = self.load_parameter_options().get("ui_translations", {})
+        element_data = ui_translations.get(element_key, {})
+
+        # Filtrar solo los idiomas (excluir "description")
+        return {k: v for k, v in element_data.items() if k != "description"}
+
+    def get_ui_keywords(self, keywords_key: str, language: Optional[str] = None) -> list:
+        """
+        Obtiene palabras clave de UI (ej: palabras de pago, palabras a excluir)
+
+        Args:
+            keywords_key: Clave de keywords (ej: "payment_keywords", "exclude_keywords")
+            language: Idioma específico. Si es None, retorna todos los idiomas
+
+        Returns:
+            Lista de keywords en el idioma especificado, o lista combinada si language=None
+        """
+        ui_translations = self.load_parameter_options().get("ui_translations", {})
+        keywords_data = ui_translations.get(keywords_key, {})
+
+        # Si se especifica idioma, retornar solo ese idioma
+        if language:
+            return keywords_data.get(language, [])
+
+        # Si no se especifica idioma, retornar todas las keywords de todos los idiomas
+        all_keywords = []
+        for lang_keywords in keywords_data.values():
+            if isinstance(lang_keywords, list):
+                all_keywords.extend(lang_keywords)
+
+        return all_keywords
+
+    def get_supported_languages(self) -> list:
+        """
+        Obtiene lista de todos los idiomas soportados configurados en el JSON
+
+        Returns:
+            Lista de nombres de idiomas (ej: ["Español", "English", "Français", "Português"])
+        """
+        language_options = self.load_parameter_options().get("language", {})
+        # Excluir "all" que es un valor especial
+        return [lang_data["display_name"] for lang_id, lang_data in language_options.items()
+                if lang_id != "all" and "display_name" in lang_data]
 

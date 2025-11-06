@@ -226,7 +226,7 @@ class ServicesPage:
             service_button_selectors = [
                 "serviceButtonTypeBusinessLounge",  # ID específico
                 "//button[contains(@id, 'BusinessLounge')]",
-                "//button[contains(., 'Avianca Lounges')]//span[contains(text(), 'Añadir')]/ancestor::button"
+                "//button[contains(., 'Avianca Lounges')]//span[contains(text(), 'Añadir') or contains(text(), 'Add') or contains(text(), 'Ajouter') or contains(text(), 'Adicionar')]/ancestor::button"
             ]
 
             service_button = None
@@ -254,7 +254,8 @@ class ServicesPage:
             logger.info("✓ Clicked on Avianca Lounges 'Añadir' button")
 
             # ⏳ Se ESPERA (SELENIUM): Modal de Avianca Lounges se abra
-            time.sleep(2)
+            # OPTIMIZADO: Reducido de 2s a 1.5s (ahorro: 0.5s)
+            time.sleep(1.5)
             logger.info("Waiting for modal to appear...")
 
             # PASO 3: Seleccionar SOLO 1 opción del modal
@@ -277,9 +278,9 @@ class ServicesPage:
                 try:
                     option_label = self.driver.find_element(By.XPATH, selector)
 
-                    # Verificar que el texto sea "Añadir" (no "Quitar")
+                    # Verificar que el texto sea "Añadir" (no "Quitar") - multi-idioma
                     label_text = option_label.text.strip()
-                    if "Añadir" in label_text or "Add" in label_text:
+                    if "Añadir" in label_text or "Add" in label_text or "Ajouter" in label_text or "Adicionar" in label_text:
                         logger.info(f"✓ Found available option: {selector}")
 
                         # 🖱️ Se PRESIONA (SELENIUM): Opción disponible en modal de Avianca Lounges
@@ -302,12 +303,21 @@ class ServicesPage:
             # PASO 4: Click en "Confirmar" del modal
             logger.info("Looking for 'Confirmar' button in modal...")
 
-            # 🔍 Se BUSCA (SELENIUM): Botón "Confirmar" en modal de Avianca Lounges
+            # 🔍 Se BUSCA (SELENIUM): Botón "Confirmar" en modal de Avianca Lounges (multi-idioma)
             confirm_selectors = [
                 "//button[@id='dsButtonId_53161']",  # ID específico del botón
+                # Español
                 "//button[contains(@class, 'btn-action')]//span[contains(text(), 'Confirmar')]/ancestor::button",
                 "//button//span[contains(text(), 'Confirmar')]/parent::button",
-                "//button[contains(., 'Confirmar')]"
+                "//button[contains(., 'Confirmar')]",
+                # English
+                "//button[contains(@class, 'btn-action')]//span[contains(text(), 'Confirm')]/ancestor::button",
+                "//button//span[contains(text(), 'Confirm')]/parent::button",
+                "//button[contains(., 'Confirm')]",
+                # Français
+                "//button[contains(@class, 'btn-action')]//span[contains(text(), 'Confirmer')]/ancestor::button",
+                "//button//span[contains(text(), 'Confirmer')]/parent::button",
+                "//button[contains(., 'Confirmer')]"
             ]
 
             confirm_button = None
@@ -337,7 +347,8 @@ class ServicesPage:
             logger.info("✓ Clicked 'Confirmar' button in modal")
 
             # ⏳ Se ESPERA (SELENIUM): Modal se cierre y página recargue
-            time.sleep(3)
+            # OPTIMIZADO: Reducido de 3s a 2s (ahorro: 1s)
+            time.sleep(2)
             logger.info("✓ Modal closed, page reloaded")
 
             logger.info("✓ Avianca Lounges service selected successfully")

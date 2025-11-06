@@ -71,6 +71,7 @@
     "chile": {
       "display_name": "Chile",
       "command_value": "Chile",
+      "button_text": "Chile",
       "country_code": "CL",
       "flag": "🇨🇱",
       "description": "Punto de venta Chile"
@@ -78,6 +79,7 @@
     "españa": {
       "display_name": "España",
       "command_value": "España",
+      "button_text": "España",
       "country_code": "ES",
       "flag": "🇪🇸",
       "description": "Punto de venta España"
@@ -85,13 +87,15 @@
     "francia": {
       "display_name": "Francia",
       "command_value": "Francia",
+      "button_text": "France",
       "country_code": "FR",
       "flag": "🇫🇷",
-      "description": "Punto de venta Francia"
+      "description": "Punto de venta Francia (aparece como 'France' en la página)"
     },
     "peru": {
       "display_name": "Peru",
       "command_value": "Peru",
+      "button_text": "Perú",
       "country_code": "PE",
       "flag": "🇵🇪",
       "description": "Punto de venta Perú"
@@ -99,6 +103,7 @@
     "otros_paises": {
       "display_name": "Otros países",
       "command_value": "Otros países",
+      "button_text": "Otros países",
       "country_code": "XX",
       "flag": "🌍",
       "description": "Otros países"
@@ -106,6 +111,7 @@
     "all": {
       "display_name": "All POS",
       "command_value": "all",
+      "button_text": "all",
       "flag": "🌎",
       "description": "Probar todos los POS"
     }
@@ -377,6 +383,117 @@
     "Português": {
       "default_pos": "Chile",
       "description": "Português → Chile por defecto"
+    }
+  },
+
+  "countries": {
+    "colombia": {
+      "country_code": "CO",
+      "Español": "Colombia",
+      "English": "Colombia",
+      "Français": "Colombie",
+      "Português": "Colômbia"
+    },
+    "peru": {
+      "country_code": "PE",
+      "Español": "Perú",
+      "English": "Peru",
+      "Français": "Pérou",
+      "Português": "Perú"
+    },
+    "chile": {
+      "country_code": "CL",
+      "Español": "Chile",
+      "English": "Chile",
+      "Français": "Chili",
+      "Português": "Chile"
+    },
+    "españa": {
+      "country_code": "ES",
+      "Español": "España",
+      "English": "Spain",
+      "Français": "Espagne",
+      "Português": "Espanha"
+    },
+    "francia": {
+      "country_code": "FR",
+      "Español": "Francia",
+      "English": "France",
+      "Français": "France",
+      "Português": "França"
+    },
+    "mexico": {
+      "country_code": "MX",
+      "Español": "México",
+      "English": "Mexico",
+      "Français": "Mexique",
+      "Português": "México"
+    },
+    "usa": {
+      "country_code": "US",
+      "Español": "Estados Unidos",
+      "English": "United States",
+      "Français": "États-Unis",
+      "Português": "Estados Unidos"
+    }
+  },
+
+  "ui_translations": {
+    "payment_button": {
+      "description": "Botón 'Ir a pagar' en Seatmap",
+      "Español": "Ir a pagar",
+      "English": "Go to payment",
+      "Français": "Aller au paiement",
+      "Português": "Ir ao pagamento"
+    },
+    "add_button": {
+      "description": "Botón 'Añadir' en página de Servicios",
+      "Español": "Añadir",
+      "English": "Add",
+      "Français": "Ajouter",
+      "Português": "Adicionar"
+    },
+    "confirm_button": {
+      "description": "Botón 'Confirmar' en modales",
+      "Español": "Confirmar",
+      "English": "Confirm",
+      "Français": "Confirmer",
+      "Português": "Confirmar"
+    },
+    "continue_button": {
+      "description": "Botón 'Continuar' para avanzar entre páginas",
+      "Español": "Continuar",
+      "English": "Continue",
+      "Français": "Continuer",
+      "Português": "Continuar"
+    },
+    "previous_flight_button": {
+      "description": "Botón 'Vuelo anterior' (para excluir en selectores)",
+      "Español": "Vol anterior",
+      "English": "Previous flight",
+      "Français": "Vol précédent",
+      "Português": "Voo anterior"
+    },
+    "next_flight_button": {
+      "description": "Botón 'Siguiente vuelo' en Seatmap",
+      "Español": "Siguiente vuelo",
+      "English": "Next flight",
+      "Français": "Prochain vol",
+      "Português": "Próximo voo"
+    },
+    "payment_keywords": {
+      "description": "Palabras clave que indican botón de pago (para validación)",
+      "Español": ["pagar", "pago"],
+      "English": ["payment", "pay"],
+      "Français": ["paiement", "payer"],
+      "Português": ["pagamento", "pagar"]
+    },
+    "exclude_keywords": {
+      "description": "Palabras que indican botón INCORRECTO (para excluir)",
+      "Español": ["anterior", "vuelo anterior", "siguiente vuelo", "prochain"],
+      "English": ["previous", "previous flight", "next flight"],
+      "Français": ["précédent", "vol précédent", "prochain vol"],
+      "Português": ["anterior", "voo anterior", "próximo voo"]
     }
   }
 }

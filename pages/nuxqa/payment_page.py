@@ -130,8 +130,8 @@ class PaymentPage:
                     self.driver.execute_script("arguments[0].scrollIntoView({behavior: 'auto', block: 'center'});", cookies_accept_button)
                     time.sleep(1)
                     cookies_accept_button.click()
-                    # ⏳ Se ESPERA (SELENIUM): Modal de cookies se cierre
-                    time.sleep(2)
+                    # ⏳ Se ESPERA (SELENIUM): Modal de cookies se cierre - OPTIMIZADO: 2s → 1.5s
+                    time.sleep(1.5)
                     logger.info("✓ Cookies accepted successfully (main DOM)")
 
                 except Exception as e:
@@ -175,7 +175,7 @@ class PaymentPage:
                             self.driver.switch_to.default_content()
                             logger.info("  ✓ Switched back to main content")
 
-                            time.sleep(3)  # Esperar a que el modal desaparezca
+                            time.sleep(2)  # OPTIMIZADO: Reducido de 3s a 2s (ahorro: 1s)
                             logger.info("✓ Cookies accepted successfully (iframe)")
                             iframe_found = True
                             break
@@ -202,11 +202,11 @@ class PaymentPage:
                     pass
 
             # CRÍTICO: Después de aceptar cookies, esperar a que Angular inyecte el iframe de payment
-            # OPTIMIZACIÓN V2: Reducido de 10s → 6s (ahorro adicional de 4 segundos)
-            # Total ahorro desde original: 13s+8s=21s → 6s = 15 segundos ahorrados
+            # OPTIMIZACIÓN V3: Reducido de 10s → 6s → 5s (ahorro adicional de 1 segundo)
+            # Total ahorro desde original: 13s+8s=21s → 5s = 16 segundos ahorrados
             # Razón: Ya aceptamos cookies inmediatamente, ahora Angular puede cargar el iframe
-            logger.info("Waiting 6 seconds for Angular to inject payment iframe after cookies...")
-            time.sleep(6)
+            logger.info("Waiting 5 seconds for Angular to inject payment iframe after cookies...")
+            time.sleep(5)
 
             # CRÍTICO: Los campos de tarjeta (Holder, Data, CVV, etc.) están dentro de un IFRAME externo
             # de payment gateway (api-pay.avtest.ink). Necesitamos cambiar al contexto del iframe.
@@ -353,7 +353,7 @@ class PaymentPage:
             traceback.print_exc()
             return False
 
-    def fill_billing_info(self, email, address="Calle Fake 123", city="Bogotá", country_text="colo"):
+    def fill_billing_info(self, email, address="Calle Fake 123", city="Bogotá", country_text="colo", country_name="Colombia"):
         """
         Llena los datos de facturación EN EL DOM PRINCIPAL (no en iframe).
 
@@ -364,7 +364,8 @@ class PaymentPage:
             email (str): Email del titular (del Reservation Holder)
             address (str): Dirección de residencia (default: fake)
             city (str): Ciudad (default: Bogotá)
-            country_text (str): Texto para buscar país (default: "colo" para Colombia)
+            country_text (str): Texto para buscar país (primeros 4 chars, ej: "colo", "colô")
+            country_name (str): Nombre completo del país en el idioma actual (ej: "Colombia", "Colombie", "Colômbia")
 
         Returns:
             bool: True si se llenó correctamente
@@ -397,23 +398,24 @@ class PaymentPage:
             city_input.send_keys(city)
             logger.info(f"  ✓ City filled: {city}")
 
-            # PASO 4: Country (Colombia)
-            logger.info(f"  4. Country: Colombia (searching with '{country_text}')...")
+            # PASO 4: Country (traducido según idioma)
+            logger.info(f"  4. Country: {country_name} (searching with '{country_text}')...")
             country_button = self.driver.find_element(*self.BILLING_COUNTRY_BUTTON)
             self.driver.execute_script("arguments[0].click();", country_button)
             time.sleep(0.3)
 
-            # Escribir "colo" para buscar Colombia
+            # Escribir primeros caracteres para buscar país
             country_button.send_keys(country_text)
             time.sleep(0.5)
 
-            # Seleccionar Colombia (aparece como opción filtrada)
-            # XPath: //button[@role='option' and contains(., 'Colombia')]
-            colombia_option = self.wait.until(
-                EC.presence_of_element_located((By.XPATH, "//button[@role='option' and contains(., 'Colombia')]"))
+            # Seleccionar país (traducido según idioma del test)
+            # XPath: //button[@role='option' and contains(., '{country_name}')]
+            country_xpath = f"//button[@role='option' and contains(., '{country_name}')]"
+            country_option = self.wait.until(
+                EC.presence_of_element_located((By.XPATH, country_xpath))
             )
-            self.driver.execute_script("arguments[0].click();", colombia_option)
-            logger.info("  ✓ Country selected: Colombia")
+            self.driver.execute_script("arguments[0].click();", country_option)
+            logger.info(f"  ✓ Country selected: {country_name}")
 
             logger.info("✓ Billing information filled successfully")
             time.sleep(0.5)
@@ -483,7 +485,7 @@ class PaymentPage:
             logger.error(f"✗ Error clicking 'Confirmar y pagar': {e}")
             return False
 
-    def complete_payment_flow(self, card_holder_name, email):
+    def complete_payment_flow(self, card_holder_name, email, country_text="colo", country_name="Colombia"):
         """
         Completa todo el flujo de pago en un solo método.
 
@@ -496,6 +498,8 @@ class PaymentPage:
         Args:
             card_holder_name (str): Nombre del titular (adulto)
             email (str): Email del Reservation Holder
+            country_text (str): Texto para buscar país (primeros 4 chars)
+            country_name (str): Nombre completo del país traducido
 
         Returns:
             bool: True si se completó todo correctamente
@@ -510,7 +514,7 @@ class PaymentPage:
                 return False
 
             # Paso 2: Facturación
-            billing_filled = self.fill_billing_info(email)
+            billing_filled = self.fill_billing_info(email, country_text=country_text, country_name=country_name)
             if not billing_filled:
                 logger.error("Failed to fill billing info")
                 return False

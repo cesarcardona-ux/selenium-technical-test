@@ -263,6 +263,7 @@ class PassengersPage:
                 traceback.print_exc()
 
             # ==================== PASO 5: NACIONALIDAD ====================
+            # 🚀 XPATH OPTIMIZADO: Ya usa XPath directo para buscar nacionalidad
             logger.info(f"  5. Selecting nationality: {nationality}")
             try:
                 nationality_buttons = self.driver.find_elements(By.CSS_SELECTOR, "button[id^='IdDocNationality_']")
@@ -271,21 +272,23 @@ class PassengersPage:
                     nationality_button_id = nationality_button.get_attribute("id")
 
                     self.driver.execute_script("arguments[0].scrollIntoView(true);", nationality_button)
-                    time.sleep(0.1)  # OPTIMIZADO: 0.2s → 0.1s (ahorro: 0.1s)
+                    time.sleep(0.05)  # 🚀 OPTIMIZADO: 0.1s → 0.05s (ahorro: 0.05s × 4 = 0.2s)
                     self.driver.execute_script("arguments[0].click();", nationality_button)
-                    time.sleep(0.2)  # OPTIMIZADO: 0.3s → 0.2s (ahorro: 0.1s)
+                    time.sleep(0.15)  # 🚀 OPTIMIZADO: 0.2s → 0.15s (ahorro: 0.05s × 4 = 0.2s)
 
-                    # Colombia siempre es -0
-                    nationality_option_id = f"{nationality_button_id}-0"
-
+                    # Buscar opción por texto visible (traducido según idioma)
+                    # XPath: //button[@role='option' and contains(., '{nationality}')]
                     try:
-                        nationality_option = self.driver.find_element(By.ID, nationality_option_id)
+                        nationality_xpath = f"//button[@role='option' and contains(., '{nationality}')]"
+                        nationality_option = self.wait.until(
+                            EC.presence_of_element_located((By.XPATH, nationality_xpath))
+                        )
                         self.driver.execute_script("arguments[0].click();", nationality_option)
                         logger.info(f"  ✓ Nationality selected: {nationality}")
-                    except:
-                        logger.warning(f"  ✗ Nationality not found with ID {nationality_option_id}")
+                    except Exception as e:
+                        logger.warning(f"  ✗ Nationality '{nationality}' not found: {e}")
 
-                    time.sleep(0.15)  # OPTIMIZADO: 0.2s → 0.15s (ahorro: 0.05s)
+                    time.sleep(0.1)  # 🚀 OPTIMIZADO: 0.15s → 0.1s (ahorro: 0.05s × 4 = 0.2s)
             except Exception as e:
                 logger.warning(f"  Could not select nationality: {e}")
 

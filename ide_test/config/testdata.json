@@ -1,18 +1,18 @@
 {
   "current_session": {
-    "case_id": "case_6",
+    "case_id": "case_7",
     "appearance_mode": "Light"
   },
   "case_1": {
     "parameters": {
-      "browser": "Google Chrome",
-      "language": "Español",
+      "browser": "Microsoft Edge",
+      "language": "All Languages",
       "pos": "Chile",
       "env": "QA4",
       "origin": "Bogotá (BOG)",
       "destination": "Medellín (MDE)",
-      "departure-days": "4",
-      "video": "Enabled",
+      "departure-days": "5",
+      "video": "Disabled",
       "screenshots": "All Steps"
     },
     "pytest_flags": {
@@ -28,7 +28,7 @@
         "last_name": "Pérez",
         "gender": "Male",
         "birth_date": "1990-01-15",
-        "nationality": "Colombia",
+        "nationality": "colombia",
         "document_type": "CC",
         "document_number": "1234567890"
       },
@@ -37,7 +37,7 @@
         "last_name": "García",
         "gender": "Female",
         "birth_date": "2012-05-20",
-        "nationality": "Colombia",
+        "nationality": "colombia",
         "document_type": "TI",
         "document_number": "9876543210"
       },
@@ -46,7 +46,7 @@
         "last_name": "López",
         "gender": "Male",
         "birth_date": "2018-08-10",
-        "nationality": "Colombia",
+        "nationality": "colombia",
         "document_type": "RC",
         "document_number": "5555555555"
       },
@@ -55,7 +55,7 @@
         "last_name": "Martínez",
         "gender": "Female",
         "birth_date": "2024-05-10",
-        "nationality": "Colombia",
+        "nationality": "colombia",
         "document_type": "RC",
         "document_number": "1111111111"
       }
@@ -72,7 +72,7 @@
       "address": "Calle 123 #45-67",
       "city": "Bogota",
       "zip_code": "110111",
-      "country": "Colombia"
+      "country": "colombia"
     }
   },
   "case_2": {
@@ -85,7 +85,7 @@
       "destination": "Medellín (MDE)",
       "departure-days": "2",
       "return-days": "4",
-      "video": "Enabled",
+      "video": "Disabled",
       "screenshots": "On Failure"
     },
     "pytest_flags": {
@@ -101,7 +101,7 @@
         "last_name": "Rodriguez",
         "gender": "Male",
         "birth_date": "1990-01-15",
-        "nationality": "Peru",
+        "nationality": "peru",
         "document_type": "DNI",
         "document_number": "4567891230"
       },
@@ -110,7 +110,7 @@
         "last_name": "Gonzalez",
         "gender": "Female",
         "birth_date": "2012-05-20",
-        "nationality": "Peru",
+        "nationality": "peru",
         "document_type": "DNI",
         "document_number": "7891234560"
       },
@@ -119,7 +119,7 @@
         "last_name": "Fernandez",
         "gender": "Male",
         "birth_date": "2018-08-10",
-        "nationality": "Peru",
+        "nationality": "peru",
         "document_type": "DNI",
         "document_number": "3216549870"
       },
@@ -128,23 +128,23 @@
         "last_name": "Torres",
         "gender": "Female",
         "birth_date": "2024-05-10",
-        "nationality": "Peru",
+        "nationality": "peru",
         "document_type": "DNI",
         "document_number": "9998887776"
       }
     },
     "payment": {
       "card_holder": "CARLOS RODRIGUEZ",
-      "card_number": "5555555555554444",
-      "cvv": "456",
-      "expiration_month": "06",
-      "expiration_year": "2026"
+      "card_number": "411111111111111",
+      "cvv": "123",
+      "expiration_month": "12",
+      "expiration_year": "2025"
     },
     "billing": {
       "email": "carlos.rodriguez@test.com",
       "address": "Av. Arequipa 1234",
       "city": "Lima",
-      "country": "Peru"
+      "country": "peru"
     }
   },
   "case_3": {
@@ -152,13 +152,13 @@
       "browser": "Google Chrome",
       "language": "Français",
       "pos": "Francia",
-      "env": "UAT1",
+      "env": "QA3",
       "origin": "Bogotá (BOG)",
       "destination": "Medellín (MDE)",
       "departure-days": "3",
       "return-days": "6",
       "video": "Disabled",
-      "screenshots": "None"
+      "screenshots": "All Steps"
     },
     "pytest_flags": {
       "verbose": true,
@@ -179,10 +179,10 @@
   "case_4": {
     "parameters": {
       "browser": "Google Chrome",
-      "language": "English",
-      "env": "QA5",
+      "language": "Español",
+      "env": "QA4",
       "video": "Disabled",
-      "screenshots": "None"
+      "screenshots": "All Steps"
     },
     "pytest_flags": {
       "verbose": true,
@@ -204,7 +204,7 @@
         "expected_text_home": "Ofertas"
       },
       "English": {
-        "expected_text_home": "Offers and destinations"
+        "expected_text_home": "Offers"
       },
       "Français": {
         "expected_text_home": "Offres"
@@ -216,18 +216,18 @@
   },
   "case_5": {
     "parameters": {
-      "browser": "Google Chrome",
+      "browser": "All Browsers",
       "pos": "Chile",
       "env": "QA5",
       "video": "Disabled",
-      "screenshots": "None"
+      "screenshots": "All Steps"
     },
     "pytest_flags": {
       "verbose": true,
       "show_prints": false,
       "stop_on_first_failure": false,
       "allure_report": false,
-      "parallel_execution": false
+      "parallel_execution": true
     },
     "passengers": {
       "adult": {},
@@ -243,12 +243,6 @@
       },
       "España": {
         "expected_button_text": "España"
-      },
-      "Francia": {
-        "expected_button_text": "France"
-      },
-      "Peru": {
-        "expected_button_text": "Perú"
       },
       "Otros países": {
         "expected_button_text": "Otros países"

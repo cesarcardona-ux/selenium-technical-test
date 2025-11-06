@@ -564,15 +564,32 @@ class MainWindow(ctk.CTk):
                 )
                 field_label.grid(row=row, column=0, sticky="w", padx=30, pady=3)
 
-                entry = ctk.CTkEntry(
-                    self.testdata_scroll,
-                    width=250
-                )
-                entry.insert(0, str(value))
-                entry.grid(row=row, column=1, sticky="w", padx=10, pady=3)
+                # Si es nationality, usar dropdown con países en español
+                if field == "nationality":
+                    country_names = self.config_manager.get_country_display_names(language="Español")
+                    widget = ctk.CTkComboBox(
+                        self.testdata_scroll,
+                        values=country_names,
+                        width=250
+                    )
+                    # Convertir ID a display name para mostrar
+                    display_value = self.config_manager.translate_country(str(value), "Español")
+                    if display_value in country_names:
+                        widget.set(display_value)
+                    else:
+                        widget.set(country_names[0] if country_names else "")
+                else:
+                    # Campos normales usan Entry
+                    widget = ctk.CTkEntry(
+                        self.testdata_scroll,
+                        width=250
+                    )
+                    widget.insert(0, str(value))
+
+                widget.grid(row=row, column=1, sticky="w", padx=10, pady=3)
 
                 # Guardar referencia
-                self.testdata_widgets[f"passengers.{ptype}.{field}"] = entry
+                self.testdata_widgets[f"passengers.{ptype}.{field}"] = widget
 
                 row += 1
 
@@ -625,14 +642,31 @@ class MainWindow(ctk.CTk):
             )
             field_label.grid(row=row, column=0, sticky="w", padx=20, pady=3)
 
-            entry = ctk.CTkEntry(
-                self.testdata_scroll,
-                width=250
-            )
-            entry.insert(0, str(value))
-            entry.grid(row=row, column=1, sticky="w", padx=10, pady=3)
+            # Si es country, usar dropdown con países en español
+            if field == "country":
+                country_names = self.config_manager.get_country_display_names(language="Español")
+                widget = ctk.CTkComboBox(
+                    self.testdata_scroll,
+                    values=country_names,
+                    width=250
+                )
+                # Convertir ID a display name para mostrar
+                display_value = self.config_manager.translate_country(str(value), "Español")
+                if display_value in country_names:
+                    widget.set(display_value)
+                else:
+                    widget.set(country_names[0] if country_names else "")
+            else:
+                # Campos normales usan Entry
+                widget = ctk.CTkEntry(
+                    self.testdata_scroll,
+                    width=250
+                )
+                widget.insert(0, str(value))
 
-            self.testdata_widgets[f"billing.{field}"] = entry
+            widget.grid(row=row, column=1, sticky="w", padx=10, pady=3)
+
+            self.testdata_widgets[f"billing.{field}"] = widget
 
             row += 1
 
@@ -735,6 +769,14 @@ class MainWindow(ctk.CTk):
         for field_path, widget in self.testdata_widgets.items():
             parts = field_path.split(".")
             value = widget.get()
+
+            # Convertir display names de países a IDs neutrales
+            field_name = parts[-1]  # Último elemento es el nombre del campo
+            if field_name in ["nationality", "country"]:
+                # Convertir "Colombia" → "colombia"
+                country_id = self.config_manager.get_country_id_from_display(value, language="Español")
+                if country_id:
+                    value = country_id
 
             if parts[0] == "passengers":
                 testdata["passengers"][parts[1]][parts[2]] = value

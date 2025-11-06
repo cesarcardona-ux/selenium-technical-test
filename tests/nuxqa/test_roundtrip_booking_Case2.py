@@ -78,6 +78,15 @@ def test_roundtrip_booking(driver, base_url, db, browser, language, screenshots_
     departure_days_param = int(request.config.getoption("--departure-days"))
     return_days_param = int(request.config.getoption("--return-days"))  # NUEVO: para round-trip
 
+    # AJUSTE PARA EJECUCIÓN PARALELA: fechas diferentes por worker
+    # Evita race condition al buscar asientos en el mismo vuelo
+    # Usa worker ID de pytest-xdist (gw0->0, gw1->1, etc.) que es único por proceso
+    # Funciona sin importar qué parámetro varíe (browser, language, env, etc.)
+    worker_id = getattr(request.config, 'workerinput', {}).get('workerid', 'gw0')
+    worker_offset = int(worker_id.replace('gw', '')) if worker_id.startswith('gw') else 0
+    departure_days_param += worker_offset
+    return_days_param += worker_offset
+
     # Obtener información de ciudades desde JSON
     cities_info = test_config.get_parameter_options("cities")
     origin_city_name = cities_info[origin_param]["city_name"]
@@ -89,27 +98,45 @@ def test_roundtrip_booking(driver, base_url, db, browser, language, screenshots_
     # Orden en la página: 1=Adulto, 2=Bebé, 3=Joven, 4=Niño
 
     # Cargar datos de facturación para obtener email y teléfono del adulto
-    billing_data_temp = test_config.get_billing_data()
+    billing_data_temp = test_config.get_billing_data(case_id="case_2")
 
-    adult_data = test_config.get_passenger_data("adult")
+    adult_data = test_config.get_passenger_data("adult", case_id="case_2")
     adult_data["type"] = "Adult"
     adult_data["email"] = billing_data_temp.get("email", "test@example.com")
     adult_data["phone"] = billing_data_temp.get("phone", "3001234567")
 
-    infant_data = test_config.get_passenger_data("infant")
+    infant_data = test_config.get_passenger_data("infant", case_id="case_2")
     infant_data["type"] = "Infant"
 
-    teen_data = test_config.get_passenger_data("teen")
+    teen_data = test_config.get_passenger_data("teen", case_id="case_2")
     teen_data["type"] = "Teen"
 
-    child_data = test_config.get_passenger_data("child")
+    child_data = test_config.get_passenger_data("child", case_id="case_2")
     child_data["type"] = "Child"
 
     PASSENGERS_DATA = [adult_data, infant_data, teen_data, child_data]
 
+    # Traducir nacionalidades al idioma del test
+    for passenger in PASSENGERS_DATA:
+        if "nationality" in passenger:
+            passenger["nationality"] = test_config.translate_country(
+                passenger["nationality"],
+                language
+            )
+
     # Cargar datos de pago y facturación desde testdata.json
-    CARD_DATA = test_config.get_payment_data()
+    CARD_DATA = test_config.get_payment_data(case_id="case_2")
     BILLING_DATA = billing_data_temp
+
+    # Traducir país de facturación al idioma del test
+    if "country" in BILLING_DATA:
+        country_translated = test_config.translate_country(
+            BILLING_DATA["country"],
+            language
+        )
+        BILLING_DATA["country"] = country_translated
+        # Primeros 4 caracteres para búsqueda (ej: "Colo", "Colô", "Colomb")
+        BILLING_DATA["country_search"] = country_translated[:4].lower()
 
     logger.info(f"✅ Datos cargados desde JSON: {len(PASSENGERS_DATA)} pasajeros, tarjeta, facturación")
 
@@ -422,36 +449,36 @@ def test_roundtrip_booking(driver, base_url, db, browser, language, screenshots_
             service_selected = services_page.select_first_available_service()
             selected_service_name = "First available service"
 
-        # Si aún así no se pudo seleccionar ninguno, la página redirige automáticamente
+        # Si aún así no se pudo seleccionar ninguno, seguir intentando hacer click en Continue
         if not service_selected:
-            logger.warning("No services available to select - page may auto-redirect to Seatmap")
+            logger.warning("No services available to select - will try to click Continue to proceed")
             selected_service_name = "NONE (auto-skipped)"
-            # Esperar a que la página redirija automáticamente
-            time.sleep(3)
+            time.sleep(2)
         else:
             # Si se seleccionó un servicio, esperar un poco para que el botón esté listo
             logger.info(f"Service selected: {selected_service_name}")
-            time.sleep(2)
+            # OPTIMIZADO: Reducido de 2s a 1s (ahorro: 1s)
+            time.sleep(1)
 
-            # Click en Continue para ir a Seatmap
-            logger.info("Clicking Continue button to proceed to Seatmap...")
-            continue_clicked = services_page.click_continue()
+        # SIEMPRE intentar hacer click en Continue, incluso si no se seleccionó ningún servicio
+        logger.info("Clicking Continue button to proceed to Seatmap...")
+        continue_clicked = services_page.click_continue()
 
-            if not continue_clicked:
-                logger.warning("Continue button not found via click_continue(), trying alternative approach...")
-                # Alternativa: scroll hacia abajo y buscar cualquier botón con texto "Continuar"
-                try:
-                    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                    time.sleep(1)
-                    alt_continue_btn = driver.find_element(By.XPATH, "//button[contains(., 'Continuar') or contains(@class, 'btn-next')]")
-                    driver.execute_script("arguments[0].click();", alt_continue_btn)
-                    logger.info("✓ Continue clicked via alternative approach")
-                    continue_clicked = True
-                except Exception as e:
-                    logger.error(f"Alternative Continue click also failed: {e}")
-                    continue_clicked = False
+        if not continue_clicked:
+            logger.warning("Continue button not found via click_continue(), trying alternative approach...")
+            # Alternativa: scroll hacia abajo y buscar cualquier botón con texto "Continuar"
+            try:
+                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                time.sleep(1)
+                alt_continue_btn = driver.find_element(By.XPATH, "//button[contains(., 'Continuar') or contains(., 'Continue') or contains(., 'Continuer') or contains(@class, 'btn-next')]")
+                driver.execute_script("arguments[0].click();", alt_continue_btn)
+                logger.info("✓ Continue clicked via alternative approach")
+                continue_clicked = True
+            except Exception as e:
+                logger.error(f"Alternative Continue click also failed: {e}")
+                continue_clicked = False
 
-            assert continue_clicked, "Failed to click Continue on Services page"
+        assert continue_clicked, "Failed to click Continue on Services page"
 
         step_results["services_selection"] = "SUCCESS"
 
@@ -467,13 +494,14 @@ def test_roundtrip_booking(driver, base_url, db, browser, language, screenshots_
             attachment_type=allure.attachment_type.TEXT
         )
 
-        time.sleep(2)
+        # OPTIMIZADO: Reducido de 2s a 1s (ahorro: 1s)
+        time.sleep(1)
 
     # ==================== PASO 7: Seatmap Page - Asignar Asientos (IDA y VUELTA) ====================
     # 📋 Se REPORTA (ALLURE): Step "Seatmap - Assign Seats for Outbound and Return Flights"
     with allure.step("Step 6: Seatmap - Assign Seats (ANY TYPE) for Outbound and Return Flights"):
         current_step = "Seatmap - Seat Assignment (Round-trip)"
-        seatmap_page = SeatmapPage(driver)
+        seatmap_page = SeatmapPage(driver, language=language)
 
         # ⏳ Se ESPERA (SELENIUM): Página de seatmap cargue completamente
         page_loaded = seatmap_page.wait_for_page_load()
@@ -571,7 +599,9 @@ def test_roundtrip_booking(driver, base_url, db, browser, language, screenshots_
         # ⌨️ Se INGRESA (SELENIUM): Información de tarjeta, facturación y términos (datos fake)
         payment_completed = payment_page.complete_payment_flow(
             card_holder_name=card_holder_name,
-            email=adult_data["email"]
+            email=adult_data["email"],
+            country_text=BILLING_DATA.get("country_search", "colo"),
+            country_name=BILLING_DATA.get("country", "Colombia")
         )
         # ✅ Se VALIDA (PYTEST): Flujo de pago debe completarse correctamente
         assert payment_completed, "Failed to complete payment flow"

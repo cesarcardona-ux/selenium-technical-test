@@ -69,6 +69,14 @@ def test_oneway_booking(driver, base_url, db, browser, language, screenshots_mod
     destination_param = request.config.getoption("--destination")
     departure_days_param = int(request.config.getoption("--departure-days"))
 
+    # AJUSTE PARA EJECUCIÓN PARALELA: fechas diferentes por worker
+    # Evita race condition al buscar asientos en el mismo vuelo
+    # Usa worker ID de pytest-xdist (gw0->0, gw1->1, etc.) que es único por proceso
+    # Funciona sin importar qué parámetro varíe (browser, language, env, etc.)
+    worker_id = getattr(request.config, 'workerinput', {}).get('workerid', 'gw0')
+    worker_offset = int(worker_id.replace('gw', '')) if worker_id.startswith('gw') else 0
+    departure_days_param += worker_offset
+
     # Obtener información de ciudades desde JSON
     cities_info = test_config.get_parameter_options("cities")
     origin_city_name = cities_info[origin_param]["city_name"]
@@ -80,27 +88,45 @@ def test_oneway_booking(driver, base_url, db, browser, language, screenshots_mod
     # Orden en la página: 1=Adulto, 2=Bebé, 3=Joven, 4=Niño
 
     # Cargar datos de facturación para obtener email y teléfono del adulto
-    billing_data_temp = test_config.get_billing_data()
+    billing_data_temp = test_config.get_billing_data(case_id="case_1")
 
-    adult_data = test_config.get_passenger_data("adult")
+    adult_data = test_config.get_passenger_data("adult", case_id="case_1")
     adult_data["type"] = "Adult"
     adult_data["email"] = billing_data_temp.get("email", "test@example.com")
     adult_data["phone"] = billing_data_temp.get("phone", "3001234567")  # Nuevo campo agregado
 
-    infant_data = test_config.get_passenger_data("infant")
+    infant_data = test_config.get_passenger_data("infant", case_id="case_1")
     infant_data["type"] = "Infant"
 
-    teen_data = test_config.get_passenger_data("teen")
+    teen_data = test_config.get_passenger_data("teen", case_id="case_1")
     teen_data["type"] = "Teen"
 
-    child_data = test_config.get_passenger_data("child")
+    child_data = test_config.get_passenger_data("child", case_id="case_1")
     child_data["type"] = "Child"
 
     PASSENGERS_DATA = [adult_data, infant_data, teen_data, child_data]
 
+    # Traducir nacionalidades al idioma del test
+    for passenger in PASSENGERS_DATA:
+        if "nationality" in passenger:
+            passenger["nationality"] = test_config.translate_country(
+                passenger["nationality"],
+                language
+            )
+
     # Cargar datos de pago y facturación desde testdata.json
-    CARD_DATA = test_config.get_payment_data()
+    CARD_DATA = test_config.get_payment_data(case_id="case_1")
     BILLING_DATA = billing_data_temp
+
+    # Traducir país de facturación al idioma del test
+    if "country" in BILLING_DATA:
+        country_translated = test_config.translate_country(
+            BILLING_DATA["country"],
+            language
+        )
+        BILLING_DATA["country"] = country_translated
+        # Primeros 4 caracteres para búsqueda (ej: "Colo", "Colô", "Colomb")
+        BILLING_DATA["country_search"] = country_translated[:4].lower()
 
     logger.info(f"✅ Datos cargados desde JSON: {len(PASSENGERS_DATA)} pasajeros, tarjeta, facturación")
 
@@ -423,7 +449,9 @@ def test_oneway_booking(driver, base_url, db, browser, language, screenshots_mod
         # Completar flujo de pago (tarjeta + facturación + términos + confirmar)
         payment_completed = payment_page.complete_payment_flow(
             card_holder_name=card_holder_name,
-            email=adult_data["email"]
+            email=adult_data["email"],
+            country_text=BILLING_DATA.get("country_search", "colo"),
+            country_name=BILLING_DATA.get("country", "Colombia")
         )
         assert payment_completed, "Failed to complete payment flow"
 

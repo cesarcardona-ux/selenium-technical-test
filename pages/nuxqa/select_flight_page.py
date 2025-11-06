@@ -274,30 +274,33 @@ class SelectFlightPage:
             # - English: "Choose fare" / "Select fare"
             # - Français: "Choisir le tarif"
             # - Português: "Selecionar tarifa"
-            logger.info("Looking for return journey buttons (language-agnostic approach)...")
+            logger.info("🚀 XPATH OPTIMIZED: Looking for return journey buttons (language-agnostic approach)...")
 
-            # 🔍 Se BUSCA (SELENIUM): Botones de vuelos de vuelta (filtrados por visibilidad)
-            all_journey_buttons = self.wait.until(
-                EC.presence_of_all_elements_located((By.CSS_SELECTOR, "button.journey_price_button"))
+            # 🚀 OPTIMIZACIÓN XPATH: En lugar de iterar 50-60 botones, usar XPath para filtrar directamente
+            # XPath que busca botones con clase 'journey_price_button' que contengan palabras clave en el texto
+            # Nota: XPath translate() se usa para case-insensitive matching
+            xpath_return_buttons = (
+                "//button[contains(@class, 'journey_price_button') and "
+                "("
+                "contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'tarif') or "
+                "contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'tarifa') or "
+                "contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'fare') or "
+                "contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'selec') or "
+                "contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'chois')"
+                ")]"
             )
-            logger.info(f"Found {len(all_journey_buttons)} total journey buttons in DOM")
+
+            # 🔍 Se BUSCA (SELENIUM): Botones de vuelos usando XPath optimizado
+            return_buttons_candidates = self.driver.find_elements(By.XPATH, xpath_return_buttons)
+            logger.info(f"✓ Found {len(return_buttons_candidates)} journey buttons with fare keywords (XPath filtered)")
 
             # FILTRAR solo los botones visibles (los de retorno son los que están visibles AHORA)
             # Los de IDA ya no están visibles porque ya se seleccionaron
-            # Textos comunes en diferentes idiomas: "tarif", "tarifa", "fare"
-            return_flight_buttons = []
-            keywords = ["tarif", "tarifa", "fare", "Selec", "Chois", "Choose"]  # Palabras clave multi-idioma
-            for btn in all_journey_buttons:
-                try:
-                    if btn.is_displayed():
-                        btn_text = btn.text.lower()
-                        # Si contiene alguna palabra clave relacionada con selección de tarifa
-                        if any(keyword.lower() in btn_text for keyword in keywords):
-                            return_flight_buttons.append(btn)
-                except:
-                    continue
+            # Nota: XPath no puede garantizar visibilidad, así que se verifica aquí
+            return_flight_buttons = [btn for btn in return_buttons_candidates if btn.is_displayed()]
 
-            logger.info(f"Found {len(return_flight_buttons)} buttons with fare selection text (return flights)")
+            logger.info(f"✓ Found {len(return_flight_buttons)} visible return flight buttons (display check)")
+            logger.info(f"⚡ Performance: XPath pre-filtered {len(return_buttons_candidates)} candidates (saved ~{60-len(return_buttons_candidates)} checks)")
 
             if not return_flight_buttons:
                 logger.error("No return flight buttons found")
