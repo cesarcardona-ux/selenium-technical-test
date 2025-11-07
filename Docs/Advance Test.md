@@ -777,15 +777,86 @@ pytest tests/nuxqa/test_oneway_booking_Case1.py --browser=chrome --language=Espa
 -------------------------------
 
 ### Caso 2: Booking Round-trip
-**Estado:** ⏳ Pendiente
+**Estado:** ✅ Completado
 **Objetivo:** Realizar booking de ida y vuelta completo
+**Navegadores:** Chrome, Edge, Firefox
+**Idiomas:** Español, English, Français, Português (multi-language)
+**Ambientes:** QA4
+**Total tests:** 12 (3 navegadores × 4 idiomas × 1 ambiente)
+
 **Páginas:**
-- Home: Idioma, POS, origen, destino, 1 pasajero de cada tipo
+- Home: Idioma (4 opciones), POS dinámico, origen, destino, 1 pasajero de cada tipo
 - Select flight: Tarifa Basic (ida) y Flex (vuelta)
-- Passengers: Información de pasajeros
+- Passengers: Información de 4 pasajeros (Adulto, Adolescente, Niño, Infante)
 - Services: Avianca Lounges (o cualquier otro si no disponible)
-- Seatmap: Plus, Economy, Premium, Economy (si disponible)
-- Payments: Llenar información pero NO enviar
+- Seatmap: Plus, Economy, Premium, Economy (selección variada de asientos)
+- Payments: Llenar información de pago y facturación pero NO enviar
+
+**Archivos implementados:**
+- `tests/nuxqa/test_roundtrip_booking_Case2.py` - Test parametrizado multi-idioma
+
+**CLI Options utilizadas:**
+- `--browser` (chrome | edge | firefox | all)
+- `--language` (Español | English | Français | Português | all)
+- `--pos` (Chile | España | Francia | Peru | all) - Seleccionado dinámicamente según idioma
+- `--env` (qa4 | qa5 | all)
+- `--origin` (BOG | MDE | CLO | MAD | etc.) - Código IATA del aeropuerto
+- `--destination` (BOG | MDE | CLO | MAD | etc.) - Código IATA del aeropuerto
+- `--departure-days` (4) - Días desde HOY para fecha de salida
+- `--return-days` (5) - Días desde HOY para fecha de regreso
+- `--screenshots` (none | on-failure | all)
+- `--video` (none | enabled)
+
+**Diferencias Clave con Caso 1:**
+- ✅ **Tipo de Vuelo:** Round-trip (requiere seleccionar 2 vuelos: ida y vuelta)
+- ✅ **Tarifas Mixtas:** Basic para ida + Flex para vuelta (requisito del PDF)
+- ✅ **Servicios:** Debe seleccionar Avianca Lounges (no omitir como en Caso 1)
+- ✅ **Asientos Variados:** Diferentes tipos para 4 pasajeros (Plus, Economy, Premium, Economy)
+- ✅ **Multi-idioma:** Parametrizado para 4 idiomas con POS dinámico
+- ✅ **Pago:** Solo llenar formulario, NO hacer submit (a diferencia del Caso 1)
+
+**Page Objects Utilizados:**
+- `pages/nuxqa/home_page.py` - Búsqueda de vuelos ida y vuelta
+- `pages/nuxqa/select_flight_page.py` - Selección de 2 vuelos (Ida Basic + Vuelta Flex)
+- `pages/nuxqa/passengers_page.py` - Formularios de 4 pasajeros
+- `pages/nuxqa/services_page.py` - Selección de Avianca Lounges con fallback
+- `pages/nuxqa/seatmap_page.py` - Selección de asientos variados
+- `pages/nuxqa/payment_page.py` - Llenado de formulario (sin submit)
+
+**Validaciones implementadas:**
+- ✅ Configuración correcta de idioma y POS dinámico según idioma
+- ✅ Selección de 2 vuelos (ida y vuelta) con tarifas diferentes
+- ✅ Llenado de información de 4 pasajeros
+- ✅ Selección de servicio Avianca Lounges (con fallback)
+- ✅ Selección de 4 asientos variados
+- ✅ Llenado completo de formulario de pago sin envío
+- ✅ Resultados guardados en SQLite database
+- ✅ Logs detallados de cada paso
+- ✅ Reportes Allure con información de vuelos seleccionados
+
+**Comandos de ejecución:**
+```bash
+# Ejecución básica (todos los browsers e idiomas)
+pytest tests/nuxqa/test_roundtrip_booking_Case2.py --browser=all --language=all --env=qa4 -v
+
+# Con video y screenshots completos para Allure
+pytest tests/nuxqa/test_roundtrip_booking_Case2.py --browser=chrome --language=Español --env=qa4 --origin=BOG --destination=MDE --departure-days=4 --return-days=5 --video=enabled --screenshots=all --alluredir=reports/allure
+
+# Solo un idioma específico
+pytest tests/nuxqa/test_roundtrip_booking_Case2.py --browser=chrome --language=English --env=qa4 -v
+
+# Ejecución paralela
+pytest tests/nuxqa/test_roundtrip_booking_Case2.py --browser=all --language=all --env=qa4 -n auto
+```
+
+**Características técnicas:**
+- Reutiliza Page Objects de Case 1 (passengers, services, seatmap, payment)
+- Selección inteligente de 2 vuelos con diferentes tarifas
+- Manejo multi-idioma con POS dinámico
+- Estrategia de fallback para servicios
+- Selección variada de asientos con fallback
+- Llenado de pago sin submission
+- Allure decorators avanzados
 
 -------------------------------
 
@@ -826,19 +897,19 @@ Durante el desarrollo, Chrome se actualizó a la versión 141. Las herramientas 
 - Problemas encontrados y soluciones
 
 ### Estado Actual
-- **Fase conceptual:** ✅ Completada (85% comprensión alcanzado)
+- **Fase conceptual:** ✅ Completada (100% comprensión alcanzado)
 - **Repositorio GitHub:** ✅ Configurado y actualizado (https://github.com/cesarcardona-ux/selenium-technical-test)
-- **Fase de implementación:** ✅ En progreso (85.7% completado)
-- **Casos completados:** 6/7 (Cases 1, 3, 4, 5, 6, 7 con video evidence)
+- **Fase de implementación:** ✅ COMPLETADA (100% - TODOS LOS CASOS IMPLEMENTADOS)
+- **Casos completados:** 7/7 (ALL CASES COMPLETE - Cases 1, 2, 3, 4, 5, 6, 7 con video evidence)
   - ✅ Case 1: One-way Booking (6 tests) - Framework completo + optimizaciones de tiempo
+  - ✅ Case 2: Round-trip Booking (12 tests) - Multi-idioma + POS dinámico
   - ✅ Case 3: Flight Search & Network Capture (2 tests - UAT1, CDP)
   - ✅ Case 4: Language Change Validation (24 tests)
   - ✅ Case 5: POS Change Validation (18 tests)
-  - ✅ Case 6: Header Redirections (18 tests)
-  - ✅ Case 7: Footer Redirections (24 tests)
-- **Caso pendiente:** 1/7 (Case 2)
-  - ⏳ Case 2: Round-trip Booking - Pendiente de implementación
-- **Total Tests:** 92 combinaciones (6 + 2 + 24 + 18 + 18 + 24)
+  - ✅ Case 6: Header Redirections (12 tests)
+  - ✅ Case 7: Footer Redirections (16 tests)
+- **Casos pendientes:** 0/7 - ✅ PROYECTO COMPLETO AL 100%
+- **Total Tests:** 90+ combinaciones (6 + 12 + 2 + 24 + 18 + 12 + 16)
 - **Database:** ✅ SQLite con 30 campos comprehensivos (extendida de 23)
 - **Video Evidence:** ✅ Implementado
   - Grabación MP4 con OpenCV

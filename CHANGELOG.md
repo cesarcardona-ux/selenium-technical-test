@@ -4,6 +4,119 @@ All notable changes and milestones for this automation project will be documente
 
 ---
 
+## [v1.6.0] - 2025-11-07
+
+### ✅ Case 2 COMPLETE - Round-trip Booking
+
+This release marks the **completion of Case 2: Round-trip Booking**, bringing the project to **7 out of 7 completed cases** (100% complete).
+
+### 🎯 Case 2: Round-trip Booking - COMPLETE
+
+**Completion Status:**
+- ✅ Framework implementation complete
+- ✅ Multi-language support implemented (4 languages)
+- ✅ Dual flight selection (outbound + return) functional
+- ✅ Mixed fare selection (Basic + Flex) working
+- ✅ Service selection with Avianca Lounges fallback
+- ✅ Variable seat selection for 4 passengers
+- ✅ Payment form filling without submission
+- ✅ 12 parametrized tests (3 browsers × 4 languages)
+- **Status**: Changed from ⏳ Pending to ✅ Complete
+
+**Key Features:**
+- **6-Page Flow**: Home → Select Flight (Ida + Vuelta) → Passengers → Services → Seatmap → Payment
+- **4 Passenger Types**: 1 Adult, 1 Teen, 1 Child, 1 Infant with complete form automation
+- **Flight Type**: Round-trip (requires 2 flight selections)
+- **Fare Selection**: Basic (outbound) + Flex (return) - Mixed fare requirement
+- **Services**: Select Avianca Lounges (or fallback to any available service)
+- **Seat Selection**: Variable seats (Plus, Economy, Premium, Economy)
+- **Payment**: Fill form with test data but do NOT submit
+- **Browsers**: Chrome, Edge, Firefox
+- **Languages**: Español, English, Français, Português (multi-language parametrization)
+- **Environment**: QA4
+- **Total Tests**: 12 (3 browsers × 4 languages)
+
+**Differences from Case 1:**
+- **Round-trip vs One-way**: Requires selecting 2 flights instead of 1
+- **Mixed Fares**: Basic for outbound + Flex for return (PDF requirement)
+- **Service Selection**: Must select services (Avianca Lounges) vs skipping all services in Case 1
+- **Variable Seats**: Different seat types (Plus, Economy, Premium, Economy) vs all Economy in Case 1
+- **Multi-language**: Parametrized for 4 languages vs single language in Case 1
+- **Dynamic POS**: POS selected automatically based on language
+- **Payment Submission**: Fill form only (no submit) vs attempted submission in Case 1
+
+**Test File:**
+- `tests/nuxqa/test_roundtrip_booking_Case2.py` - Complete round-trip booking flow
+
+### 🔧 Technical Improvements
+
+**Multi-Language Support:**
+- 4 languages: Español, English, Français, Português
+- Dynamic POS selection based on language
+- Language-specific validation and navigation
+- Comprehensive Allure reporting with language information
+
+**Flight Selection Logic:**
+- Intelligent selection of 2 flights (outbound + return)
+- Different fare types for each flight (Basic + Flex)
+- Proper handling of flight search results
+- Validation of selected flights
+
+**Service Selection with Fallback:**
+- Primary: Avianca Lounges
+- Fallback: Any available service if Lounges not available
+- Smart service detection and selection
+
+**Variable Seat Selection:**
+- 4 different seat types for 4 passengers
+- Seat availability detection
+- Fallback strategies for unavailable seat types
+
+### 📊 Updated Statistics
+
+- **Completed Cases**: 7/7 (100% complete) - ALL CASES IMPLEMENTED
+- **Total Tests**: 90+ (6 + 12 + 2 + 24 + 18 + 12 + 16)
+- **Page Objects**: 8 (home, login, select_flight, passengers, services, seatmap, payment, network_capture)
+- **Test Files**: 7 complete test cases
+- **Completion Rate**: 100% ✅
+
+### 🎉 Project Completion
+
+**All 7 Cases Complete:**
+1. ✅ Case 1: One-way Booking (6 tests)
+2. ✅ Case 2: Round-trip Booking (12 tests) - **NEW**
+3. ✅ Case 3: Flight Search & Network Capture (2 tests)
+4. ✅ Case 4: Language Change Validation (24 tests)
+5. ✅ Case 5: POS Change Validation (18 tests)
+6. ✅ Case 6: Header Redirections (12 tests)
+7. ✅ Case 7: Footer Redirections (16 tests)
+
+**Technical Debt Fixed:**
+- ✅ Added `language_validations` to Case 4 configuration
+- ✅ Added `pos_validations` to Case 5 configuration
+- ✅ Fixed missing validation configs in testdata.json
+
+### 📝 Documentation Updates
+
+**README.md**:
+- Updated Case 2 status from "⏳ Pendiente" to "✅ Completo"
+- Added complete Case 2 section with detailed description
+- Updated total tests to 90+
+- Updated completion rate to 100%
+
+**CHANGELOG.md**:
+- Added this v1.6.0 entry documenting Case 2 completion
+- Documented project completion milestone (7/7 cases)
+
+### 🚀 Next Steps
+
+- Cross-browser validation for all cases
+- Performance optimization and regression testing
+- Documentation polish and final review
+- Production deployment preparation
+
+---
+
 ## [v1.5.0] - 2025-11-05
 
 ### 🌍 Multi-Language URL Validation - Cases 6 & 7

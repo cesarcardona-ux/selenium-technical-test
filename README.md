@@ -246,7 +246,7 @@ pkill -9 chrome; pkill -9 chromedriver; pkill -9 msedge; pkill -9 msedgedriver; 
 | Caso   | Estado       | Descripción                           | Tests | Multi-idioma |
 |--------|--------------|---------------------------------------|-------|--------------|
 | Caso 1 | ✅ Completo  | Reserva Solo Ida (Flujo Completo)     |   6   | -            |
-| Caso 2 | ⏳ Pendiente | Reserva Ida y Vuelta                  |  -    | -            |
+| Caso 2 | ✅ Completo  | Reserva Ida y Vuelta (Flujo Completo) |  12   | 4 idiomas    |
 | Caso 3 | ✅ Completo  | Búsqueda de Vuelos y Captura de Red   |   2   | -            |
 | Caso 4 | ✅ Completo  | Validación de Cambio de Idioma        |  24   | 4 idiomas    |
 | Caso 5 | ✅ Completo  | Validación de Cambio de POS           |  18   | -            |
@@ -325,6 +325,51 @@ La página de Pago presenta desafíos únicos que requirieron manejo avanzado de
    - Todos los cambios de contexto correctamente registrados para debugging
 
 **Archivo:** `pages/nuxqa/payment_page.py` (líneas 97-352)
+
+### Caso 2: Reserva Ida y Vuelta ✅
+- **Flujo:** Flujo de reserva completo ida y vuelta (6 páginas)
+- **Páginas:** Home → Seleccionar Vuelo (Ida + Vuelta) → Pasajeros → Servicios → Mapa de Asientos → Pago
+- **Configuración:** Idioma (4 opciones), POS dinámico, 4 pasajeros (1 Adulto, 1 Adolescente, 1 Niño, 1 Infante)
+- **Tipo de Vuelo:** Ida y vuelta (Round-trip)
+- **Tarifas:** Basic (Ida) + Flex (Vuelta)
+- **Servicios:** Avianca Lounges (si disponible), o cualquier otro servicio
+- **Asientos:** Plus, Economy, Premium, Economy (si hay disponibilidad para 4 pasajeros)
+- **Pago:** Llenar información pero NO enviar formulario
+- **Navegadores:** Chrome, Edge, Firefox
+- **Idiomas:** Español, English, Français, Português
+- **Ambientes:** QA4
+- **Total de tests:** 12 (3 navegadores × 4 idiomas × 1 ambiente)
+- **Archivo:** `tests/nuxqa/test_roundtrip_booking_Case2.py`
+- **Parámetros CLI:** `--browser`, `--language`, `--pos`, `--env`, `--origin`, `--destination`, `--departure-days`, `--return-days`, `--video`, `--screenshots`
+- **Parametrización:** 100% - Multi-idioma con POS dinámico según idioma. Todos los valores configurables vía CLI y JSON
+- **Estado:** ✅ Completado - Flujo completo implementado, selección de 2 vuelos (Ida y Vuelta), multi-idioma funcional
+
+**Diferencias Clave con Caso 1:**
+- **Tipo de Vuelo:** Round-trip (requiere seleccionar 2 vuelos: ida y vuelta)
+- **Tarifas Mixtas:** Basic para ida + Flex para vuelta (requisito del PDF)
+- **Servicios:** Debe seleccionar Avianca Lounges (no omitir como en Caso 1)
+- **Asientos Variados:** Selección de diferentes tipos de asientos (Plus, Economy, Premium, Economy)
+- **Multi-idioma:** Parametrizado para los 4 idiomas (Español, English, Français, Português)
+- **POS Dinámico:** El POS se selecciona automáticamente según el idioma seleccionado
+- **Pago:** Solo llenar formulario, NO hacer submit (a diferencia del Caso 1)
+
+**Page Objects Utilizados:**
+- `pages/nuxqa/home_page.py` - Búsqueda de vuelos ida y vuelta
+- `pages/nuxqa/select_flight_page.py` - Selección de 2 vuelos (Ida Basic + Vuelta Flex)
+- `pages/nuxqa/passengers_page.py` - Formularios de 4 pasajeros
+- `pages/nuxqa/services_page.py` - Selección de Avianca Lounges
+- `pages/nuxqa/seatmap_page.py` - Selección de 4 asientos variados
+- `pages/nuxqa/payment_page.py` - Llenado de formulario de pago (sin submit)
+
+**Aspectos Técnicos Destacados:**
+- Automatización completa del flujo round-trip de 6 páginas
+- Selección inteligente de 2 vuelos con tarifas diferentes (Basic ida, Flex vuelta)
+- Manejo multi-idioma con POS dinámico (4 combinaciones de idioma)
+- Selección de servicios específicos (Avianca Lounges con fallback)
+- Estrategia de selección de asientos variados para 4 pasajeros
+- Llenado completo de formulario de pago sin envío
+- Reportes Allure con información de 2 vuelos seleccionados
+- Seguimiento en base de datos con información de vuelo de ida y vuelta
 
 ### Caso 3: Búsqueda de Vuelos y Captura de Red ✅
 - **Ambiente:** UAT1 (nuxqa.avtest.ink)
