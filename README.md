@@ -91,20 +91,20 @@ allure serve reports/allure
 
 ### Opciones CLI
 
-| Opción            | Valores                                                 | Descripción                                        |
-|-------------------|---------------------------------------------------------|----------------------------------------------------|
-| `--browser`       | chrome, edge, firefox, all                              | Selección de navegador (por defecto: all)          |
-| `--language`      | Español, English, Français, Português, all              | Selección de idioma (varía por caso)               |
-| `--pos`           | Chile, España, Francia, Peru, Otros países, all         | Selección de POS (por defecto: all)                |
-| `--header-link`   | ofertas-vuelos, credits, equipaje, all                  | Selección de link de header (por defecto: all)     |
-| `--footer-link`   | vuelos, noticias, aviancadirect, contactanos, all       | Selección de link de footer (por defecto: all)     |
-| `--env`           | qa4, qa5, uat1, all                                     | Selección de ambiente (por defecto: all)           |
-| `--origin`        | BOG, MDE, CLO, MAD, etc. (códigos IATA)                 | Aeropuerto de origen (Casos 1 y 3, por defecto: BOG) |
-| `--destination`   | BOG, MDE, CLO, MAD, etc. (códigos IATA)                 | Aeropuerto de destino (Casos 1 y 3, por defecto: MDE) |
-| `--departure-days`| Entero (días desde hoy)                                 | Offset de fecha de ida (Casos 1 y 3, por defecto: 4) |
-| `--return-days`   | Entero (días desde hoy)                                 | Offset de fecha de vuelta (Caso 2 y 3, por defecto: 5) |
-| `--screenshots`   | none, on-failure, all                                   | Modo de captura de screenshots (por defecto: on-failure) |
-| `--video`         | none, enabled                                           | Grabación de video (por defecto: none)             |
+| Opción            | Valores                                           | Descripción                                              |
+|-------------------|---------------------------------------------------|----------------------------------------------------------|
+| `--browser`       | chrome, edge, firefox, all                        | Selección de navegador (por defecto: all)                |
+| `--language`      | Español, English, Français, Português, all        | Selección de idioma (varía por caso)                     |
+| `--pos`           | Chile, España, Francia, Peru, Otros países, all   | Selección de POS (por defecto: all)                      |
+| `--header-link`   | ofertas-vuelos, credits, equipaje, all            | Selección de link de header (por defecto: all)           |
+| `--footer-link`   | vuelos, noticias, aviancadirect, contactanos, all | Selección de link de footer (por defecto: all)           |
+| `--env`           | qa4, qa5, uat1, all                               | Selección de ambiente (por defecto: all)                 |
+| `--origin`        | BOG, MDE, CLO, MAD, etc. (códigos IATA)           | Aeropuerto de origen (Casos 1 y 3, por defecto: BOG)     |
+| `--destination`   | BOG, MDE, CLO, MAD, etc. (códigos IATA)           | Aeropuerto de destino (Casos 1 y 3, por defecto: MDE)    |
+| `--departure-days`| Entero (días desde hoy)                           | Offset de fecha de ida (Casos 1 y 3, por defecto: 4)     |
+| `--return-days`   | Entero (días desde hoy)                           | Offset de fecha de vuelta (Caso 2 y 3, por defecto: 5)   |
+| `--screenshots`   | none, on-failure, all                             | Modo de captura de screenshots (por defecto: on-failure) |
+| `--video`         | none, enabled                                     | Grabación de video (por defecto: none)                   |
 
 **Nota sobre el parámetro `--language`:**
 - **Caso 4**: Por defecto es `all` (prueba los 4 idiomas)
@@ -243,13 +243,13 @@ pkill -9 chrome; pkill -9 chromedriver; pkill -9 msedge; pkill -9 msedgedriver; 
 
 ## Estado de Casos de Prueba
 
-| Caso   | Estado       | Descripción                           | Tests | Multi-idioma |
-|--------|--------------|---------------------------------------|-------|--------------|
-| Caso 1 | ✅ Completo  | Reserva Solo Ida (Flujo Completo)     |   6   | -            |
-| Caso 2 | ✅ Completo  | Reserva Ida y Vuelta (Flujo Completo) |  12   | 4 idiomas    |
-| Caso 3 | ✅ Completo  | Búsqueda de Vuelos y Captura de Red   |   2   | -            |
-| Caso 4 | ✅ Completo  | Validación de Cambio de Idioma        |  24   | 4 idiomas    |
-| Caso 5 | ✅ Completo  | Validación de Cambio de POS           |  18   | -            |
+| Caso   | Estado       | Descripción                            | Tests | Multi-idioma |
+|--------|--------------|----------------------------------------|-------|--------------|
+| Caso 1 | ✅ Completo  | Reserva Solo Ida (Flujo Completo)      |   6   | -            |
+| Caso 2 | ✅ Completo  | Reserva Ida y Vuelta (Flujo Completo)  |  12   | 4 idiomas    |
+| Caso 3 | ✅ Completo  | Búsqueda de Vuelos y Captura de Red    |   2   | -            |
+| Caso 4 | ✅ Completo  | Validación de Cambio de Idioma         |  24   | 4 idiomas    |
+| Caso 5 | ✅ Completo  | Validación de Cambio de POS            |  18   | -            |
 | Caso 6 | ✅ Completo  | Redirecciones de Header (Multi-idioma) |  12   | 4 idiomas (OR logic, JSON-driven) |
 | Caso 7 | ✅ Completo  | Redirecciones de Footer (Multi-idioma) |  16   | 4 idiomas (OR logic, JSON-driven) |
 
